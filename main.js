@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- SUPABASE & API CONFIGURATION ---
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://grajrxurqeojuvrvzstz.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyYWpyeHVycWVvanV2cnZ6c3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDQ4MTIsImV4cCI6MjA3MTkyMDgxMn0.jPKh3z18iik94ToRazHgkx3_R5BE51H4ws6Wh_sgKOo';
     const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
     const CHECK_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/check-license';
 
-    // THIS SECTION IS FIXED
-    let supabaseClient; // Use a different name to avoid confusion
+    // This section initializes the Supabase client for potential frontend use.
+    let supabaseClient;
     try {
-        // The Supabase library is available on the global 'window.supabase' object
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
     } catch (error) {
         console.error("Supabase client could not be initialized. This is okay if all DB calls are on the backend.", error);
