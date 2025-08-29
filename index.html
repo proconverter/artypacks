@@ -7,7 +7,10 @@
     <title>Artypacks | Procreate Brush to PNG Converter</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs. Perfect for Etsy sellers and digital artists using Canva or Photoshop.">
     
-    <!-- ==> FAVICON LINKS (ACTION REQUIRED: Ensure these files are in your project root) <== -->
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ==> FAVICON LINKS <== -->
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -17,7 +20,7 @@
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google tag (gtag.js ) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
@@ -40,29 +43,26 @@
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
             </header>
 
-            <!-- === THE CONVERTER APP UI === -->
+            <!-- === THE CONVERTER APP UI (Updated Style) === -->
             <section class="app-section" id="app-tool">
                 <div class="app-container">
                     <!-- Step 1: License Key -->
                     <div class="app-step">
-                        <div class="step-number">1</div>
                         <div class="step-content">
-                            <label for="license-key">Enter Your License Key</label>
-                            <input type="text" id="license-key" name="license-key" placeholder="Enter your key to activate">
+                            <label for="license-key">Step 1: Enter Your License Key</label>
+                            <input type="text" id="license-key" name="license-key" placeholder="Enter your license key here">
                         </div>
                     </div>
 
                     <!-- Step 2: File Upload -->
                     <div class="app-step">
-                        <div class="step-number">2</div>
                         <div class="step-content">
-                            <label for="file-upload">Upload Your .brushset File(s)</label>
+                            <label for="file-upload">Step 2: Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
                                     <img src="icon-upload-cloud.svg" alt="Upload Icon" class="drop-zone-icon">
-                                    <p><strong>Drag & drop files here</strong></p>
-                                    <p>or click to browse</p>
-                                    <p class="drop-zone-limits">Max 3 files, 50MB total</p>
+                                    <p><strong>Click to upload</strong> or drag and drop</p>
+                                    <p class="drop-zone-limits">1 to 3 .brushset files / 50MB total</p>
                                 </div>
                                 <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
                             </div>
@@ -72,9 +72,9 @@
 
                     <!-- Step 3: Convert Button -->
                     <div class="app-step">
-                        <div class="step-number">3</div>
                         <div class="step-content">
-                            <button id="convert-button" class="cta-button" disabled>Convert to PNG</button>
+                            <button id="convert-button" class="cta-button" disabled>Convert Your Brushsets</button>
+                            <p class="activation-notice" id="activation-notice">Enter your license key above to activate the converter.</p>
                         </div>
                     </div>
 
@@ -132,17 +132,17 @@
                             <div class="price-pack">
                                 <h4>Starter Pack (5 Credits)</h4>
                                 <p>Perfect for small projects.</p>
-                                <a href="YOUR_ETSY_LINK_HERE" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                             <div class="price-pack recommended">
-                                <h4>Premium Pack (10 Credits)</h4>
+                                <h4>Premium Pack (10 Credits )</h4>
                                 <p>Best value for most creators.</p>
-                                <a href="YOUR_ETSY_LINK_HERE" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                             <div class="price-pack">
-                                <h4>Studio Pack (30 Credits)</h4>
+                                <h4>Studio Pack (30 Credits )</h4>
                                 <p>For power users and professionals.</p>
-                                <a href="YOUR_ETSY_LINK_HERE" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                         </div>
                     </div>
