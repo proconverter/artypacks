@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArtyPacks | Procreate Brush to PNG Converter</title>
+    
+    <title>Artypacks | Procreate Brush to PNG Converter</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs. Perfect for Etsy sellers and digital artists using Canva or Photoshop.">
     
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Favicon Links -->
+    <!-- ==> FAVICON LINKS <== -->
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     
     <!-- Stylesheets and Fonts -->
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -42,7 +43,7 @@
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
             </header>
 
-            <!-- === THE CONVERTER APP UI === -->
+            <!-- === THE CONVERTER APP UI (Updated Style) === -->
             <section class="app-section" id="app-tool">
                 <div class="app-container">
                     <!-- Step 1: License Key -->
@@ -56,10 +57,10 @@
                     <!-- Step 2: File Upload -->
                     <div class="app-step">
                         <div class="step-content">
-                            <label for="file-input">Step 2: Upload Your .brushset Files</label>
+                            <label for="file-upload">Step 2: Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
-                                    <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-upload-cloud.svg" alt="Upload Icon" class="drop-zone-icon">
+                                    <img src="icon-upload-cloud.svg" alt="Upload Icon" class="drop-zone-icon">
                                     <p><strong>Click to upload</strong> or drag and drop</p>
                                     <p class="drop-zone-limits">1 to 3 .brushset files / 50MB total</p>
                                 </div>
@@ -95,17 +96,17 @@
                 <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
                 <div class="how-it-works-grid">
                     <div class="feature-item">
-                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-upload.svg" alt="Upload Icon" class="feature-icon">
+                        <img src="icon-upload.svg" alt="Upload Icon" class="feature-icon">
                         <h3>1. Enter License & Upload</h3>
                         <p>Enter your license key and select one or more `.brushset` files.</p>
                     </div>
                     <div class="feature-item">
-                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-convert.svg" alt="Convert Icon" class="feature-icon">
+                        <img src="icon-convert.svg" alt="Convert Icon" class="feature-icon">
                         <h3>2. Convert Securely</h3>
                         <p>Our tool securely processes your files, extracting each stamp image.</p>
                     </div>
                     <div class="feature-item">
-                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-download.svg" alt="Download Icon" class="feature-icon">
+                        <img src="icon-download.svg" alt="Download Icon" class="feature-icon">
                         <h3>3. Download PNGs</h3>
                         <p>Get a neatly packaged `.zip` file containing all your stamps as PNGs.</p>
                     </div>
@@ -114,10 +115,11 @@
 
             <hr class="section-divider">
 
-            <!-- === PRICING & FAQ SECTION === -->
+            <!-- === PRICING & FAQ SECTION (Combined for flow) === -->
             <section class="info-accordion">
                 <h2 class="section-title">Pricing & FAQ</h2>
                 
+                <!-- Accordion Item: Pricing -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>What are the pricing options?</span>
@@ -125,9 +127,10 @@
                     </div>
                     <div class="accordion-answer">
                         <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
+                        <!-- Nested Pricing Content Here -->
                         <div class="pricing-details">
                             <div class="price-pack">
-                                <h4>Starter Pack (5 Credits )</h4>
+                                <h4>Starter Pack (5 Credits)</h4>
                                 <p>Perfect for small projects.</p>
                                 <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
@@ -145,6 +148,7 @@
                     </div>
                 </div>
 
+                <!-- Accordion Item: How do credits work? -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>How do credits work?</span>
@@ -155,6 +159,7 @@
                     </div>
                 </div>
 
+                <!-- Accordion Item: Is it safe? -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>Is it safe? Do you keep my brushes?</span>
@@ -165,6 +170,7 @@
                     </div>
                 </div>
 
+                <!-- Accordion Item: Contact Us -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>Have a question or need help?</span>
@@ -177,12 +183,15 @@
                             <textarea name="message" placeholder="Your question or message" required></textarea>
                             <button type="submit">Send Message</button>
                         </form>
-                        <div id="form-status" style="display: none;"></div>
+                        <div id="form-status" style="display: none;">
+                            <span>Thank you! Your message has been sent.</span>
+                        </div>
                     </div>
                 </div>
             </section>
         </div>
 
+        <!-- === FOOTER SECTION === -->
         <footer class="page-footer">
             <p>
                 &copy; <span id="current-year">2025</span> Artypacks. All rights reserved.  
@@ -191,6 +200,7 @@
         </footer>
     </div>
 
-    <script src="main.js"></script>
+    <!-- === JAVASCRIPT FILE === -->
+    <script src="/main.js"></script>
 </body>
 </html>
