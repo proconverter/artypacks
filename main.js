@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
     const statusMessage = document.getElementById('status-message');
-    const downloadLink = document.getElementById('download-link');
     const newConversionButton = document.getElementById('new-conversion-button');
     const historySection = document.getElementById('history-section');
     const historyList = document.getElementById('history-list');
@@ -39,19 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- UI LOGIC & EVENT LISTENERS (REBUILT FOR ROBUSTNESS) ---
+    // --- EVENT LISTENERS ---
     const setupEventListeners = () => {
-        // Listeners for elements that exist on page load
         licenseKeyInput.addEventListener('input', handleLicenseInput);
         dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
-        dropZone.addEventListener('dragover', handleDragOver);
-        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
-        newConversionButton.addEventListener('click', resetForNewConversion); // This is safe because the button exists, it's just hidden.
-
-        // These are now guaranteed to run
+        newConversionButton.addEventListener('click', resetForNewConversion);
         setupAccordion();
         setupContactForm();
     };
@@ -65,13 +61,73 @@ document.addEventListener('DOMContentLoaded', () => {
         debounceTimer = setTimeout(() => {
             const key = licenseKeyInput.value.trim();
             if (key.length > 5) {
-                validateLicenseOnServer(key);
+                validateLicenseWithRetries(key); // Use the new robust function
             }
         }, 500);
     };
+    
+    // --- NEW: ROBUST LICENSE VALIDATION WITH RETRIES ---
+    async function validateLicenseWithRetries(key, attempt = 1) {
+        // Set UI to "Checking..." only on the first attempt
+        if (attempt === 1) {
+            licenseStatus.innerHTML = 'Checking...';
+            licenseStatus.className = 'license-status-message';
+            isLicenseValid = false;
+        }
 
-    const handleDragOver = (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); };
-    const handleDragLeave = (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); };
+        try {
+            const response = await fetch(CHECK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: key })
+            });
+
+            // If we get a server error (like 502, 503, 504), it might be a cold start. Retry.
+            if (response.status >= 500 && attempt < 3) {
+                throw new Error('Server not ready, retrying...');
+            }
+
+            const result = await response.json();
+
+            if (response.ok && result.isValid) {
+                if (result.credits > 0) {
+                    licenseStatus.innerHTML = `Valid Key! You have ${result.credits} conversions remaining.`;
+                    isLicenseValid = true;
+                } else {
+                    licenseStatus.innerHTML = `This license has no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Top up your credits here.</a>`;
+                    isLicenseValid = false;
+                }
+                licenseStatus.className = 'license-status-message valid';
+            } else {
+                licenseStatus.textContent = result.message || 'Invalid license key.';
+                licenseStatus.className = 'license-status-message invalid';
+                isLicenseValid = false;
+            }
+        } catch (error) {
+            console.error(`License validation attempt ${attempt} failed:`, error);
+            
+            // If we have attempts left, schedule a retry with exponential backoff
+            if (attempt < 3) {
+                const delay = Math.pow(2, attempt) * 1000; // 2s, then 4s
+                setTimeout(() => validateLicenseWithRetries(key, attempt + 1), delay);
+                return; // Exit without updating the UI to "failed" yet
+            }
+
+            // If all retries fail, then show the error message
+            licenseStatus.textContent = 'Unable to verify key right now. Please try again in a moment.';
+            licenseStatus.className = 'license-status-message invalid';
+            isLicenseValid = false;
+        } finally {
+            // Only update the main UI (dropzone, etc.) after the final attempt
+            if (attempt >= 3 || isLicenseValid) {
+                 checkLicenseAndToggleUI();
+            }
+        }
+    }
+
+
+    // --- OTHER FUNCTIONS (No changes below this line) ---
+
     const handleDrop = (e) => {
         e.preventDefault();
         if (dropZone.classList.contains('disabled')) return;
@@ -92,44 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    async function validateLicenseOnServer(key) {
-        try {
-            licenseStatus.innerHTML = 'Checking...';
-            licenseStatus.className = 'license-status-message';
-            isLicenseValid = false;
-
-            const response = await fetch(CHECK_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey: key })
-            });
-            const result = await response.json();
-
-            if (response.ok && result.isValid) {
-                if (result.credits > 0) {
-                    licenseStatus.innerHTML = `Valid Key! You have ${result.credits} conversions remaining.`;
-                    isLicenseValid = true;
-                } else {
-                    licenseStatus.innerHTML = `This license has no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Top up your credits here.</a>`;
-                    isLicenseValid = false;
-                }
-                licenseStatus.className = 'license-status-message valid';
-            } else {
-                licenseStatus.textContent = result.message || 'Invalid license key.';
-                licenseStatus.className = 'license-status-message invalid';
-                isLicenseValid = false;
-            }
-        } catch (error) {
-            console.error('License validation request failed:', error);
-            licenseStatus.textContent = 'Unable to verify key right now.';
-            licenseStatus.className = 'license-status-message invalid';
-            isLicenseValid = false;
-        } finally {
-            checkLicenseAndToggleUI();
-        }
-    }
-
-    // --- FILE HANDLING ---
     const processFiles = (files) => {
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
         if (newFiles.length === 0 && files.length > 0) {
@@ -166,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS ---
     const handleConversion = async () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -202,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
-            validateLicenseOnServer(licenseKey);
+            validateLicenseWithRetries(licenseKey);
 
         } catch (error) {
             console.error('Conversion Error:', error);
@@ -220,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- HISTORY FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionDownloads.length === 0) {
@@ -232,32 +248,25 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionDownloads.forEach((item, index) => {
             const listItem = document.createElement('li');
             listItem.className = 'history-item';
-
             const infoDiv = document.createElement('div');
             infoDiv.className = 'history-item-info';
-            
             const titleSpan = document.createElement('span');
             titleSpan.textContent = `Conversion #${sessionDownloads.length - index}`;
-            
             const filesP = document.createElement('p');
             filesP.textContent = item.sourceFiles.join(', ');
-
             infoDiv.appendChild(titleSpan);
             infoDiv.appendChild(filesP);
-
             const downloadBtn = document.createElement('a');
             downloadBtn.className = 'history-download-btn';
             downloadBtn.href = item.downloadUrl;
             downloadBtn.textContent = 'Download';
             downloadBtn.target = '_blank';
-
             listItem.appendChild(infoDiv);
             listItem.appendChild(downloadBtn);
             historyList.appendChild(listItem);
         });
     };
 
-    // --- HELPER FUNCTIONS ---
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
@@ -274,11 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         progressFill.style.width = '0%';
         statusMessage.textContent = '';
         statusMessage.style.color = '';
-        downloadLink.style.display = 'none';
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question').forEach(question => {
             question.addEventListener('click', () => {
@@ -309,6 +316,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- START THE APP ---
     initializeApp();
 });
