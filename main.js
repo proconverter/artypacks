@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const CHECK_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/check-license';
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
-    // --- DOM ELEMENT SELECTORS (CORRECTED ) ---
-    const licenseKeyInput = document.getElementById('license-key');
-    const licenseStatus = document.getElementById('license-status'); // THIS WAS THE MISSING PIECE
+    // --- DOM ELEMENT SELECTORS ---
+    const licenseKeyInput = document.getElementById('license-key' );
+    const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE MANAGEMENT ---
     let uploadedFiles = [];
-    let sessionDownloads = []; // Array to store session download history
+    let sessionDownloads = [];
     let debounceTimer;
     let isLicenseValid = false;
 
@@ -49,11 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
             checkLicenseAndToggleUI();
             debounceTimer = setTimeout(() => {
                 const key = licenseKeyInput.value.trim();
-                if (key.length > 5) validateLicenseOnServer(key);
+                if (key.length > 5) {
+                    validateLicenseOnServer(key);
+                }
             }, 500);
         });
         
-        dropZone.addEventListener('click', () => !dropZone.classList.contains('disabled') && fileInput.click());
+        dropZone.addEventListener('click', () => {
+            if (!dropZone.classList.contains('disabled')) {
+                fileInput.click();
+            }
+        });
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); });
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', (e) => {
@@ -90,7 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message';
             isLicenseValid = false;
 
-            const response = await fetch(CHECK_API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ licenseKey: key }) });
+            const response = await fetch(CHECK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: key })
+            });
             const result = await response.json();
 
             if (response.ok && result.isValid) {
@@ -159,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
-        const originalFilesForHistory = [...uploadedFiles]; // Keep a copy for the history
+        const originalFilesForHistory = [...uploadedFiles];
         resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
@@ -171,7 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProgress(10, 'Validating and preparing upload...');
             const formData = new FormData();
             formData.append('licenseKey', licenseKey);
-            uploadedFiles.forEach(file => { formData.append('brushsets', file); });
+            // THIS IS THE CORRECTED KEY NAME FOR THE FILES
+            uploadedFiles.forEach(file => { formData.append('files', file); });
 
             updateProgress(30, 'Uploading and converting...');
             const response = await fetch(CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
@@ -181,14 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateProgress(100, 'Conversion successful!');
             
-            // Add to session history and update UI
             sessionDownloads.unshift({
                 downloadUrl: result.downloadUrl,
                 sourceFiles: originalFilesForHistory.map(f => f.name)
             });
             updateHistoryList();
 
-            // Hide the old buttons, show the new one
             downloadLink.style.display = 'none';
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
@@ -211,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- NEW: HISTORY FUNCTIONS ---
+    // --- HISTORY FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionDownloads.length === 0) {
@@ -220,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         historySection.style.display = 'block';
-        sessionDownloads.forEach(item => {
+        sessionDownloads.forEach((item, index) => {
             const listItem = document.createElement('li');
             listItem.className = 'history-item';
 
@@ -228,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             infoDiv.className = 'history-item-info';
             
             const titleSpan = document.createElement('span');
-            titleSpan.textContent = `Conversion #${sessionDownloads.length - sessionDownloads.indexOf(item)}`;
+            titleSpan.textContent = `Conversion #${sessionDownloads.length - index}`;
             
             const filesP = document.createElement('p');
             filesP.textContent = item.sourceFiles.join(', ');
@@ -240,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.className = 'history-download-btn';
             downloadBtn.href = item.downloadUrl;
             downloadBtn.textContent = 'Download';
-            downloadBtn.target = '_blank'; // Open in new tab
+            downloadBtn.target = '_blank';
 
             listItem.appendChild(infoDiv);
             listItem.appendChild(downloadBtn);
