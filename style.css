@@ -71,6 +71,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     transition: transform 0.2s ease, background-color 0.2s ease;
     border: none;
     cursor: pointer;
+    width: 100%; /* Make button full width of its container */
 }
 .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
 
@@ -182,18 +183,18 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- App Section Styles (Updated) --- */
 .app-section {
-    background-color: #f4f4f5;
+    background-color: #ffffff; /* Match the old style */
     border-radius: 16px;
     padding: 30px;
     width: 100%;
-    max-width: 650px;
+    max-width: 550px; /* Constrain app width more */
     border: 1px solid #e5e5e5;
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 30px; /* Increased gap */
 }
 
 .app-step {
@@ -204,127 +205,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 .step-content {
     width: 100%;
-    text-align: left;
-}
-
-.step-content label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 8px;
-    font-size: 18px;
-}
-
-.step-content input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    border: 1px solid #d4d4d8;
-    border-radius: 8px;
-}
-
-/* --- Drop Zone Styles (Updated for disabled state) --- */
-.drop-zone {
-    border: 2px dashed #d4d4d8;
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-
-.drop-zone.disabled {
-    cursor: not-allowed;
-    background-color: #f9fafb; /* Slightly greyer */
-    opacity: 0.6;
-}
-
-.drop-zone:not(.disabled) {
-    cursor: pointer;
-}
-
-.drop-zone:not(.disabled):hover, 
-.drop-zone:not(.disabled).dragover {
-    border-color: #007bff;
-    background-color: #f8f9fa;
-}
-
-.drop-zone-icon {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 10px;
-    opacity: 0.6;
-}
-
-.drop-zone-prompt p {
-    margin: 0;
-    color: #52525b;
-    max-width: 100%;
-}
-
-.drop-zone-limits {
-    font-size: 12px;
-    color: #a1a1aa;
-    margin-top: 10px !important;
-}
-
-.activation-notice {
-    font-size: 14px;
-    color: #71717a;
-    text-align: center;
-    margin-top: 15px;
-    max-width: 100%;
-}
-
-#file-list {
-    margin-top: 15px;
-    text-align: left;
-    font-size: 14px;
-}
-
-/* --- App Status & Progress --- */
-.app-status {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background-color: #e5e5e5;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 10px;
-}
-
-.progress-fill {
-    width: 0%;
-    height: 100%;
-    background-color: #007bff;
-    transition: width 0.3s ease;
-}
-
-#status-message {
-    font-weight: 500;
-    color: #3f3f46;
-}
-
-/* --- Button States --- */
-.cta-button:disabled {
-    background-color: #a1a1aa;
-    cursor: not-allowed;
-}
-.cta-button:disabled:hover {
-    transform: none;
-    background-color: #a1a1aa;
-}
-
-/* --- Responsive Design --- */
-@media (min-width: 768px) {
-    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 768px) {
-    h1 { font-size: 36px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
-}
+    text-align: center; /* <<< THIS IS THE CHANGE */
