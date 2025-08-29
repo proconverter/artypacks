@@ -1,339 +1,239 @@
-/* --- Global Styles & Resets --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+:root {
+    --primary-color: #3498db;
+    --primary-hover: #2980b9;
+    --background-color: #ecf0f1;
+    --card-background: #ffffff;
+    --text-color: #34495e;
+    --border-color: #bdc3c7;
+    --success-color: #2ecc71;
+    --error-color: #e74c3c;
+    --disabled-color: #95a5a6;
+    --disabled-background: #dce1e2;
 }
-
-/* === START: CORRECT BACKGROUND IMPLEMENTATION === */
-html {
-    background-color: #00b4ff;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f3f3f3' stroke-width='2'%3E%3Ccircle cx='25' cy='25' r='25'/%3E%3Ccircle cx='75' cy='25' r='25'/%3E%3Ccircle cx='25' cy='75' r='25'/%3E%3Ccircle cx='75' cy='75' r='25'/%3E%3C/g%3E%3C/svg%3E" );
-    background-size: 50px 50px;
-}
-/* === END: CORRECT BACKGROUND IMPLEMENTATION === */
 
 body {
-    font-family: 'Inter', sans-serif;
-    color: #18181b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color );
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2392c5eb' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E" );
+    color: var(--text-color);
     line-height: 1.6;
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 20px;
 }
 
-.page-wrapper {
-    width: 100%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-}
-
-/* --- Typography --- */
-h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px; }
-h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
-h3 { font-size: 18px; font-weight: 700; }
-h4 { font-size: 16px; font-weight: 700; }
-p { font-size: 16px; max-width: 600px; }
-a { color: #007bff; text-decoration: none; font-weight: 700; }
-
-/* --- Master Card Styling --- */
-.master-card {
-    background-color: #ffffff;
-    padding: 50px 40px;
-    border-radius: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.main-header, .main-footer {
     text-align: center;
-    gap: 30px;
+    margin-bottom: 2rem;
 }
 
-/* --- Content Sections --- */
-.hero, .how-it-works, .info-accordion {
+h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+main {
+    max-width: 700px;
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem;
+}
+
+.card {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+h2 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--background-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* License Input */
+.license-container {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    gap: 20px;
-    width: 100%;
+    margin-bottom: 0.5rem;
 }
 
-.tagline { font-size: 20px; color: #52525b; }
+#license-key-input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+#license-key-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+#license-key-input.valid { border-color: var(--success-color); }
+#license-key-input.invalid { border-color: var(--error-color); }
 
-/* --- General CTA Button --- */
-.cta-button {
-    display: inline-block; background-color: #007bff; color: #ffffff;
-    padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 700;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-    border: none;
+#license-status-indicator {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+/* File Upload Area */
+.file-drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 4px;
+    padding: 2rem;
+    text-align: center;
     cursor: pointer;
-    width: 100%; /* Make button full width of its container */
+    transition: background-color 0.3s, border-color 0.3s;
+    position: relative;
 }
-.cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
+.file-drop-area.dragover {
+    border-color: var(--primary-color);
+    background-color: #f0f8ff;
+}
+.file-drop-area p {
+    margin: 0.5rem 0;
+}
+.file-drop-area .feather {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+#file-upload {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+#file-list {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
 
-.section-divider {
-    width: 100%; border: none; border-top: 1px solid #e5e5e5; margin: 10px 0;
+/* Disabled State */
+#file-upload:disabled, #convert-btn:disabled {
+    cursor: not-allowed;
+}
+#file-upload:disabled ~ * {
+    color: var(--disabled-color);
+}
+#file-upload:disabled ~ .feather {
+    color: var(--disabled-color);
+}
+.file-drop-area:has(#file-upload:disabled) {
+    background-color: var(--disabled-background);
+    border-style: solid;
 }
 
-/* --- How-It-Works Section --- */
-.how-it-works-grid {
-    display: grid; grid-template-columns: 1fr; gap: 30px; width: 100%;
-    margin-top: 20px;
-}
-.feature-item {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 12px; width: 100%;
-}
-.feature-icon { width: 48px; height: 48px; }
-.feature-item h3 { margin-top: 8px; }
-.feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
-
-/* --- Accordion Styles (for Pricing & FAQ) --- */
-.info-accordion {
-    max-width: 100%; text-align: left;
-}
-.accordion-item {
+/* Button */
+.button {
+    display: block;
     width: 100%;
-    border-bottom: 1px solid #e5e5e5;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
-.accordion-item:first-of-type {
-    border-top: 1px solid #e5e5e5;
+.button:hover:not(:disabled) {
+    background-color: var(--primary-hover);
 }
-.accordion-question {
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; font-size: 18px; font-weight: 500; padding: 20px 0;
+.button:disabled {
+    background-color: var(--disabled-color);
 }
-.accordion-question .icon {
-    font-size: 24px; font-weight: 300; transition: transform 0.3s ease;
+
+/* Messages */
+.form-sub-message {
+    min-height: 1.2em;
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
 }
-.accordion-answer {
-    max-height: 0; overflow: hidden;
-    transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out;
-    color: #52525b; font-size: 16px; line-height: 1.6;
+#license-message.success, #form-message.success { color: var(--success-color); }
+#license-message.error, #form-message.error { color: var(--error-color); }
+#form-message a {
+    color: var(--primary-color);
+    font-weight: bold;
+    text-decoration: none;
 }
-.accordion-item.open .accordion-answer {
-    max-height: 800px;
-    padding-bottom: 25px;
-    transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in;
+#form-message a:hover {
+    text-decoration: underline;
 }
-.accordion-item.open .accordion-question .icon {
+
+/* How It Works List */
+#how-it-works ol {
+    padding-left: 20px;
+}
+#how-it-works li {
+    margin-bottom: 0.5rem;
+}
+
+/* Accordion */
+.accordion-item {
+    border-bottom: 1px solid var(--border-color);
+}
+.accordion-item:last-child {
+    border-bottom: none;
+}
+.accordion-header {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    color: var(--text-color);
+}
+.accordion-header::after {
+    content: '+';
+    position: absolute;
+    right: 1rem;
+    font-size: 1.5rem;
+    transition: transform 0.3s;
+}
+.accordion-header.active::after {
     transform: rotate(45deg);
 }
-
-/* --- Specific Styles for Pricing Accordion --- */
-.pricing-details {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-top: 20px;
-}
-.price-pack {
-    border: 1px solid #e5e5e5;
-    padding: 20px;
-    border-radius: 12px;
-}
-.price-pack.recommended {
-    border-color: #007bff;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
-}
-.price-pack h4 { margin-bottom: 5px; }
-.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 15px; max-width: 100%; }
-.cta-button-small {
-    display: inline-block;
-    text-align: center;
-    padding: 10px 20px;
-    font-size: 16px;
-}
-
-/* --- Page Footer --- */
-.page-footer {
-    padding: 20px; text-align: center; font-size: 14px;
-    color: #71717a;
-}
-.page-footer a { 
-    color: #71717a; font-weight: 400; text-decoration: underline; 
-    transition: color 0.2s ease;
-}
-.page-footer a:hover { color: #18181b; }
-
-/* --- Contact Form Styles --- */
-.contact-form {
-    display: flex; flex-direction: column; gap: 15px; margin-top: 10px;
-}
-.contact-form input, .contact-form textarea {
-    width: 100%; padding: 12px; font-family: 'Inter', sans-serif; font-size: 16px;
-    border: 1px solid #d4d4d8; border-radius: 8px; background-color: #f4f4f5;
-}
-.contact-form textarea { min-height: 120px; resize: vertical; }
-.contact-form button {
-    align-self: flex-start; padding: 12px 24px; font-size: 16px; font-weight: 700;
-    border-radius: 8px; border: none; cursor: pointer;
-    background-color: #18181b; color: #ffffff; transition: background-color 0.2s ease;
-}
-.contact-form button:hover { background-color: #3f3f46; }
-#form-status {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 15px; background-color: #f0fdf4; color: #166534;
-    border-radius: 8px; margin-top: 15px;
-}
-
-/* --- App Section Styles (Updated) --- */
-.app-section {
-    background-color: #ffffff; /* Match the old style */
-    border-radius: 16px;
-    padding: 30px;
-    width: 100%;
-    max-width: 550px; /* Constrain app width more */
-    border: 1px solid #e5e5e5;
-}
-
-.app-container {
-    display: flex;
-    flex-direction: column;
-    gap: 30px; /* Increased gap */
-}
-
-.app-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-}
-
-.step-content {
-    width: 100%;
-    /* text-align is now handled by individual elements */
-}
-
-.step-content label {
-    display: block;
-    font-weight: 600; /* Slightly less bold */
-    margin-bottom: 12px;
-    font-size: 16px;
-    text-align: center; /* Center the labels */
-}
-
-.step-content input[type="text"] {
-    width: 100%;
-    padding: 14px; /* More padding */
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    border: 1px solid #d4d4d8;
-    border-radius: 12px; /* More rounded */
-}
-
-/* --- Drop Zone Styles (Updated for disabled state) --- */
-.drop-zone {
-    border: 2px dashed #d4d4d8;
-    border-radius: 12px;
-    padding: 40px 30px; /* More vertical padding */
-    text-align: center;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-
-.drop-zone.disabled {
-    cursor: not-allowed;
-    background-color: #f9fafb; /* Slightly greyer */
-    opacity: 0.6;
-}
-
-.drop-zone:not(.disabled) {
-    cursor: pointer;
-}
-
-.drop-zone:not(.disabled):hover, 
-.drop-zone:not(.disabled).dragover {
-    border-color: #007bff;
-    background-color: #f8f9fa;
-}
-
-/* === THIS IS THE MISSING STYLE THAT WAS RESTORED === */
-.drop-zone-icon {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 12px;
-    opacity: 0.6;
-}
-
-.drop-zone-prompt p {
-    margin: 0;
-    color: #52525b;
-    max-width: 100%;
-    font-size: 16px;
-}
-.drop-zone-prompt p strong {
-    color: #18181b;
-    font-weight: 600;
-}
-
-.drop-zone-limits {
-    font-size: 14px; /* Larger limits text */
-    color: #a1a1aa;
-    margin-top: 8px !important;
-}
-
-.activation-notice {
-    font-size: 14px;
-    color: #71717a;
-    text-align: center;
-    margin-top: 15px;
-    max-width: 100%;
-}
-
-#file-list {
-    margin-top: 15px;
-    text-align: left;
-    font-size: 14px;
-}
-
-/* --- App Status & Progress --- */
-.app-status {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background-color: #e5e5e5;
-    border-radius: 4px;
+.accordion-content {
+    max-height: 0;
     overflow: hidden;
-    margin-bottom: 10px;
+    transition: max-height 0.3s ease-out;
+    padding: 0 1rem;
+}
+.accordion-content p {
+    margin: 0;
+    padding-bottom: 1rem;
 }
 
-.progress-fill {
-    width: 0%;
-    height: 100%;
-    background-color: #007bff;
-    transition: width 0.3s ease;
+/* Footer */
+.main-footer {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #7f8c8d;
 }
-
-#status-message {
-    font-weight: 500;
-    color: #3f3f46;
+.main-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
 }
-
-/* --- Button States --- */
-.cta-button:disabled {
-    background-color: #e5e7eb; /* Lighter grey for disabled */
-    color: #9ca3af;
-    cursor: not-allowed;
-}
-.cta-button:disabled:hover {
-    transform: none;
-    background-color: #e5e7eb;
-}
-
-/* --- Responsive Design --- */
-@media (min-width: 768px) {
-    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 768px) {
-    h1 { font-size: 36px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
+.main-footer a:hover {
+    text-decoration: underline;
 }
