@@ -11,11 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Check if the clicked item is already open
             const isAlreadyOpen = item.classList.contains('open');
 
-            // Optional: Close all other accordions when one is opened
-            // accordionItems.forEach(otherItem => {
-            //     otherItem.classList.remove('open');
-            // });
-
             // If it wasn't already open, open it. Otherwise, just close it.
             if (!isAlreadyOpen) {
                 item.classList.add('open');
