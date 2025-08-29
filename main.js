@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyYWpyeHVycWVvanV2cnZ6c3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDQ4MTIsImV4cCI6MjA3MTkyMDgxMn0.jPKh3z18iik94ToRazHgkx3_R5BE51H4ws6Wh_sgKOo';
     const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
     const CHECK_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/check-license';
-    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks'; // Your Etsy store link
+    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
-    // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key' );
-    const licenseStatus = document.getElementById('license-status');
+    // --- DOM ELEMENT SELECTORS (CORRECTED ) ---
+    const licenseKeyInput = document.getElementById('license-key');
+    const licenseStatus = document.getElementById('license-status'); // THIS WAS THE MISSING PIECE
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -20,12 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('status-message');
     const downloadLink = document.getElementById('download-link');
     const newConversionButton = document.getElementById('new-conversion-button');
+    const historySection = document.getElementById('history-section');
+    const historyList = document.getElementById('history-list');
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
 
     // --- STATE MANAGEMENT ---
     let uploadedFiles = [];
+    let sessionDownloads = []; // Array to store session download history
     let debounceTimer;
     let isLicenseValid = false;
 
@@ -40,15 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupEventListeners = () => {
         licenseKeyInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
-            licenseStatus.innerHTML = ''; // Use innerHTML to clear potential links
+            licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
             isLicenseValid = false;
             checkLicenseAndToggleUI();
             debounceTimer = setTimeout(() => {
                 const key = licenseKeyInput.value.trim();
-                if (key.length > 5) {
-                    validateLicenseOnServer(key);
-                }
+                if (key.length > 5) validateLicenseOnServer(key);
             }, 500);
         });
         
@@ -68,13 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
-    // ### THIS IS THE CORRECTED FUNCTION ###
     const checkLicenseAndToggleUI = () => {
         const hasLicense = licenseKeyInput.value.trim().length > 0;
-        
         dropZone.classList.toggle('disabled', !isLicenseValid);
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
-
         const canConvert = isLicenseValid && uploadedFiles.length > 0;
         convertButton.disabled = !canConvert;
         
@@ -88,10 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function validateLicenseOnServer(key) {
         try {
-            licenseStatus.innerHTML = 'Checking...'; // Set "Checking..." message here
+            licenseStatus.innerHTML = 'Checking...';
             licenseStatus.className = 'license-status-message';
             isLicenseValid = false;
-            // Do NOT call checkLicenseAndToggleUI() here, it causes flicker.
 
             const response = await fetch(CHECK_API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ licenseKey: key }) });
             const result = await response.json();
@@ -116,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message invalid';
             isLicenseValid = false;
         } finally {
-            // Update the UI once at the very end.
             checkLicenseAndToggleUI();
         }
     }
@@ -163,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
+        const originalFilesForHistory = [...uploadedFiles]; // Keep a copy for the history
         resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
@@ -182,9 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
 
-            updateProgress(100, 'Conversion successful! Your download is ready.');
-            downloadLink.href = result.downloadUrl;
-            downloadLink.style.display = 'block';
+            updateProgress(100, 'Conversion successful!');
+            
+            // Add to session history and update UI
+            sessionDownloads.unshift({
+                downloadUrl: result.downloadUrl,
+                sourceFiles: originalFilesForHistory.map(f => f.name)
+            });
+            updateHistoryList();
+
+            // Hide the old buttons, show the new one
+            downloadLink.style.display = 'none';
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
@@ -206,6 +211,44 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
+    // --- NEW: HISTORY FUNCTIONS ---
+    const updateHistoryList = () => {
+        historyList.innerHTML = '';
+        if (sessionDownloads.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
+
+        historySection.style.display = 'block';
+        sessionDownloads.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.className = 'history-item';
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'history-item-info';
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = `Conversion #${sessionDownloads.length - sessionDownloads.indexOf(item)}`;
+            
+            const filesP = document.createElement('p');
+            filesP.textContent = item.sourceFiles.join(', ');
+
+            infoDiv.appendChild(titleSpan);
+            infoDiv.appendChild(filesP);
+
+            const downloadBtn = document.createElement('a');
+            downloadBtn.className = 'history-download-btn';
+            downloadBtn.href = item.downloadUrl;
+            downloadBtn.textContent = 'Download';
+            downloadBtn.target = '_blank'; // Open in new tab
+
+            listItem.appendChild(infoDiv);
+            listItem.appendChild(downloadBtn);
+            historyList.appendChild(listItem);
+        });
+    };
+
+    // --- HELPER FUNCTIONS ---
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
