@@ -12,9 +12,9 @@
     
     <!-- ==> FAVICON LINKS <== -->
     <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml"> <!-- Make sure icon.svg exists -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="manifest" href="/site.webmanifest"> <!-- Ensure file is named site.webmanifest -->
     
     <!-- Stylesheets and Fonts -->
     <link rel="stylesheet" type="text/css" href="/style.css">
@@ -61,7 +61,8 @@
                             <label for="file-upload">Step 2: Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
-                                    <img src="icon-upload-cloud.svg" alt="Upload Icon" class="drop-zone-icon">
+                                    <!-- FIXED: Changed icon-upload-cloud.svg to icon-upload.svg -->
+                                    <img src="icon-upload.svg" alt="Upload Icon" class="drop-zone-icon">
                                     <p><strong>Click to upload</strong> or drag and drop</p>
                                     <p class="drop-zone-limits">1 to 3 .brushset files / 50MB total</p>
                                 </div>
@@ -97,16 +98,19 @@
                 <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
                 <div class="how-it-works-grid">
                     <div class="feature-item">
+                        <!-- CORRECT FILENAME -->
                         <img src="icon-upload.svg" alt="Upload Icon" class="feature-icon">
                         <h3>1. Enter License & Upload</h3>
                         <p>Enter your license key and select one or more `.brushset` files.</p>
                     </div>
                     <div class="feature-item">
+                        <!-- CORRECT FILENAME -->
                         <img src="icon-convert.svg" alt="Convert Icon" class="feature-icon">
                         <h3>2. Convert Securely</h3>
                         <p>Our tool securely processes your files, extracting each stamp image.</p>
                     </div>
                     <div class="feature-item">
+                        <!-- CORRECT FILENAME -->
                         <img src="icon-download.svg" alt="Download Icon" class="feature-icon">
                         <h3>3. Download PNGs</h3>
                         <p>Get a neatly packaged `.zip` file containing all your stamps as PNGs.</p>
@@ -199,3 +203,9 @@
                 <a href="legal.html">Terms & Privacy</a>
             </p>
         </footer>
+    </div>
+
+    <!-- === JAVASCRIPT FILE === -->
+    <script src="/main.js"></script>
+</body>
+</html>
