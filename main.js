@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- SUPABASE & API CONFIGURATION ---
-    // IMPORTANT: You might want to replace these with your actual keys if you need to use the
-    // Supabase client directly on the frontend for other features in the future.
     const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
@@ -9,8 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let supabase;
     try {
-        // Note: This is not strictly needed for the current functionality as all Supabase
-        // calls are handled by the backend, but it's good practice to have it.
         supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
     } catch (error) {
         console.error("Supabase client could not be initialized. This is okay if all DB calls are on the backend.", error);
@@ -58,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI LOGIC & EVENT LISTENERS ---
     const setupEventListeners = () => {
-        // New listener with real-time validation
         licenseKeyInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             licenseStatus.textContent = '';
@@ -213,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('licenseKey', licenseKey);
             uploadedFiles.forEach(file => {
-                // The backend expects the files under the key 'brushsets'
                 formData.append('brushsets', file);
             });
 
@@ -227,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (!response.ok) {
-                // Use the error message from the backend
                 throw new Error(result.message || 'An unknown error occurred on the server.');
             }
 
@@ -257,7 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.display = 'none';
     };
 
-    const resetStatusUI = (). => {
+    // THIS IS THE CORRECTED FUNCTION
+    const resetStatusUI = () => {
         appStatus.style.display = 'none';
         progressBar.style.display = 'none';
         progressFill.style.width = '0%';
