@@ -7,18 +7,22 @@
     <title>Artypacks | Procreate Brush to PNG Converter</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs.">
     
+    <!-- The Supabase library is loaded here -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Favicon and Manifest Links -->
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/folder.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     
+    <!-- Stylesheets and Fonts -->
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -31,13 +35,16 @@
 <body>
     <div class="page-wrapper">
         <div class="master-card">
+            <!-- === HERO SECTION === -->
             <header class="hero">
                 <h1>The Easiest Way to Convert Procreate Stamps to PNG</h1>
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
             </header>
 
+            <!-- === THE CONVERTER APP UI === -->
             <section class="app-section" id="app-tool">
                 <div class="app-container">
+                    <!-- Step 1: License Key -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="license-key">Step 1: Enter Your License Key</label>
@@ -46,6 +53,7 @@
                         </div>
                     </div>
 
+                    <!-- Step 2: File Upload -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="file-upload">Step 2: Upload Your .brushset Files</label>
@@ -61,6 +69,7 @@
                         </div>
                     </div>
 
+                    <!-- Step 3: Convert Button -->
                     <div class="app-step">
                         <div class="step-content">
                             <button id="convert-button" class="cta-button" disabled>Convert Your Brushsets</button>
@@ -68,18 +77,19 @@
                         </div>
                     </div>
 
+                    <!-- Progress & Results Area -->
                     <div class="app-status" id="app-status" style="display: none;">
                         <div class="progress-bar" id="progress-bar" style="display: none;">
                             <div class="progress-fill" id="progress-fill"></div>
                         </div>
                         <p id="status-message"></p>
-                        <a href="#" id="download-link" class="cta-button" style="display: none;">Download Your PNGs</a>
+                        <!-- The old download button is removed as history replaces it -->
                         <button id="new-conversion-button" class="cta-button secondary" style="display: none;">Start New Conversion</button>
                     </div>
                 </div>
             </section>
 
-            <!-- === NEW: SESSION HISTORY SECTION === -->
+            <!-- === SESSION HISTORY SECTION === -->
             <section class="history-section" id="history-section" style="display: none;">
                 <h3 class="history-title">Session Download History</h3>
                 <ul class="history-list" id="history-list">
@@ -89,7 +99,7 @@
 
             <hr class="section-divider">
 
-            <!-- ... rest of your HTML (How It Works, FAQ, etc. ) ... -->
+            <!-- === HOW IT WORKS SECTION === -->
             <section class="how-it-works">
                 <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
                 <div class="how-it-works-grid">
@@ -113,8 +123,10 @@
 
             <hr class="section-divider">
 
+            <!-- === PRICING & FAQ SECTION === -->
             <section class="info-accordion">
                 <h2 class="section-title">Pricing & FAQ</h2>
+                <!-- Accordion Item: Pricing -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>What are the pricing options?</span>
@@ -124,7 +136,7 @@
                         <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
                         <div class="pricing-details">
                             <div class="price-pack">
-                                <h4>Starter Pack (5 Credits)</h4>
+                                <h4>Starter Pack (5 Credits )</h4>
                                 <p>Perfect for small projects.</p>
                                 <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
@@ -141,6 +153,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Other accordion items -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>How do credits work?</span>
@@ -179,4 +192,16 @@
             </section>
         </div>
 
-        <footer class
+        <!-- === FOOTER SECTION === -->
+        <footer class="page-footer">
+            <p>
+                &copy; <span id="current-year">2025</span> Artypacks. All rights reserved.  
+                <a href="legal.html">Terms & Privacy</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- === THIS IS THE CORRECTED SCRIPT TAG === -->
+    <script src="/main.js"></script>
+</body>
+</html>
