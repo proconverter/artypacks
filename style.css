@@ -5,11 +5,13 @@
     padding: 0;
 }
 
+/* === START: CORRECT BACKGROUND IMPLEMENTATION === */
 html {
     background-color: #00b4ff;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f3f3f3' stroke-width='2'%3E%3Ccircle cx='25' cy='25' r='25'/%3E%3Ccircle cx='75' cy='25' r='25'/%3E%3Ccircle cx='25' cy='75' r='25'/%3E%3Ccircle cx='75' cy='75' r='25'/%3E%3C/g%3E%3C/svg%3E"  );
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f3f3f3' stroke-width='2'%3E%3Ccircle cx='25' cy='25' r='25'/%3E%3Ccircle cx='75' cy='25' r='25'/%3E%3Ccircle cx='25' cy='75' r='25'/%3E%3Ccircle cx='75' cy='75' r='25'/%3E%3C/g%3E%3C/svg%3E" );
     background-size: 50px 50px;
 }
+/* === END: CORRECT BACKGROUND IMPLEMENTATION === */
 
 body {
     font-family: 'Inter', sans-serif;
@@ -48,7 +50,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     align-items: center;
     text-align: center;
     gap: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 /* --- Content Sections --- */
@@ -72,7 +73,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     cursor: pointer;
     width: 100%; /* Make button full width of its container */
 }
-.cta-button:hover:not(:disabled) { transform: scale(1.02); background-color: #0056b3; }
+.cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
 
 .section-divider {
     width: 100%; border: none; border-top: 1px solid #e5e5e5; margin: 10px 0;
@@ -80,7 +81,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- How-It-Works Section --- */
 .how-it-works-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; width: 100%;
+    display: grid; grid-template-columns: 1fr; gap: 30px; width: 100%;
     margin-top: 20px;
 }
 .feature-item {
@@ -175,27 +176,25 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .contact-form button:hover { background-color: #3f3f46; }
 #form-status {
-    padding: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; background-color: #f0fdf4; color: #166534;
     border-radius: 8px; margin-top: 15px;
 }
-#form-status.success { background-color: #f0fdf4; color: #166534; }
-#form-status.error { background-color: #fef2f2; color: #b91c1c; }
 
-
-/* --- App Section Styles --- */
+/* --- App Section Styles (Updated) --- */
 .app-section {
-    background-color: #f9fafb;
+    background-color: #ffffff; /* Match the old style */
     border-radius: 16px;
     padding: 30px;
     width: 100%;
-    max-width: 550px;
+    max-width: 550px; /* Constrain app width more */
     border: 1px solid #e5e5e5;
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 30px; /* Increased gap */
 }
 
 .app-step {
@@ -206,41 +205,38 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 .step-content {
     width: 100%;
+    /* text-align is now handled by individual elements */
 }
 
 .step-content label {
     display: block;
-    font-weight: 600;
+    font-weight: 600; /* Slightly less bold */
     margin-bottom: 12px;
     font-size: 16px;
-    text-align: center;
+    text-align: center; /* Center the labels */
 }
 
 .step-content input[type="text"] {
     width: 100%;
-    padding: 14px;
+    padding: 14px; /* More padding */
     font-family: 'Inter', sans-serif;
     font-size: 16px;
     border: 1px solid #d4d4d8;
-    border-radius: 12px;
-}
-.step-content input[type="text"]:focus {
-    outline: 2px solid #007bff;
-    border-color: transparent;
+    border-radius: 12px; /* More rounded */
 }
 
-/* --- Drop Zone Styles --- */
+/* --- Drop Zone Styles (Updated for disabled state) --- */
 .drop-zone {
     border: 2px dashed #d4d4d8;
     border-radius: 12px;
-    padding: 40px 30px;
+    padding: 40px 30px; /* More vertical padding */
     text-align: center;
     transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .drop-zone.disabled {
     cursor: not-allowed;
-    background-color: #f9fafb;
+    background-color: #f9fafb; /* Slightly greyer */
     opacity: 0.6;
 }
 
@@ -251,9 +247,10 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .drop-zone:not(.disabled):hover, 
 .drop-zone:not(.disabled).dragover {
     border-color: #007bff;
-    background-color: #f0f8ff;
+    background-color: #f8f9fa;
 }
 
+/* === THIS IS THE MISSING STYLE THAT WAS RESTORED === */
 .drop-zone-icon {
     width: 32px;
     height: 32px;
@@ -273,7 +270,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 .drop-zone-limits {
-    font-size: 14px;
+    font-size: 14px; /* Larger limits text */
     color: #a1a1aa;
     margin-top: 8px !important;
 }
@@ -290,7 +287,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 15px;
     text-align: left;
     font-size: 14px;
-    color: #52525b;
 }
 
 /* --- App Status & Progress --- */
@@ -322,7 +318,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Button States --- */
 .cta-button:disabled {
-    background-color: #e5e7eb;
+    background-color: #e5e7eb; /* Lighter grey for disabled */
     color: #9ca3af;
     cursor: not-allowed;
 }
@@ -332,10 +328,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 /* --- Responsive Design --- */
+@media (min-width: 768px) {
+    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
+    .pricing-details { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 768px) {
     h1 { font-size: 36px; }
     h2.section-title { font-size: 28px; }
     .master-card { padding: 40px 20px; }
-    .how-it-works-grid { grid-template-columns: 1fr; }
-    .pricing-details { grid-template-columns: 1fr; }
 }
