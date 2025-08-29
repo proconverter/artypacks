@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
     const CHECK_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/check-license';
 
-    let supabase;
+    // THIS SECTION IS FIXED
+    let supabaseClient; // Use a different name to avoid confusion
     try {
-        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
+        // The Supabase library is available on the global 'window.supabase' object
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
     } catch (error) {
         console.error("Supabase client could not be initialized. This is okay if all DB calls are on the backend.", error);
     }
@@ -250,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.display = 'none';
     };
 
-    // THIS IS THE CORRECTED FUNCTION
     const resetStatusUI = () => {
         appStatus.style.display = 'none';
         progressBar.style.display = 'none';
