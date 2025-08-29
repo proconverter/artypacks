@@ -46,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
             checkLicenseAndToggleUI();
             debounceTimer = setTimeout(() => {
                 const key = licenseKeyInput.value.trim();
-                if (key.length > 5) validateLicenseOnServer(key);
+                if (key.length > 5) {
+                    validateLicenseOnServer(key);
+                }
             }, 500);
         });
         
@@ -66,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
+    // ### THIS IS THE CORRECTED FUNCTION ###
     const checkLicenseAndToggleUI = () => {
         const hasLicense = licenseKeyInput.value.trim().length > 0;
         
@@ -76,23 +79,19 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.disabled = !canConvert;
         
         activationNotice.style.display = 'block';
-        if (!hasLicense) {
-            activationNotice.textContent = 'Converter locked – enter license key above.';
-        } else if (!isLicenseValid && licenseStatus.textContent.includes('Invalid')) {
-             activationNotice.textContent = 'Please enter a valid license key.';
-        } else if (!isLicenseValid) {
-            activationNotice.textContent = 'Validating key...';
-        } else {
+        if (isLicenseValid) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
+        } else {
+            activationNotice.textContent = 'Converter locked – enter license key above.';
         }
     };
 
     async function validateLicenseOnServer(key) {
         try {
-            licenseStatus.innerHTML = 'Checking...';
+            licenseStatus.innerHTML = 'Checking...'; // Set "Checking..." message here
             licenseStatus.className = 'license-status-message';
             isLicenseValid = false;
-            checkLicenseAndToggleUI();
+            // Do NOT call checkLicenseAndToggleUI() here, it causes flicker.
 
             const response = await fetch(CHECK_API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ licenseKey: key }) });
             const result = await response.json();
@@ -103,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     isLicenseValid = true;
                 } else {
                     licenseStatus.innerHTML = `This license has no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Top up your credits here.</a>`;
-                    isLicenseValid = false; // No credits, so can't convert
+                    isLicenseValid = false;
                 }
                 licenseStatus.className = 'license-status-message valid';
             } else {
@@ -117,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message invalid';
             isLicenseValid = false;
         } finally {
+            // Update the UI once at the very end.
             checkLicenseAndToggleUI();
         }
     }
@@ -192,4 +192,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Conversion Error:', error);
-            showError(error
+            showError(error.message);
+            licenseKeyInput.disabled = false;
+            checkLicenseAndToggleUI();
+        }
+    };
+    
+    const resetForNewConversion = () => {
+        uploadedFiles = [];
+        updateFileList();
+        resetStatusUI();
+        licenseKeyInput.disabled = false;
+        checkLicenseAndToggleUI();
+    };
+
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc3545';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+        downloadLink.style.display = 'none';
+        downloadLink.href = '#';
+        newConversionButton.style.display = 'none';
+    };
+
+    // --- ACCORDION & CONTACT FORM ---
+    const setupAccordion = () => {
+        document.querySelectorAll('.accordion-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+    };
+
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            try {
+                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    // --- START THE APP ---
+    initializeApp();
+});
