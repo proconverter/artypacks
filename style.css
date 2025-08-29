@@ -352,3 +352,54 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     h2.section-title { font-size: 28px; }
     .master-card { padding: 40px 20px; }
 }
+/* === ADD THESE STYLES TO THE END OF YOUR style.css FILE === */
+
+/* --- File List Styling --- */
+#file-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f4f4f5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #3f3f46;
+}
+
+#file-list li span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+}
+
+/* **FIX #3: STYLES FOR THE REMOVE BUTTON** */
+.remove-file-btn {
+    background-color: #e5e7eb;
+    color: #52525b;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0; /* Prevent the button from shrinking */
+}
+
+.remove-file-btn:hover {
+    background-color: #dc2626; /* Red background on hover */
+    color: #ffffff; /* White 'x' on hover */
+}
+
