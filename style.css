@@ -1,67 +1,333 @@
-document.addEventListener('DOMContentLoaded', function() {
+/* --- Global Styles & Resets --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    // --- Accordion Logic ---
-    const accordionItems = document.querySelectorAll('.accordion-item');
+/* === START: CORRECT BACKGROUND IMPLEMENTATION === */
+/* Apply the pattern to the root HTML element */
+html {
+    /* Blue background color */
+    background-color: #00b4ff;
 
-    accordionItems.forEach(item => {
-        const question = item.querySelector('.accordion-question');
+    /* The correct Shippō pattern SVG with the #f3f3f3 stroke color */
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f3f3f3' stroke-width='2'%3E%3Ccircle cx='25' cy='25' r='25'/%3E%3Ccircle cx='75' cy='25' r='25'/%3E%3Ccircle cx='25' cy='75' r='25'/%3E%3Ccircle cx='75' cy='75' r='25'/%3E%3C/g%3E%3C/svg%3E" );
 
-        question.addEventListener('click', () => {
-            // Check if the clicked item is already open
-            const isAlreadyOpen = item.classList.contains('open');
+    /* Adjust the size of the repeating pattern tile */
+    background-size: 50px 50px;
+}
+/* === END: CORRECT BACKGROUND IMPLEMENTATION === */
 
-            // Optional: Close all other accordions
-            // accordionItems.forEach(otherItem => {
-            //     otherItem.classList.remove('open');
-            // });
+/* The BODY element now ONLY handles layout and fonts, not the background */
+body {
+    font-family: 'Inter', sans-serif;
+    color: #18181b;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
-            // If it wasn't open, open it. If it was open, the line above already closed it.
-            if (!isAlreadyOpen) {
-                item.classList.add('open');
-            } else {
-                // If you want to allow closing an open item by clicking it again
-                item.classList.remove('open');
-            }
-        });
-    });
+.page-wrapper {
+    width: 100%;
+    max-width: 800px; /* This is the key to keeping your card width correct */
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
 
-    // --- Dynamic Year for Footer ---
-    const yearSpan = document.getElementById('current-year');
-    if (yearSpan) {
-        yearSpan.textContent = new Date().getFullYear();
-    }
+/* --- Typography --- */
+h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px; }
+h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
+h3 { font-size: 18px; font-weight: 700; }
+h4 { font-size: 16px; font-weight: 700; }
+p { font-size: 16px; max-width: 600px; }
+a { color: #007bff; text-decoration: none; font-weight: 700; }
 
-    // --- Formspree Form Handling (Optional but good practice) ---
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const form = e.target;
-            const data = new FormData(form);
-            const status = document.getElementById('form-status');
+/* --- Master Card Styling --- */
+.master-card {
+    background-color: #ffffff;
+    padding: 50px 40px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 30px;
+}
 
-            try {
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: data,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+/* --- Content Sections --- */
+.hero, .how-it-works, .info-accordion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    width: 100%;
+}
 
-                if (response.ok) {
-                    status.style.display = 'block';
-                    form.style.display = 'none';
-                } else {
-                    // Handle server errors
-                    status.innerHTML = "Oops! There was a problem submitting your form.";
-                    status.style.display = 'block';
-                }
-            } catch (error) {
-                // Handle network errors
-                status.innerHTML = "Oops! There was a network problem.";
-                status.style.display = 'block';
-            }
-        });
-    }
-});
+.tagline { font-size: 20px; color: #52525b; }
+
+/* --- General CTA Button --- */
+.cta-button {
+    display: inline-block; background-color: #007bff; color: #ffffff;
+    padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 700;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+.cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
+
+.section-divider {
+    width: 100%; border: none; border-top: 1px solid #e5e5e5; margin: 10px 0;
+}
+
+/* --- How-It-Works Section --- */
+.how-it-works-grid {
+    display: grid; grid-template-columns: 1fr; gap: 30px; width: 100%;
+    margin-top: 20px;
+}
+.feature-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; width: 100%;
+}
+.feature-icon { width: 48px; height: 48px; }
+.feature-item h3 { margin-top: 8px; }
+.feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
+
+/* --- Accordion Styles (for Pricing & FAQ) --- */
+.info-accordion {
+    max-width: 100%; text-align: left;
+}
+.accordion-item {
+    width: 100%;
+    border-bottom: 1px solid #e5e5e5;
+}
+.accordion-item:first-of-type {
+    border-top: 1px solid #e5e5e5;
+}
+.accordion-question {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; font-size: 18px; font-weight: 500; padding: 20px 0;
+}
+.accordion-question .icon {
+    font-size: 24px; font-weight: 300; transition: transform 0.3s ease;
+}
+.accordion-answer {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out;
+    color: #52525b; font-size: 16px; line-height: 1.6;
+}
+.accordion-item.open .accordion-answer {
+    max-height: 800px; /* Increased for more content */
+    padding-bottom: 25px;
+    transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in;
+}
+.accordion-item.open .accordion-question .icon {
+    transform: rotate(45deg);
+}
+
+/* --- Specific Styles for Pricing Accordion --- */
+.pricing-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+.price-pack {
+    border: 1px solid #e5e5e5;
+    padding: 20px;
+    border-radius: 12px;
+}
+.price-pack.recommended {
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+}
+.price-pack h4 { margin-bottom: 5px; }
+.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 15px; max-width: 100%; }
+.cta-button-small {
+    display: inline-block;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+/* --- Page Footer --- */
+.page-footer {
+    padding: 20px; text-align: center; font-size: 14px;
+    color: #71717a;
+}
+.page-footer a { 
+    color: #71717a; font-weight: 400; text-decoration: underline; 
+    transition: color 0.2s ease;
+}
+.page-footer a:hover { color: #18181b; }
+
+/* --- Contact Form Styles --- */
+.contact-form {
+    display: flex; flex-direction: column; gap: 15px; margin-top: 10px;
+}
+.contact-form input, .contact-form textarea {
+    width: 100%; padding: 12px; font-family: 'Inter', sans-serif; font-size: 16px;
+    border: 1px solid #d4d4d8; border-radius: 8px; background-color: #f4f4f5;
+}
+.contact-form textarea { min-height: 120px; resize: vertical; }
+.contact-form button {
+    align-self: flex-start; padding: 12px 24px; font-size: 16px; font-weight: 700;
+    border-radius: 8px; border: none; cursor: pointer;
+    background-color: #18181b; color: #ffffff; transition: background-color 0.2s ease;
+}
+.contact-form button:hover { background-color: #3f3f46; }
+#form-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; background-color: #f0fdf4; color: #166534;
+    border-radius: 8px; margin-top: 15px;
+}
+
+/* --- App Section Styles --- */
+.app-section {
+    background-color: #f4f4f5; /* A slightly different background to contain the app */
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 650px; /* Constrain app width */
+    border: 1px solid #e5e5e5;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.app-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.step-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.step-content {
+    width: 100%;
+    text-align: left;
+}
+
+.step-content label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.step-content input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+}
+
+/* --- Drop Zone Styles --- */
+.drop-zone {
+    border: 2px dashed #d4d4d8;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.drop-zone-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    opacity: 0.6;
+}
+
+.drop-zone-prompt p {
+    margin: 0;
+    color: #52525b;
+    max-width: 100%;
+}
+
+.drop-zone-limits {
+    font-size: 12px;
+    color: #a1a1aa;
+    margin-top: 10px !important;
+}
+
+#file-list {
+    margin-top: 15px;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* --- App Status & Progress --- */
+.app-status {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+#status-message {
+    font-weight: 500;
+    color: #3f3f46;
+}
+
+/* --- Button States --- */
+.cta-button:disabled {
+    background-color: #a1a1aa;
+    cursor: not-allowed;
+}
+.cta-button:disabled:hover {
+    transform: none;
+    background-color: #a1a1aa;
+}
+
+/* --- Responsive Design --- */
+@media (min-width: 768px) {
+    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
+    .pricing-details { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    h2.section-title { font-size: 28px; }
+    .master-card { padding: 40px 20px; }
+}
