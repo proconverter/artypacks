@@ -403,3 +403,68 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #ffffff; /* White 'x' on hover */
 }
 
+/* === ADD THESE STYLES TO THE END OF YOUR style.css FILE === */
+
+/* **FIX #1: SPACING FOR SUCCESS MESSAGE** */
+#status-message {
+    margin-bottom: 15px; /* Adds space above the download button */
+}
+
+/* **FIX #2: STYLING FOR THE NEW SECONDARY BUTTON** */
+.cta-button.secondary {
+    background-color: #e5e7eb;
+    color: #3f3f46;
+    margin-top: 10px; /* Space it from the download button */
+}
+
+.cta-button.secondary:hover {
+    background-color: #d4d4d8;
+}
+
+/* --- File List Styling --- */
+#file-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f4f4f5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #3f3f46;
+}
+
+#file-list li span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+}
+
+.remove-file-btn {
+    background-color: #e5e7eb;
+    color: #52525b;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+.remove-file-btn:hover {
+    background-color: #dc2626;
+    color: #ffffff;
+}
