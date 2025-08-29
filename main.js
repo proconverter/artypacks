@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- SUPABASE & API CONFIGURATION ---
+    // IMPORTANT: You might want to replace these with your actual keys if you need to use the
+    // Supabase client directly on the frontend for other features in the future.
     const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
@@ -7,9 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let supabase;
     try {
+        // Note: This is not strictly needed for the current functionality as all Supabase
+        // calls are handled by the backend, but it's good practice to have it.
         supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
     } catch (error) {
-        console.error("Supabase client could not be initialized. API calls to Supabase from the frontend will fail.", error);
+        console.error("Supabase client could not be initialized. This is okay if all DB calls are on the backend.", error);
     }
 
     // --- DOM ELEMENT SELECTORS ---
@@ -200,4 +204,113 @@ document.addEventListener('DOMContentLoaded', () => {
         resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
-        convertButton.disabled =
+        convertButton.disabled = true;
+        statusMessage.textContent = 'Preparing your files...';
+
+        try {
+            updateProgress(10, 'Validating and preparing upload...');
+            
+            const formData = new FormData();
+            formData.append('licenseKey', licenseKey);
+            uploadedFiles.forEach(file => {
+                // The backend expects the files under the key 'brushsets'
+                formData.append('brushsets', file);
+            });
+
+            updateProgress(30, 'Uploading and converting... (This may take a moment)');
+            
+            const response = await fetch(CONVERT_API_ENDPOINT, {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Use the error message from the backend
+                throw new Error(result.message || 'An unknown error occurred on the server.');
+            }
+
+            updateProgress(100, 'Conversion successful! Your download is ready.');
+            downloadLink.href = result.downloadUrl;
+            downloadLink.style.display = 'block';
+            progressBar.style.display = 'none';
+
+        } catch (error) {
+            console.error('Conversion Error:', error);
+            showError(error.message);
+        } finally {
+            if (downloadLink.style.display !== 'block') {
+                convertButton.disabled = false;
+            }
+        }
+    };
+
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc3545';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = (). => {
+        appStatus.style.display = 'none';
+        progressBar.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+        downloadLink.style.display = 'none';
+        downloadLink.href = '#';
+    };
+
+    // --- ACCORDION ---
+    const setupAccordion = () => {
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        accordionItems.forEach(item => {
+            const question = item.querySelector('.accordion-question');
+            question.addEventListener('click', () => {
+                const isOpen = item.classList.contains('open');
+                if (!isOpen) {
+                    item.classList.add('open');
+                } else {
+                    item.classList.remove('open');
+                }
+            });
+        });
+    };
+
+    // --- CONTACT FORM ---
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    // --- START THE APP ---
+    initializeApp();
+});
