@@ -39,50 +39,52 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- UI LOGIC & EVENT LISTENERS ---
+    // --- UI LOGIC & EVENT LISTENERS (REBUILT FOR ROBUSTNESS) ---
     const setupEventListeners = () => {
-        licenseKeyInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            licenseStatus.innerHTML = '';
-            licenseStatus.className = 'license-status-message';
-            isLicenseValid = false;
-            checkLicenseAndToggleUI();
-            debounceTimer = setTimeout(() => {
-                const key = licenseKeyInput.value.trim();
-                if (key.length > 5) {
-                    validateLicenseOnServer(key);
-                }
-            }, 500);
-        });
-        
-        dropZone.addEventListener('click', () => {
-            if (!dropZone.classList.contains('disabled')) {
-                fileInput.click();
-            }
-        });
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (dropZone.classList.contains('disabled')) return;
-            dropZone.classList.remove('dragover');
-            processFiles(e.dataTransfer.files);
-        });
-        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+        // Listeners for elements that exist on page load
+        licenseKeyInput.addEventListener('input', handleLicenseInput);
+        dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
-        newConversionButton.addEventListener('click', resetForNewConversion);
+        newConversionButton.addEventListener('click', resetForNewConversion); // This is safe because the button exists, it's just hidden.
+
+        // These are now guaranteed to run
         setupAccordion();
         setupContactForm();
     };
 
+    const handleLicenseInput = () => {
+        clearTimeout(debounceTimer);
+        licenseStatus.innerHTML = '';
+        licenseStatus.className = 'license-status-message';
+        isLicenseValid = false;
+        checkLicenseAndToggleUI();
+        debounceTimer = setTimeout(() => {
+            const key = licenseKeyInput.value.trim();
+            if (key.length > 5) {
+                validateLicenseOnServer(key);
+            }
+        }, 500);
+    };
+
+    const handleDragOver = (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); };
+    const handleDragLeave = (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        if (dropZone.classList.contains('disabled')) return;
+        dropZone.classList.remove('dragover');
+        processFiles(e.dataTransfer.files);
+    };
+    const handleFileSelect = (e) => processFiles(e.target.files);
+
     const checkLicenseAndToggleUI = () => {
-        const hasLicense = licenseKeyInput.value.trim().length > 0;
         dropZone.classList.toggle('disabled', !isLicenseValid);
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
-        const canConvert = isLicenseValid && uploadedFiles.length > 0;
-        convertButton.disabled = !canConvert;
+        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
         
-        activationNotice.style.display = 'block';
         if (isLicenseValid) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else {
@@ -181,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProgress(10, 'Validating and preparing upload...');
             const formData = new FormData();
             formData.append('licenseKey', licenseKey);
-            // THIS IS THE CORRECTED KEY NAME FOR THE FILES
             uploadedFiles.forEach(file => { formData.append('files', file); });
 
             updateProgress(30, 'Uploading and converting...');
@@ -198,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             updateHistoryList();
 
-            downloadLink.style.display = 'none';
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = '';
         statusMessage.style.color = '';
         downloadLink.style.display = 'none';
-        downloadLink.href = '#';
         newConversionButton.style.display = 'none';
     };
 
