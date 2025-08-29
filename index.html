@@ -3,86 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArtyPacks | Procreate .brushset to .PNG Converter</title>
-    <meta name="description" content="The easiest way to convert your Procreate .brushset files into high-quality .PNG stamp files, ready for any design software.">
+    <title>ArtyPacks | Procreate Brush to PNG Converter</title>
+    <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs. Perfect for Etsy sellers and digital artists using Canva or Photoshop.">
     
-    <!-- This is the critical link to your stylesheet -->
-    <link rel="stylesheet" href="style.css">
-
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Favicon Links -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Stylesheets and Fonts -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js ) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag( ){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8EZB1B931D');
+    </script>
 </head>
+
 <body>
 
-    <header class="main-header">
-        <h1>ArtyPacks</h1>
-        <p class="subtitle">Your Procreate .brushset to .PNG Converter</p>
-    </header>
+    <div class="page-wrapper">
 
-    <main>
-        <section id="app-section" class="card">
-            <h2>1. Enter Your License Key</h2>
-            <div class="license-container">
-                <input type="text" id="license-key-input" placeholder="Enter your license key here..." aria-label="License Key">
-            </div>
-            <p id="license-message" class="form-sub-message"></p>
+        <div class="master-card">
+            <!-- === HERO SECTION === -->
+            <header class="hero">
+                <h1>The Easiest Way to Convert Procreate Stamps to PNG</h1>
+                <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
+            </header>
 
-            <form id="conversion-form">
-                <h2>2. Upload Your .brushset Files</h2>
-                <div class="file-drop-area" id="file-drop-area">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16l-4-4-4 4m-4 2h16.002"></path><path d="M12 2a9.002 9.002 0 00-8.998 9A5.002 5.002 0 008 20h8a5 5 0 005-5 9 9 0 00-9-9z"></path></svg>
-                    <p>Drag & drop files here, or click to select</p>
-                    <input type="file" id="file-upload" multiple accept=".brushset" disabled>
-                    <p id="file-list"></p>
-                </div>
+            <!-- === THE CONVERTER APP UI === -->
+            <section class="app-section" id="app-tool">
+                <div class="app-container">
+                    <!-- Step 1: License Key -->
+                    <div class="app-step">
+                        <div class="step-content">
+                            <label for="license-key">Step 1: Enter Your License Key</label>
+                            <input type="text" id="license-key" name="license-key" placeholder="Enter your license key here">
+                        </div>
+                    </div>
 
-                <h2>3. Convert & Download</h2>
-                <button type="submit" id="convert-btn" class="button" disabled>Convert</button>
-                <div id="form-message" class="form-sub-message"></div>
-            </form>
-        </section>
+                    <!-- Step 2: File Upload -->
+                    <div class="app-step">
+                        <div class="step-content">
+                            <label for="file-input">Step 2: Upload Your .brushset Files</label>
+                            <div class="drop-zone" id="drop-zone">
+                                <div class="drop-zone-prompt">
+                                    <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-upload-cloud.svg" alt="Upload Icon" class="drop-zone-icon">
+                                    <p><strong>Click to upload</strong> or drag and drop</p>
+                                    <p class="drop-zone-limits">1 to 3 .brushset files / 50MB total</p>
+                                </div>
+                                <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
+                            </div>
+                            <div id="file-list"></div>
+                        </div>
+                    </div>
 
-        <section id="how-it-works" class="card">
-            <h2>How It Works</h2>
-            <ol>
-                <li><strong>Enter Key:</strong> Paste the license key you received after purchase.</li>
-                <li><strong>Upload Files:</strong> Drag and drop one or more `.brushset` files into the upload area.</li>
-                <li><strong>Convert:</strong> Click the convert button and wait for the magic to happen.</li>
-                <li><strong>Download:</strong> Get a `.zip` file containing all your stamps, neatly renamed and ready to use!</li>
-            </ol>
-        </section>
+                    <!-- Step 3: Convert Button -->
+                    <div class="app-step">
+                        <div class="step-content">
+                            <button id="convert-button" class="cta-button" disabled>Convert Your Brushsets</button>
+                            <p class="activation-notice" id="activation-notice">Enter your license key above to activate the converter.</p>
+                        </div>
+                    </div>
 
-        <section id="faq-pricing" class="card">
-            <h2>FAQ & Pricing</h2>
-            <div class="accordion">
-                <div class="accordion-item">
-                    <button class="accordion-header">How do I get a license key?</button>
-                    <div class="accordion-content">
-                        <p>License keys can be purchased from our Etsy store. Each purchase provides a key with a set number of conversion sessions.</p>
+                    <!-- Progress & Results Area -->
+                    <div class="app-status" id="app-status" style="display: none;">
+                        <div class="progress-bar" id="progress-bar" style="display: none;">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <p id="status-message"></p>
+                        <a href="#" id="download-link" class="cta-button" style="display: none;">Download Your PNGs</a>
                     </div>
                 </div>
-                <div class="accordion-item">
-                    <button class="accordion-header">What is a "conversion session"?</button>
-                    <div class="accordion-content">
-                        <p>One session allows you to upload multiple `.brushset` files at once and convert them into a single `.zip` file. This counts as one use of your license.</p>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- === HOW IT WORKS SECTION === -->
+            <section class="how-it-works">
+                <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
+                <div class="how-it-works-grid">
+                    <div class="feature-item">
+                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-upload.svg" alt="Upload Icon" class="feature-icon">
+                        <h3>1. Enter License & Upload</h3>
+                        <p>Enter your license key and select one or more `.brushset` files.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-convert.svg" alt="Convert Icon" class="feature-icon">
+                        <h3>2. Convert Securely</h3>
+                        <p>Our tool securely processes your files, extracting each stamp image.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://raw.githubusercontent.com/proconverter/artypacks/main/icon-download.svg" alt="Download Icon" class="feature-icon">
+                        <h3>3. Download PNGs</h3>
+                        <p>Get a neatly packaged `.zip` file containing all your stamps as PNGs.</p>
                     </div>
                 </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- === PRICING & FAQ SECTION === -->
+            <section class="info-accordion">
+                <h2 class="section-title">Pricing & FAQ</h2>
+                
                 <div class="accordion-item">
-                    <button class="accordion-header">Is my data secure?</button>
-                    <div class="accordion-content">
-                        <p>Absolutely. Your files are uploaded directly to our secure conversion server, processed, and then deleted immediately after the conversion is complete. We do not store your brushsets.</p>
+                    <div class="accordion-question">
+                        <span>What are the pricing options?</span>
+                        <span class="icon">+</span>
+                    </div>
+                    <div class="accordion-answer">
+                        <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
+                        <div class="pricing-details">
+                            <div class="price-pack">
+                                <h4>Starter Pack (5 Credits )</h4>
+                                <p>Perfect for small projects.</p>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                            </div>
+                            <div class="price-pack recommended">
+                                <h4>Premium Pack (10 Credits )</h4>
+                                <p>Best value for most creators.</p>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                            </div>
+                            <div class="price-pack">
+                                <h4>Studio Pack (30 Credits )</h4>
+                                <p>For power users and professionals.</p>
+                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
 
-    <footer class="main-footer">
-        <p>&copy; <span id="copyright-year"></span> ArtyPacks. All rights reserved.</p>
-        <p>Need help? <a href="mailto:support@artypacks.app">Contact Support</a></p>
-    </footer>
+                <div class="accordion-item">
+                    <div class="accordion-question">
+                        <span>How do credits work?</span>
+                        <span class="icon">+</span>
+                    </div>
+                    <div class="accordion-answer">
+                        <p>Each credit allows you to convert up to 3 `.brushset` files in a single session, with a total file size limit of 50MB. Your credits never expire.</p>
+                    </div>
+                </div>
 
-    <!-- These are the critical script links -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+                <div class="accordion-item">
+                    <div class="accordion-question">
+                        <span>Is it safe? Do you keep my brushes?</span>
+                        <span class="icon">+</span>
+                    </div>
+                    <div class="accordion-answer">
+                        <p>Your privacy is our top priority. We never store your `.brushset` files. They are processed on our secure servers and are automatically deleted within one hour of conversion.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-question">
+                        <span>Have a question or need help?</span>
+                        <span class="icon">+</span>
+                    </div>
+                    <div class="accordion-answer">
+                        <p>We'd love to hear from you! Drop us a message below and we'll get back to you shortly.</p>
+                        <form id="contact-form" class="contact-form" action="https://formspree.io/f/mrbagwvb" method="POST">
+                            <input type="email" name="email" placeholder="Your email" required>
+                            <textarea name="message" placeholder="Your question or message" required></textarea>
+                            <button type="submit">Send Message</button>
+                        </form>
+                        <div id="form-status" style="display: none;"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer class="page-footer">
+            <p>
+                &copy; <span id="current-year">2025</span> Artypacks. All rights reserved.  
+                <a href="legal.html">Terms & Privacy</a>
+            </p>
+        </footer>
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>
