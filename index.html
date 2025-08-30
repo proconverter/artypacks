@@ -9,6 +9,16 @@
     
     <!-- The Supabase library is loaded here -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- This block injects environment variables from Render during the build -->
+    <script>
+        window.env = {
+            SUPABASE_URL: "VITE_SUPABASE_URL_PLACEHOLDER",
+            SUPABASE_ANON_KEY: "VITE_SUPABASE_ANON_KEY_PLACEHOLDER",
+            CONVERT_API_ENDPOINT: "VITE_CONVERT_API_ENDPOINT_PLACEHOLDER",
+            CHECK_API_ENDPOINT: "VITE_CHECK_API_ENDPOINT_PLACEHOLDER"
+        };
+    </script>
     
     <!-- Favicon and Manifest Links -->
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -83,7 +93,6 @@
                             <div class="progress-fill" id="progress-fill"></div>
                         </div>
                         <p id="status-message"></p>
-                        <!-- The old download button is removed as history replaces it -->
                         <button id="new-conversion-button" class="cta-button secondary" style="display: none;">Start New Conversion</button>
                     </div>
                 </div>
@@ -126,7 +135,6 @@
             <!-- === PRICING & FAQ SECTION === -->
             <section class="info-accordion">
                 <h2 class="section-title">Pricing & FAQ</h2>
-                <!-- Accordion Item: Pricing -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>What are the pricing options?</span>
@@ -136,24 +144,23 @@
                         <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
                         <div class="pricing-details">
                             <div class="price-pack">
-                                <h4>Starter Pack (5 Credits )</h4>
+                                <h4>Starter Pack (5 Credits  )</h4>
                                 <p>Perfect for small projects.</p>
                                 <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                             <div class="price-pack recommended">
-                                <h4>Premium Pack (10 Credits  )</h4>
+                                <h4>Premium Pack (10 Credits   )</h4>
                                 <p>Best value for most creators.</p>
                                 <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                             <div class="price-pack">
-                                <h4>Studio Pack (30 Credits  )</h4>
+                                <h4>Studio Pack (30 Credits   )</h4>
                                 <p>For power users and professionals.</p>
                                 <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Other accordion items -->
                 <div class="accordion-item">
                     <div class="accordion-question">
                         <span>How do credits work?</span>
@@ -192,7 +199,6 @@
             </section>
         </div>
 
-        <!-- === FOOTER SECTION === -->
         <footer class="page-footer">
             <p>
                 &copy; <span id="current-year">2025</span> Artypacks. All rights reserved.  
@@ -201,7 +207,6 @@
         </footer>
     </div>
 
-    <!-- === THIS IS THE CORRECTED SCRIPT TAG === -->
     <script src="/main.js"></script>
 </body>
 </html>
