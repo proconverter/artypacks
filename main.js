@@ -1,21 +1,21 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', ( ) => {
     // --- CONFIGURATION ---
-    const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    const VITE_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    const VITE_CONVERT_API_ENDPOINT = import.meta.env.VITE_CONVERT_API_ENDPOINT;
-    const VITE_CHECK_API_ENDPOINT = import.meta.env.VITE_CHECK_API_ENDPOINT;
+    // Read variables from the global window.env object injected by index.html
+    const VITE_SUPABASE_URL = window.env.SUPABASE_URL;
+    const VITE_SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
+    const VITE_CONVERT_API_ENDPOINT = window.env.CONVERT_API_ENDPOINT;
+    const VITE_CHECK_API_ENDPOINT = window.env.CHECK_API_ENDPOINT;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- SUPABASE INITIALIZATION ---
-    let supabaseClient; // Using a different name for clarity, as you wisely suggested.
+    let supabase;
     try {
-        if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY ) {
-            throw new Error("Supabase URL or Anon Key is missing from environment variables.");
+        // Check if the variables were successfully replaced by the build command
+        if (!VITE_SUPABASE_URL || VITE_SUPABASE_URL.includes('PLACEHOLDER' ) || !VITE_SUPABASE_ANON_KEY || VITE_SUPABASE_ANON_KEY.includes('PLACEHOLDER')) {
+            throw new Error("Supabase URL or Anon Key is missing. Check environment variables and build command.");
         }
-        // CORRECT INITIALIZATION, as you pointed out.
-        // Calls createClient on the global 'supabase' object from the library.
-        supabaseClient = supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
-
+        // CORRECTED: Call createClient on the global supabase object from the CDN script
+        supabase = window.supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
     } catch (error) {
         console.error("CRITICAL: Supabase initialization failed.", error);
         const dropZone = document.getElementById('drop-zone');
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let response;
         try {
-            if (!VITE_CHECK_API_ENDPOINT) {
+            if (!VITE_CHECK_API_ENDPOINT || VITE_CHECK_API_ENDPOINT.includes('PLACEHOLDER')) {
                 throw new Error("Check API endpoint is not configured.");
             }
             response = await fetch(VITE_CHECK_API_ENDPOINT, {
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.add('disabled');
 
         try {
-            if (!VITE_CONVERT_API_ENDPOINT) {
+            if (!VITE_CONVERT_API_ENDPOINT || VITE_CONVERT_API_ENDPOINT.includes('PLACEHOLDER')) {
                 throw new Error("Convert API endpoint is not configured.");
             }
             updateProgress(10, 'Validating and preparing upload...');
@@ -332,5 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // --- START THE APP ---
     initializeApp();
 });
