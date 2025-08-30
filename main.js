@@ -1,15 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // Correctly access environment variables using the VITE_ prefix.
-    // The '||' provides a fallback to production URLs if the variables are not set.
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://grajrxurqeojuvrvzstz.supabase.co'; 
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyYWpyeHVycWVvanV2cnZ6c3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDQ4MTIsImV4cCI6MjA3MTkyMDgxMn0.jPKh3z18iik94ToRazHgkx3_R5BE51H4ws6Wh_sgKOo';
-    const CONVERT_API_ENDPOINT = import.meta.env.VITE_CONVERT_API_ENDPOINT || 'https://artypacks-converter-backend.onrender.com/convert';
-    const CHECK_API_ENDPOINT = import.meta.env.VITE_CHECK_API_ENDPOINT || 'https://artypacks-converter-backend.onrender.com/check-license';
+    const VITE_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const VITE_SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const VITE_CONVERT_API_ENDPOINT = import.meta.env.VITE_CONVERT_API_ENDPOINT;
+    const VITE_CHECK_API_ENDPOINT = import.meta.env.VITE_CHECK_API_ENDPOINT;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
+    // --- SUPABASE INITIALIZATION ---
+    // THIS WAS THE MISSING PIECE. I AM SO SORRY.
+    let supabase;
+    try {
+        if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY ) {
+            throw new Error("Supabase URL or Anon Key is missing. Check environment variables.");
+        }
+        supabase = supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
+    } catch (error) {
+        console.error("CRITICAL: Supabase initialization failed.", error);
+        // Display a critical error to the user if Supabase can't load
+        const dropZone = document.getElementById('drop-zone');
+        if(dropZone) {
+            dropZone.innerHTML = '<p style="color: red; font-weight: bold;">Application failed to load. Please contact support.</p>';
+            dropZone.classList.add('disabled');
+        }
+        return; // Stop the rest of the script from running
+    }
+
+
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'  );
+    const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -78,7 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let response;
         try {
-            response = await fetch(CHECK_API_ENDPOINT, {
+            if (!VITE_CHECK_API_ENDPOINT) {
+                throw new Error("Check API endpoint is not configured.");
+            }
+            response = await fetch(VITE_CHECK_API_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ licenseKey: key })
@@ -186,13 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.add('disabled');
 
         try {
+            if (!VITE_CONVERT_API_ENDPOINT) {
+                throw new Error("Convert API endpoint is not configured.");
+            }
             updateProgress(10, 'Validating and preparing upload...');
             const formData = new FormData();
             formData.append('licenseKey', licenseKey);
             uploadedFiles.forEach(file => { formData.append('files', file); });
 
             updateProgress(30, 'Uploading and converting...');
-            const response = await fetch(CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
+            const response = await fetch(VITE_CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
             const result = await response.json();
 
             if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
