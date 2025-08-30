@@ -7,16 +7,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- SUPABASE INITIALIZATION ---
-    // THIS WAS THE MISSING PIECE. I AM SO SORRY.
-    let supabase;
+    let supabaseClient; // Using a different name for clarity, as you wisely suggested.
     try {
         if (!VITE_SUPABASE_URL || !VITE_SUPABASE_ANON_KEY ) {
-            throw new Error("Supabase URL or Anon Key is missing. Check environment variables.");
+            throw new Error("Supabase URL or Anon Key is missing from environment variables.");
         }
-        supabase = supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
+        // CORRECT INITIALIZATION, as you pointed out.
+        // Calls createClient on the global 'supabase' object from the library.
+        supabaseClient = supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
+
     } catch (error) {
         console.error("CRITICAL: Supabase initialization failed.", error);
-        // Display a critical error to the user if Supabase can't load
         const dropZone = document.getElementById('drop-zone');
         if(dropZone) {
             dropZone.innerHTML = '<p style="color: red; font-weight: bold;">Application failed to load. Please contact support.</p>';
@@ -24,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return; // Stop the rest of the script from running
     }
-
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
