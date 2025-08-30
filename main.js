@@ -1,6 +1,5 @@
-document.addEventListener('DOMContentLoaded', ( ) => {
+document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // Read variables from the global window.env object injected by index.html
     const VITE_SUPABASE_URL = window.env.SUPABASE_URL;
     const VITE_SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
     const VITE_CONVERT_API_ENDPOINT = window.env.CONVERT_API_ENDPOINT;
@@ -10,11 +9,9 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     // --- SUPABASE INITIALIZATION ---
     let supabase;
     try {
-        // Check if the variables were successfully replaced by the build command
         if (!VITE_SUPABASE_URL || VITE_SUPABASE_URL.includes('PLACEHOLDER' ) || !VITE_SUPABASE_ANON_KEY || VITE_SUPABASE_ANON_KEY.includes('PLACEHOLDER')) {
             throw new Error("Supabase URL or Anon Key is missing. Check environment variables and build command.");
         }
-        // CORRECTED: Call createClient on the global supabase object from the CDN script
         supabase = window.supabase.createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY);
     } catch (error) {
         console.error("CRITICAL: Supabase initialization failed.", error);
@@ -50,6 +47,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     let sessionHistory = [];
     let debounceTimer;
     let isLicenseValid = false;
+    let messageIntervalId = null; // Holds the ID of our message-cycling timer
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -72,26 +70,58 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         setupContactForm();
     };
 
+    // --- REVISED: handleLicenseInput ---
+    // This function now starts the message cycler.
     const handleLicenseInput = () => {
         clearTimeout(debounceTimer);
+        // Immediately stop any previous message cycler if the user types again
+        if (messageIntervalId) {
+            clearInterval(messageIntervalId);
+            messageIntervalId = null;
+        }
+        
         licenseStatus.innerHTML = '';
         licenseStatus.className = 'license-status-message';
         isLicenseValid = false;
         checkLicenseAndToggleUI();
+
         debounceTimer = setTimeout(() => {
             const key = licenseKeyInput.value.trim();
             if (key.length > 5) {
+                // Start the validation process, which includes the message cycler
                 validateLicenseWithRetries(key);
             }
         }, 500);
     };
     
-    // --- ROBUST LICENSE VALIDATION WITH RETRIES ---
+    // --- REVISED: validateLicenseWithRetries (with conditional welcome message) ---
     async function validateLicenseWithRetries(key, attempt = 1) {
+        
+        // On the very first attempt, start the message cycler.
         if (attempt === 1) {
-            licenseStatus.innerHTML = 'Checking...';
+            const loadingMessages = [
+                "Initializing secure connection...",
+                "Waking up the server...",
+                "Establishing database link...",
+                "This can take a moment on first use...",
+                "Querying license registry...",
+                "Almost there, please wait...",
+                "Checking credentials...",
+                "Server is processing the request...",
+                "Finalizing validation...",
+                "Just a few more seconds...",
+                "Retrieving your credit status...",
+                "Thanks for your patience!"
+            ];
+            let messageIndex = 0;
+
+            licenseStatus.innerHTML = loadingMessages[messageIndex];
             licenseStatus.className = 'license-status-message';
-            isLicenseValid = false;
+
+            messageIntervalId = setInterval(() => {
+                messageIndex = (messageIndex + 1) % loadingMessages.length;
+                licenseStatus.innerHTML = loadingMessages[messageIndex];
+            }, 4000);
         }
 
         let response;
@@ -105,15 +135,26 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 body: JSON.stringify({ licenseKey: key })
             });
 
-            if (response.status >= 500 && attempt < 3) {
+            if (response.status >= 500 && attempt < 15) {
                 throw new Error('Server not ready, retrying...');
             }
+
+            // --- SUCCESS or DEFINITIVE FAILURE ---
+            clearInterval(messageIntervalId);
+            messageIntervalId = null;
 
             const result = await response.json();
 
             if (response.ok && result.isValid) {
                 if (result.credits > 0) {
-                    licenseStatus.innerHTML = `Valid Key! You have ${result.credits} conversions remaining.`;
+                    // *** THIS IS THE NEW LOGIC ***
+                    if (attempt > 1) {
+                        // Special message for after a cold start
+                        licenseStatus.innerHTML = `Welcome! Thank you for your patience. Your license is valid with ${result.credits} conversions remaining.`;
+                    } else {
+                        // Standard message for a fast response
+                        licenseStatus.innerHTML = `Valid Key! You have ${result.credits} conversions remaining.`;
+                    }
                     isLicenseValid = true;
                 } else {
                     licenseStatus.innerHTML = `This license has no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Top up your credits here.</a>`;
@@ -125,18 +166,25 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 licenseStatus.className = 'license-status-message invalid';
                 isLicenseValid = false;
             }
+
         } catch (error) {
             console.error(`License validation attempt ${attempt} failed:`, error);
-            if (attempt < 3) {
-                const delay = Math.pow(2, attempt) * 1000;
+            
+            if (attempt < 15) {
+                const delay = 4000;
                 setTimeout(() => validateLicenseWithRetries(key, attempt + 1), delay);
-                return;
+                return; 
             }
-            licenseStatus.textContent = 'Unable to verify key right now. Please try again in a moment.';
+            
+            if (messageIntervalId) {
+                clearInterval(messageIntervalId);
+                messageIntervalId = null;
+            }
+            licenseStatus.textContent = 'The server is not responding. Please try again in a minute.';
             licenseStatus.className = 'license-status-message invalid';
             isLicenseValid = false;
         } finally {
-            if ((response && response.ok) || attempt >= 3 || isLicenseValid) {
+            if (messageIntervalId === null) {
                  checkLicenseAndToggleUI();
             }
         }
