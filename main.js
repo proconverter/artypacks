@@ -1,13 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    const SUPABASE_URL = 'https://grajrxurqeojuvrvzstz.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyYWpyeHVycWVvanV2cnZ6c3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDQ4MTIsImV4cCI6MjA3MTkyMDgxMn0.jPKh3z18iik94ToRazHgkx3_R5BE51H4ws6Wh_sgKOo';
-    const CONVERT_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/convert';
-    const CHECK_API_ENDPOINT = 'https://artypacks-converter-backend.onrender.com/check-license';
+    // Correctly access environment variables using the VITE_ prefix.
+    // The '||' provides a fallback to production URLs if the variables are not set.
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://grajrxurqeojuvrvzstz.supabase.co'; 
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyYWpyeHVycWVvanV2cnZ6c3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDQ4MTIsImV4cCI6MjA3MTkyMDgxMn0.jPKh3z18iik94ToRazHgkx3_R5BE51H4ws6Wh_sgKOo';
+    const CONVERT_API_ENDPOINT = import.meta.env.VITE_CONVERT_API_ENDPOINT || 'https://artypacks-converter-backend.onrender.com/convert';
+    const CHECK_API_ENDPOINT = import.meta.env.VITE_CHECK_API_ENDPOINT || 'https://artypacks-converter-backend.onrender.com/check-license';
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key' );
+    const licenseKeyInput = document.getElementById('license-key'  );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isLicenseValid = false;
         }
 
-        let response; // Define response here to have scope in finally block
+        let response;
         try {
             response = await fetch(CHECK_API_ENDPOINT, {
                 method: 'POST',
@@ -113,8 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message invalid';
             isLicenseValid = false;
         } finally {
-            // **THE CRITICAL FIX IS HERE**
-            // This check is now safe because we check for `response` before using it.
             if ((response && response.ok) || attempt >= 3 || isLicenseValid) {
                  checkLicenseAndToggleUI();
             }
