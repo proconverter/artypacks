@@ -102,36 +102,29 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
     text-align: center;
 }
-/* UPDATED - Darker separator lines */
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* MODIFIED - Using absolute positioning for guaranteed centering */
+/* REWRITTEN - Using CSS Grid for robust alignment */
 .accordion-question {
-    position: relative; /* Parent context for absolute positioning */
+    display: grid;
+    grid-template-columns: 1fr auto; /* Flexible text column, auto-sized icon column */
+    align-items: center; /* Vertically centers everything in the grid row */
+    width: 100%;
+    padding: 0 10px; /* Padding on the sides */
+    min-height: 70px; /* Use min-height to allow content to grow if needed */
     cursor: pointer;
     font-size: 18px;
     font-weight: 500;
-    height: 70px; /* Explicit height for all rows */
-    width: 100%;
 }
 
-/* MODIFIED - This rule now handles the centering */
-.accordion-question > span:first-child {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%; /* Allow text to span width for centering */
-    text-align: center; /* Ensure text itself is centered */
-    padding: 0 30px; /* Prevent text from overlapping icon */
+.accordion-question p {
+    text-align: center; /* Horizontally center the text */
+    padding: 0 15px; /* Add padding to prevent text from touching icon on smaller screens */
+    max-width: 100%; /* Override default max-width for p */
 }
 
 .accordion-question .icon {
-    position: absolute;
-    right: 10px;
-    top: 50%; /* Align icon vertically */
-    transform: translateY(-50%); /* Perfect vertical center for icon */
     font-size: 24px;
     font-weight: 300;
     transition: transform 0.3s ease;
