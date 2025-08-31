@@ -7,18 +7,15 @@
     <title>Artypacks | Procreate Brush to PNG Converter</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs.">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <!-- Hardcoded URLs for Final Diagnostic Test -->
     <script>
         window.env = {
-            SUPABASE_URL: "VITE_SUPABASE_URL_PLACEHOLDER",
-            SUPABASE_ANON_KEY: "VITE_SUPABASE_ANON_KEY_PLACEHOLDER",
-            CONVERT_API_ENDPOINT: "VITE_CONVERT_API_ENDPOINT_PLACEHOLDER",
-            CHECK_API_ENDPOINT: "VITE_CHECK_API_ENDPOINT_PLACEHOLDER"
+            VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/convert",
+            VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/check-license"
         };
     </script>
     
-    <!-- Favicon and Manifest Links - UPDATED to use the /assets/ folder -->
+    <!-- Favicon and Manifest Links -->
     <link rel="icon" href="/assets/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
     <link rel="manifest" href="/assets/site.webmanifest">
@@ -33,7 +30,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag( ){dataLayer.push(arguments);}
+      function gtag(  ){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-8EZB1B931D');
     </script>
@@ -105,7 +102,7 @@
 
             <hr class="section-divider">
 
-            <!-- === HOW IT WORKS SECTION - UPDATED to use the /assets/ folder === -->
+            <!-- === HOW IT WORKS SECTION === -->
             <section class="how-it-works">
                 <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
                 <div class="how-it-works-grid">
@@ -132,67 +129,7 @@
             <!-- === PRICING & FAQ SECTION === -->
             <section class="info-accordion">
                 <h2 class="section-title">Pricing & FAQ</h2>
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>What are the pricing options?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
-                        <div class="pricing-details">
-                            <div class="price-pack">
-                                <h4>Starter Pack (5 Credits  )</h4>
-                                <p>Perfect for small projects.</p>
-                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
-                            </div>
-                            <div class="price-pack recommended">
-                                <h4>Premium Pack (10 Credits   )</h4>
-                                <p>Best value for most creators.</p>
-                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
-                            </div>
-                            <div class="price-pack">
-                                <h4>Studio Pack (30 Credits   )</h4>
-                                <p>For power users and professionals.</p>
-                                <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small">Buy on Etsy</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>How do credits work?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Each credit allows you to convert up to 3 `.brushset` files in a single session, with a total file size limit of 50MB. Your credits never expire.</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Is it safe? Do you keep my brushes?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Your privacy is our top priority. We never store your `.brushset` files. They are processed on our secure servers and are automatically deleted within one hour of conversion.</p>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Have a question or need help?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>We'd love to hear from you! Drop us a message below and we'll get back to you shortly.</p>
-                        <form id="contact-form" class="contact-form" action="https://formspree.io/f/mrbagwvb" method="POST">
-                            <input type="email" name="email" placeholder="Your email" required>
-                            <textarea name="message" placeholder="Your question or message" required></textarea>
-                            <button type="submit">Send Message</button>
-                        </form>
-                        <div id="form-status" style="display: none;">
-                            <span>Thank you! Your message has been sent.</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Accordion items... -->
             </section>
         </div>
 
