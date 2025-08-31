@@ -1,31 +1,36 @@
 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
   <!-- This group sets the style for all icons in the pattern -->
-  <g fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
 
-    <!-- Define the icon shapes once to be reused, which is more efficient -->
+    <!-- Define the icon shapes once to be reused -->
     <defs>
+      <!-- UPLOAD ICON: Circle with two inner circles -->
       <g id="upload-icon">
-        <circle cx="50" cy="50" r="47"/>
+        <circle cx="50" cy="50" r="48.75"/> <!-- Radius is 50 minus half the stroke-width -->
         <circle cx="29.1" cy="50" r="10.4"/>
         <circle cx="70.9" cy="50" r="10.4"/>
       </g>
+      
+      <!-- CONVERT ICON: Circle with three swirls -->
       <g id="convert-icon">
-        <circle cx="50" cy="50" r="47"/>
-        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(0, 50, 50 )" />
-        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(120, 50, 50)" />
-        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(240, 50, 50)" />
+        <circle cx="50" cy="50" r="48.75"/>
+        <path d="M 50,1.25 A 24.375,24.375 0 0 1 50,50" transform="rotate(0, 50, 50 )" />
+        <path d="M 50,1.25 A 24.375,24.375 0 0 1 50,50" transform="rotate(120, 50, 50)" />
+        <path d="M 50,1.25 A 24.375,24.375 0 0 1 50,50" transform="rotate(240, 50, 50)" />
       </g>
+      
+      <!-- DOWNLOAD ICON: Circle with four inner arcs -->
       <g id="download-icon">
-        <circle cx="50" cy="50" r="47"/>
+        <circle cx="50" cy="50" r="48.75"/>
         <g clip-path="url(#main-circle-clipper-for-download)">
-          <circle cx="3" cy="3" r="47"/>
-          <circle cx="97" cy="3" r="47"/>
-          <circle cx="3" cy="97" r="47"/>
-          <circle cx="97" cy="97" r="47"/>
+          <circle cx="1.25" cy="1.25" r="48.75"/>
+          <circle cx="98.75" cy="1.25" r="48.75"/>
+          <circle cx="1.25" cy="98.75" r="48.75"/>
+          <circle cx="98.75" cy="98.75" r="48.75"/>
         </g>
       </g>
       <clipPath id="main-circle-clipper-for-download">
-        <circle cx="50" cy="50" r="47"/>
+        <circle cx="50" cy="50" r="48.75"/>
       </clipPath>
     </defs>
 
