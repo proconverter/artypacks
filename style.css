@@ -37,7 +37,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .tagline { font-size: 20px; color: #52525b; }
 
-/* --- NEW: "Get License" Link in Hero --- */
+/* --- "Get License" Link in Hero --- */
 .get-license-link {
     font-size: 18px;
     color: #52525b;
@@ -79,12 +79,32 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Accordion Styles --- */
 .info-accordion { 
     max-width: 100%; 
-    text-align: center; /* <-- THIS IS THE CORRECTED LINE */
+    text-align: center; /* This is the main centering rule */
 }
 .accordion-item { width: 100%; border-bottom: 1px solid #e5e5e5; }
 .accordion-item:first-of-type { border-top: 1px solid #e5e5e5; }
-.accordion-question { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 18px; font-weight: 500; padding: 20px 0; }
-.accordion-question .icon { font-size: 24px; font-weight: 300; transition: transform 0.3s ease; }
+
+/* CHANGE #1: Justify the question to the center */
+.accordion-question { 
+    display: flex; 
+    justify-content: center; /* <-- CHANGED from space-between */
+    align-items: center; 
+    cursor: pointer; 
+    font-size: 18px; 
+    font-weight: 500; 
+    padding: 20px 0; 
+    position: relative; /* Needed for absolute positioning of the icon */
+}
+
+/* CHANGE #2: Position the icon absolutely on the right */
+.accordion-question .icon { 
+    font-size: 24px; 
+    font-weight: 300; 
+    transition: transform 0.3s ease; 
+    position: absolute; /* <-- ADDED */
+    right: 10px; /* <-- ADDED */
+}
+
 .accordion-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out; color: #52525b; font-size: 16px; line-height: 1.6; }
 .accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
@@ -106,7 +126,20 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .contact-form { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
 .contact-form input, .contact-form textarea { width: 100%; padding: 12px; font-family: 'Inter', sans-serif; font-size: 16px; border: 1px solid #d4d4d8; border-radius: 8px; background-color: #f4f4f5; }
 .contact-form textarea { min-height: 120px; resize: vertical; }
-.contact-form button { align-self: flex-start; padding: 12px 24px; font-size: 16px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; background-color: #18181b; color: #ffffff; transition: background-color 0.2s ease; }
+
+/* CHANGE #3: Center the contact form button */
+.contact-form button { 
+    align-self: center; /* <-- CHANGED from flex-start */
+    padding: 12px 24px; 
+    font-size: 16px; 
+    font-weight: 700; 
+    border-radius: 8px; 
+    border: none; 
+    cursor: pointer; 
+    background-color: #18181b; 
+    color: #ffffff; 
+    transition: background-color 0.2s ease; 
+}
 .contact-form button:hover { background-color: #3f3f46; }
 #form-status { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #f0fdf4; color: #166534; border-radius: 8px; margin-top: 15px; }
 
