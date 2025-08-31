@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let uploadedFiles = [];
     let sessionHistory = [];
     let isLicenseValid = false;
-    let validationController; // To abort previous fetch requests
+    let validationController;
+    let messageIntervalId;
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -51,9 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleLicenseInput = () => {
-        if (validationController) {
-            validationController.abort();
-        }
+        if (validationController) validationController.abort();
+        clearInterval(messageIntervalId);
         isLicenseValid = false;
         checkLicenseAndToggleUI();
         const key = licenseKeyInput.value.trim();
@@ -65,75 +65,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- NEW: TIERED & RANDOMIZED CREDIT MESSAGES ---
+    // --- TIERED & RANDOMIZED CREDIT MESSAGES ---
     const getCreditsMessage = (credits) => {
         let messages = [];
         if (credits >= 11) {
-            messages = [
-                `You’re all set—${credits} conversions ready for you!`,
-                `Nice! You’ve got ${credits} conversions waiting.`,
-                `${credits} conversions available. Dive in!`
-            ];
+            messages = [`You’re all set—${credits} conversions ready for you!`, `Nice! You’ve got ${credits} conversions waiting.`, `${credits} conversions available. Dive in!`];
         } else if (credits >= 6) {
-            messages = [
-                `Still going strong—${credits} conversions remain.`,
-                `Looking good! ${credits} conversions left to use.`,
-                `You’ve got ${credits} conversions remaining—keep creating.`
-            ];
+            messages = [`Still going strong—${credits} conversions remain.`, `Looking good! ${credits} conversions left to use.`, `You’ve got ${credits} conversions remaining—keep creating.`];
         } else if (credits >= 2) {
-            messages = [
-                `Heads up—you’ve got ${credits} conversions left.`,
-                `Almost there! Just ${credits} conversions remain.`,
-                `Make them count—only ${credits} left.`
-            ];
+            messages = [`Heads up—you’ve got ${credits} conversions left.`, `Almost there! Just ${credits} conversions remain.`, `Make them count—only ${credits} left.`];
         } else if (credits === 1) {
-            messages = [
-                `Last one! You have 1 conversion left—make it your best.`,
-                `Almost out—just 1 conversion remains.`,
-                `Final call: 1 conversion left.`
-            ];
+            messages = [`Last one! You have 1 conversion left—make it your best.`, `Almost out—just 1 conversion remains.`, `Final call: 1 conversion left.`];
         } else {
-            messages = [
-                `All used up—no conversions left on this key.`,
-                `Your pack is finished. Time to top up!`,
-                `No conversions remaining—grab a new pack to continue.`
-            ];
+            messages = [`All used up—no conversions left on this key.`, `Your pack is finished. Time to top up!`, `No conversions remaining—grab a new pack to continue.`];
         }
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- ROBUST LICENSE VALIDATION WITH RETRIES & DYNAMIC MESSAGES ---
+    // --- FINAL, STABLE VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
 
         const coldStartMessages = [
-            "Initializing...",
-            "Waking up the server...",
-            "Establishing secure connection...",
-            "Checking credentials...",
-            "Almost there, please wait...",
-            "Just a moment longer...",
-            "Verifying your key...",
-            "Finalizing connection..."
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...",
+            "Authenticating...", "Just a moment...", "Checking credentials...",
+            "Cross-referencing database...", "Almost there...", "Finalizing verification...",
+            "Unlocking converter...", "Hold tight...", "Confirming details..."
         ];
-        let messageIntervalId;
-        let attempt = 0;
-
-        const showNextMessage = () => {
-            licenseStatus.innerHTML = coldStartMessages[attempt % coldStartMessages.length];
-        };
+        let messageIndex = 0;
 
         if (!isPostConversion) {
-            licenseStatus.className = 'license-status-message checking'; // Use green color
+            licenseStatus.className = 'license-status-message checking'; // Green text
+            const showNextMessage = () => {
+                licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
+                messageIndex++;
+            };
             showNextMessage();
-            messageIntervalId = setInterval(() => {
-                attempt++;
-                showNextMessage();
-            }, 2000);
+            messageIntervalId = setInterval(showNextMessage, 3000);
         }
 
-        for (let i = 0; i < 15; i++) {
+        for (let attempt = 1; attempt <= 20; attempt++) { // Increased retries for very long cold starts
             try {
                 const response = await fetch(VITE_CHECK_API_ENDPOINT, {
                     method: 'POST',
@@ -141,8 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ licenseKey: key }),
                     signal
                 });
-
-                if (signal.aborted) return;
 
                 clearInterval(messageIntervalId);
                 const result = await response.json();
@@ -152,9 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     licenseStatus.className = 'license-status-message valid';
                     if (isPostConversion) {
                         licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else if (i > 0) { // It was a cold start
-                        licenseStatus.innerHTML = `Welcome! Thank you for your patience. Your license is valid with ${result.credits} conversions remaining.`;
-                    } else { // It was a fast response
+                    } else {
                         licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
                     }
                 } else {
@@ -166,20 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
 
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Validation aborted.');
+                if (signal.aborted) {
                     clearInterval(messageIntervalId);
                     return;
                 }
-                if (i < 14) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                } else {
+                if (attempt === 20) {
                     clearInterval(messageIntervalId);
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'The server is not responding. Please try again in a minute.';
+                    licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
                     checkLicenseAndToggleUI();
+                    return;
                 }
+                await new Promise(resolve => setTimeout(resolve, 2500)); // 2.5 second delay
             }
         }
     }
@@ -277,8 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
-            // Re-validate the license to show the new credit count
-            validateLicenseWithRetries(licenseKey, true); // Pass true for post-conversion check
+            validateLicenseWithRetries(licenseKey, true);
 
         } catch (error) {
             console.error('Conversion Error:', error);
