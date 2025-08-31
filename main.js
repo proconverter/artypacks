@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isPostConversion) {
                         licenseStatus.innerHTML = getCreditsMessage(result.credits);
                     } else {
-                        licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
+                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
                     }
                 } else {
                     isLicenseValid = false;
