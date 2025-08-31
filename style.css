@@ -37,6 +37,21 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .tagline { font-size: 20px; color: #52525b; }
 
+/* --- NEW: "Get License" Link in Hero --- */
+.get-license-link {
+    font-size: 18px;
+    color: #52525b;
+    margin-top: 10px;
+}
+.get-license-link a {
+    color: #007bff;
+    text-decoration: underline;
+    font-weight: 600;
+}
+.get-license-link a:hover {
+    color: #0056b3;
+}
+
 /* --- CTA Buttons --- */
 .cta-button {
     display: inline-block; background-color: #007bff; color: #ffffff;
@@ -62,7 +77,10 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
 
 /* --- Accordion Styles --- */
-.info-accordion { max-width: 100%; text-align: left; }
+.info-accordion { 
+    max-width: 100%; 
+    text-align: center; /* <-- THIS IS THE CORRECTED LINE */
+}
 .accordion-item { width: 100%; border-bottom: 1px solid #e5e5e5; }
 .accordion-item:first-of-type { border-top: 1px solid #e5e5e5; }
 .accordion-question { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 18px; font-weight: 500; padding: 20px 0; }
@@ -109,28 +127,8 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     font-weight: 700;
 }
 
-/* --- Get License Link --- */
-.get-license-link {
-    font-size: 18px;
-    color: #52525b;
-    margin-top: 10px;
-}
-.get-license-link a {
-    color: #007bff;
-    text-decoration: underline;
-    font-weight: 600;
-}
-.get-license-link a:hover {
-    color: #0056b3;
-}
-
 /* --- License Status Message --- */
-.license-status-message { 
-    font-size: 14px; 
-    text-align: center; 
-    margin-top: 10px; 
-    min-height: 20px; 
-}
+.license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
 .license-status-message.checking,
 .license-status-message.valid { 
     color: #16a34a; 
@@ -143,16 +141,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .drop-zone.disabled { cursor: not-allowed; background-color: #f9fafb; opacity: 0.6; }
 .drop-zone:not(.disabled) { cursor: pointer; }
 .drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
-
-/* THIS IS THE CORRECTED ICON STYLE */
-.drop-zone .drop-zone-icon {
-    width: 32px !important;
-    height: 32px !important;
-    margin-bottom: 12px;
-    opacity: 0.6;
-    fill: #a1a1aa;
-}
-
+.drop-zone-icon { width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.6; fill: #a1a1aa; }
 .drop-zone-prompt p { margin: 0; color: #52525b; max-width: 100%; font-size: 16px; }
 .drop-zone-prompt p strong { color: #18181b; font-weight: 600; }
 .drop-zone-limits { font-size: 14px; color: #a1a1aa; margin-top: 8px !important; }
@@ -248,4 +237,18 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     h1 { font-size: 36px; }
     h2.section-title { font-size: 28px; }
     .master-card { padding: 40px 20px; }
+}
+
+/* --- NEW STYLES for Pricing Card Layout --- */
+.price-pack {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes content apart vertically */
+    min-height: 220px; /* Ensures all cards have the same height */
+}
+
+.price-pack p {
+    flex-grow: 1; /* Allows the description to push the button down */
+    margin-top: 10px;
+    margin-bottom: 20px; /* Adds space above the button */
 }
