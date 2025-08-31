@@ -1,5 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-  <polyline points="7 10 12 15 17 10"/>
-  <line x1="12" y1="15" x2="12" y2="3"/>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Define the clipping shape (our "cookie cutter") -->
+  <defs>
+    <clipPath id="main-circle-clipper">
+      <!-- Anything drawn with this clip-path will only be visible inside this circle -->
+      <circle cx="50" cy="50" r="47"/>
+    </clipPath>
+  </defs>
+
+  <!-- Group for all visible elements with the standard styling -->
+  <g fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    
+    <!-- 1. Draw the main outer circle -->
+    <circle cx="50" cy="50" r="47"/>
+    
+    <!-- 2. Draw the four inner arcs -->
+    <!-- This group is clipped, so only the parts of the circles inside the clipper are visible -->
+    <g clip-path="url(#main-circle-clipper)">
+      <!-- Each of these circles creates one of the four arcs -->
+      <circle cx="3" cy="3" r="47"/>
+      <circle cx="97" cy="3" r="47"/>
+      <circle cx="3" cy="97" r="47"/>
+      <circle cx="97" cy="97" r="47"/>
+    </g>
+  </g>
 </svg>
