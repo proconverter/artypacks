@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionHistory = [];
     let isLicenseValid = false;
     let validationController; // To abort previous fetch requests
+    let messageIntervalId; // To control the message timer
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -51,15 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleLicenseInput = () => {
+        // Abort any ongoing validation before starting a new one
         if (validationController) {
             validationController.abort();
         }
+        // Clear any existing message timers
+        clearInterval(messageIntervalId);
+
         isLicenseValid = false;
         checkLicenseAndToggleUI();
         const key = licenseKeyInput.value.trim();
+
         if (key.length > 5) {
             validateLicenseWithRetries(key);
         } else {
+            // Clear status if the key is too short
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
         }
@@ -99,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `No conversions remaining—grab a new pack to continue.`
             ];
         }
+        // Return a random message from the selected tier
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
@@ -107,80 +115,71 @@ document.addEventListener('DOMContentLoaded', () => {
         validationController = new AbortController();
         const signal = validationController.signal;
 
+        // Your original, excellent list of messages
         const coldStartMessages = [
-            "Initializing...",
-            "Waking up the server...",
-            "Establishing secure connection...",
-            "Checking credentials...",
-            "Almost there, please wait...",
-            "Just a moment longer...",
-            "Verifying your key...",
-            "Finalizing connection..."
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...",
+            "Authenticating...", "Just a moment...", "Checking credentials...",
+            "Cross-referencing database...", "Almost there...", "Finalizing verification...",
+            "Unlocking converter...", "Hold tight...", "Confirming details..."
         ];
-        let messageIntervalId;
         let attempt = 0;
 
         const showNextMessage = () => {
-            licenseStatus.innerHTML = coldStartMessages[attempt % coldStartMessages.length];
+            if (licenseStatus) {
+                licenseStatus.innerHTML = coldStartMessages[attempt % coldStartMessages.length];
+                attempt++;
+            }
         };
 
+        // Only show cold-start messages on initial validation, not after conversion
         if (!isPostConversion) {
-            licenseStatus.className = 'license-status-message checking'; // Use green color
+            licenseStatus.className = 'license-status-message checking'; // This makes the text green
             showNextMessage();
-            messageIntervalId = setInterval(() => {
-                attempt++;
-                showNextMessage();
-            }, 2000);
+            messageIntervalId = setInterval(showNextMessage, 2500); // Cycle through messages
         }
 
-        for (let i = 0; i < 15; i++) {
-            try {
-                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ licenseKey: key }),
-                    signal
-                });
+        try {
+            const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: key }),
+                signal
+            });
 
-                if (signal.aborted) return;
+            clearInterval(messageIntervalId); // Stop the message timer once we get a response
 
-                clearInterval(messageIntervalId);
-                const result = await response.json();
+            if (signal.aborted) return;
 
-                if (response.ok && result.isValid) {
-                    isLicenseValid = true;
-                    licenseStatus.className = 'license-status-message valid';
-                    if (isPostConversion) {
-                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else if (i > 0) { // It was a cold start
-                        licenseStatus.innerHTML = `Welcome! Thank you for your patience. Your license is valid with ${result.credits} conversions remaining.`;
-                    } else { // It was a fast response
-                        licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
-                    }
+            const result = await response.json();
+
+            if (response.ok && result.isValid) {
+                isLicenseValid = true;
+                licenseStatus.className = 'license-status-message valid';
+                
+                if (isPostConversion) {
+                    // After conversion, show the tiered credit message
+                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
                 } else {
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = result.message || 'Invalid license key.';
+                    // On initial validation, show the warm welcome message
+                    licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
                 }
-                checkLicenseAndToggleUI();
-                return;
-
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Validation aborted.');
-                    clearInterval(messageIntervalId);
-                    return;
-                }
-                if (i < 14) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                } else {
-                    clearInterval(messageIntervalId);
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'The server is not responding. Please try again in a minute.';
-                    checkLicenseAndToggleUI();
-                }
+            } else {
+                isLicenseValid = false;
+                licenseStatus.className = 'license-status-message invalid';
+                licenseStatus.textContent = result.message || 'Invalid license key.';
             }
+        } catch (error) {
+            clearInterval(messageIntervalId); // Also stop timer on error
+            if (error.name === 'AbortError') {
+                console.log('Validation aborted by user.');
+                return;
+            }
+            // This handles network errors or if the server is truly down
+            isLicenseValid = false;
+            licenseStatus.className = 'license-status-message invalid';
+            licenseStatus.textContent = 'Unable to connect to the validation server. Please check your connection and try again.';
+        } finally {
+            checkLicenseAndToggleUI();
         }
     }
 
