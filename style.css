@@ -110,8 +110,15 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #52525b; 
     font-size: 16px; 
     line-height: 1.6; 
-    text-align: center; /* <-- FINAL FIX ADDED HERE */
+    text-align: center;
 }
+
+/* THIS IS THE NEW, PERMANENT FIX */
+.accordion-answer p {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
@@ -272,4 +279,21 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     .pricing-details { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
-    h1 { font-s
+    h1 { font-size: 36px; }
+    h2.section-title { font-size: 28px; }
+    .master-card { padding: 40px 20px; }
+}
+
+/* --- NEW STYLES for Pricing Card Layout --- */
+.price-pack {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes content apart vertically */
+    min-height: 220px; /* Ensures all cards have the same height */
+}
+
+.price-pack p {
+    flex-grow: 1; /* Allows the description to push the button down */
+    margin-top: 10px;
+    margin-bottom: 20px; /* Adds space above the button */
+}
