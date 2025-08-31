@@ -4,7 +4,6 @@
 html {
     background-color: #00b4ff;
     background-image: url('/assets/background-pattern.svg');
-    /* --- UPDATED: More performant and smaller background size --- */
     background-size: 75px 75px;
     opacity: 0.8; 
 }
@@ -112,7 +111,11 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- License Status Message --- */
 .license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
-.license-status-message.valid { color: #16a34a; }
+/* NEW: Added .checking class to make cold-start text green */
+.license-status-message.checking,
+.license-status-message.valid { 
+    color: #16a34a; 
+}
 .license-status-message.invalid { color: #dc2626; }
 .license-status-message a { font-weight: 700; text-decoration: underline; }
 
