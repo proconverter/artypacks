@@ -108,6 +108,25 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
     font-weight: 700;
 }
+/* --- NEW: Get License Link --- */
+.get-license-link {
+    font-size: 14px;
+    color: #52525b; /* A neutral, secondary text color */
+    margin-top: 12px;
+    margin-bottom: -5px; /* Pulls the status message up slightly */
+}
+.get-license-link a {
+    color: #007bff; /* Your primary link color */
+    text-decoration: underline;
+    font-weight: 600;
+}
+.get-license-link a:hover {
+    color: #0056b3; /* Darker on hover */
+}
+
+/* --- License Status Message --- */
+.license-status-message { 
+/* ... existing styles ... */
 
 /* --- License Status Message --- */
 .license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
