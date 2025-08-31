@@ -106,25 +106,24 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* FINAL - Dead centre alignment */
-.accordion-question { 
-    display: flex; 
-    justify-content: center; /* Horizontally centers the text */
-    align-items: center; /* Vertically centers the text */
-    cursor: pointer; 
-    font-size: 18px; 
-    font-weight: 500; 
-    padding: 20px 0;
+/* MODIFIED - This is the corrected rule for alignment */
+.accordion-question {
+    display: flex;
+    justify-content: space-between; /* Pushes text left, icon right */
+    align-items: center; /* Vertically centers everything */
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 500;
+    padding: 20px 10px; /* Consistent padding */
     min-height: 70px; /* Ensures consistent row height */
-    position: relative; /* Parent for the absolutely positioned icon */
+    text-align: left; /* Aligns text to the left */
 }
 
 .accordion-question .icon { 
     font-size: 24px; 
     font-weight: 300; 
     transition: transform 0.3s ease; 
-    position: absolute; /* Positioned relative to the .accordion-question */
-    right: 10px; /* Placed on the far right */
+    margin-left: 15px; /* Adds space between text and icon */
 }
 
 .accordion-answer { 
@@ -134,19 +133,19 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #52525b; 
     font-size: 16px; 
     line-height: 1.6; 
-    text-align: center;
+    text-align: left; /* Changed to left for better readability */
 }
 
 .accordion-answer p {
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 10px; /* Align with question padding */
+    margin-right: 10px; /* Align with question padding */
 }
 
 .accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
-.pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+.pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; text-align: center; } /* Added text-align center */
 .price-pack { border: 1px solid #e5e5e5; padding: 20px; border-radius: 12px; }
 .price-pack.recommended { border-color: #007bff; box-shadow: 0 0 10px rgba(0, 123, 255, 0.2); }
 .price-pack h4 { margin-bottom: 5px; }
