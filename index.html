@@ -63,12 +63,15 @@
                     <div class="app-step">
                         <div class="step-content">
                             <label for="file-upload">Upload Your .brushset Files</label>
-                            <div class="drop-zone" id="drop-zone">
-                                <div class="drop-zone-prompt">
-                                    <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
-                                    <p><strong>Click to upload</strong> or drag and drop</p>
-                                    <p class="drop-zone-limits">1 to 3 .brushset files / 50MB total</p>
-                                </div>
+                            <!-- This is the START of the section to replace -->
+<div class="drop-zone-prompt">
+    <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
+    
+    <!-- NEW, User-Friendly Text -->
+    <p><strong>Drag & drop your Procreate files here</strong></p>
+    <p class="drop-zone-limits">or click to upload (up to 3 files, 50MB total )</p>
+</div>
+<!-- This is the END of the section to replace -->
                                 <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
                             </div>
                             <div id="file-list"></div>
