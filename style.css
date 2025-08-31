@@ -297,11 +297,3 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 10px;
     margin-bottom: 20px; /* Adds space above the button */
 }
-/* --- NEW: Custom Focus Styles for Contact Form --- */
-.contact-form input:focus,
-.contact-form textarea:focus {
-    outline: none; /* 1. Turn off the ugly default outline */
-    border-color: #80bdff; /* 2. Change the border color to a nice blue */
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25); /* 3. Add a soft, glowing outer shadow that perfectly follows the border-radius */
-}
-
