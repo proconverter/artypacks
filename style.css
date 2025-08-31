@@ -87,7 +87,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .cta-button:disabled:hover { transform: none; background-color: #e5e7eb; }
 
-/* UPDATED - Darker separator line */
+/* MODIFIED - Updated color to match app box */
 .section-divider { width: 100%; border: none; border-top: 1px solid #d4d4d8; margin: 10px 0; }
 
 /* --- How-It-Works Section --- */
@@ -98,19 +98,17 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
 
 /* --- Accordion Styles --- */
-/* MODIFIED - Removed the extra top border */
 .info-accordion { 
     max-width: 100%; 
     text-align: center;
 }
 
-/* MODIFIED - Moved the border here */
+/* MODIFIED - Updated color to match app box */
 .accordion-item { 
     width: 100%; 
-    border-bottom: 1px solid #d4d4d8; /* The separator line now lives here */
+    border-bottom: 1px solid #d4d4d8; 
 }
 
-/* MODIFIED - Removed the border from here */
 .accordion-question {
     display: flex;
     align-items: center;
@@ -142,7 +140,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     font-size: 16px; 
     line-height: 1.6; 
     text-align: center;
-    padding-top: 10px; /* Add a little space between question and answer */
+    padding-top: 10px;
 }
 
 .accordion-answer p {
