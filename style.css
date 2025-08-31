@@ -15,7 +15,7 @@ html::before {
     width: 100%;
     height: 100%;
     background-color: #00b4ff;
-    background-image: url('/assets/background-pattern.svg');
+    background-image: url('/assets/background-pattern.svg' );
     background-size: 75px 75px;
     opacity: 0.8; /* Opacity is now isolated here */
     z-index: -1; /* Sits behind the main content */
@@ -106,25 +106,25 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* UPDATED - Centered text with consistent height */
+/* FINAL - Dead centre alignment */
 .accordion-question { 
     display: flex; 
-    justify-content: center; /* REVERTED to center */
-    align-items: center; 
+    justify-content: center; /* Horizontally centers the text */
+    align-items: center; /* Vertically centers the text */
     cursor: pointer; 
     font-size: 18px; 
     font-weight: 500; 
-    padding: 20px 0; /* REVERTED to original padding */
-    min-height: 70px; /* KEPT for consistent row height */
-    position: relative;
+    padding: 20px 0;
+    min-height: 70px; /* Ensures consistent row height */
+    position: relative; /* Parent for the absolutely positioned icon */
 }
 
 .accordion-question .icon { 
     font-size: 24px; 
     font-weight: 300; 
     transition: transform 0.3s ease; 
-    position: absolute; /* REVERTED to absolute */
-    right: 10px; /* RE-ADDED right positioning */
+    position: absolute; /* Positioned relative to the .accordion-question */
+    right: 10px; /* Placed on the far right */
 }
 
 .accordion-answer { 
