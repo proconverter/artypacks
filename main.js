@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key' );
+    const licenseKeyInput = document.getElementById('license-key'  );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -125,7 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    if (result.credits === 0) {
+                    // THIS IS THE CORRECTED LOGIC BLOCK
+                    if (result.message && result.message.toLowerCase().includes("credits")) {
                         licenseStatus.innerHTML = getCreditsMessage(0);
                     } else {
                         licenseStatus.textContent = result.message || 'Invalid license key.';
@@ -332,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('Form submission failed.');
                 }
-            } catch (error) { // <-- THIS IS THE CORRECTED LINE
+            } catch (error) {
                 console.error('Contact form error:', error);
                 alert('Sorry, there was an issue sending your message. Please try again later.');
             }
