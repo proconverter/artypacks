@@ -69,49 +69,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const getCreditsMessage = (credits) => {
         let messages = [];
         if (credits >= 11) {
-            messages = [
-                `You’re all set—${credits} conversions ready for you!`,
-                `Nice! You’ve got ${credits} conversions waiting.`,
-                `${credits} conversions available. Dive in!`
-            ];
+            messages = [ `You’re all set—${credits} conversions ready for you!`, `Nice! You’ve got ${credits} conversions waiting.`, `${credits} conversions available. Dive in!` ];
         } else if (credits >= 6) {
-            messages = [
-                `Still going strong—${credits} conversions remain.`,
-                `Looking good! ${credits} conversions left to use.`,
-                `You’ve got ${credits} conversions remaining—keep creating.`
-            ];
+            messages = [ `Still going strong—${credits} conversions remain.`, `Looking good! ${credits} conversions left to use.`, `You’ve got ${credits} conversions remaining—keep creating.` ];
         } else if (credits >= 2) {
-            messages = [
-                `Heads up—you’ve got ${credits} conversions left.`,
-                `You've got ${credits} conversions to use.`,
-                `Make them count—only ${credits} left.`
-            ];
+            messages = [ `Heads up—you’ve got ${credits} conversions left.`, `You've got ${credits} conversions to use.`, `Make them count—only ${credits} left.` ];
         } else if (credits === 1) {
-            messages = [
-                `Last one! You have 1 conversion left—make it your best.`,
-                `Almost out—just 1 conversion remains.`,
-                `Final call: 1 conversion left.`
-            ];
+            messages = [ `Last one! You have 1 conversion left—make it your best.`, `Almost out—just 1 conversion remains.`, `Final call: 1 conversion left.` ];
         } else {
-            messages = [
-                `You’ve used all your conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Pick up a new pack here.</a>`,
-                `Out of conversions? <a href="${ETSY_STORE_LINK}" target="_blank">Add more credits in just a click.</a>`,
-                `No conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits to unlock new ones.</a>`
-            ];
+            messages = [ `You’ve used all your conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Pick up a new pack here.</a>`, `Out of conversions? <a href="${ETSY_STORE_LINK}" target="_blank">Add more credits in just a click.</a>`, `No conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits to unlock new ones.</a>` ];
         }
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- FINAL, STABLE VALIDATION LOGIC ---
+    // --- FINAL, CORRECTED VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
 
         const coldStartMessages = [
-            "Initializing connection...", "Waking up the servers...", "Establishing secure link...",
-            "Authenticating...", "Just a moment...", "Checking credentials...",
-            "Cross-referencing database...", "Almost there...", "Finalizing verification...",
-            "Unlocking converter...", "Hold tight...", "Confirming details..."
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Cross-referencing database...", "Almost there...", "Finalizing verification...", "Unlocking converter...", "Hold tight...", "Confirming details..."
         ];
         let messageIndex = 0;
 
@@ -355,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('Form submission failed.');
                 }
-            } catch (error) {
+            } catch (error). {
                 console.error('Contact form error:', error);
                 alert('Sorry, there was an issue sending your message. Please try again later.');
             }
