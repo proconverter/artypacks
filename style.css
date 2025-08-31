@@ -79,33 +79,39 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Accordion Styles --- */
 .info-accordion { 
     max-width: 100%; 
-    text-align: center; /* This is the main centering rule */
+    text-align: center;
 }
 .accordion-item { width: 100%; border-bottom: 1px solid #e5e5e5; }
 .accordion-item:first-of-type { border-top: 1px solid #e5e5e5; }
 
-/* CHANGE #1: Justify the question to the center */
 .accordion-question { 
     display: flex; 
-    justify-content: center; /* <-- CHANGED from space-between */
+    justify-content: center;
     align-items: center; 
     cursor: pointer; 
     font-size: 18px; 
     font-weight: 500; 
     padding: 20px 0; 
-    position: relative; /* Needed for absolute positioning of the icon */
+    position: relative;
 }
 
-/* CHANGE #2: Position the icon absolutely on the right */
 .accordion-question .icon { 
     font-size: 24px; 
     font-weight: 300; 
     transition: transform 0.3s ease; 
-    position: absolute; /* <-- ADDED */
-    right: 10px; /* <-- ADDED */
+    position: absolute;
+    right: 10px;
 }
 
-.accordion-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out; color: #52525b; font-size: 16px; line-height: 1.6; }
+.accordion-answer { 
+    max-height: 0; 
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out; 
+    color: #52525b; 
+    font-size: 16px; 
+    line-height: 1.6; 
+    text-align: center; /* <-- FINAL FIX ADDED HERE */
+}
 .accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
@@ -127,9 +133,8 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .contact-form input, .contact-form textarea { width: 100%; padding: 12px; font-family: 'Inter', sans-serif; font-size: 16px; border: 1px solid #d4d4d8; border-radius: 8px; background-color: #f4f4f5; }
 .contact-form textarea { min-height: 120px; resize: vertical; }
 
-/* CHANGE #3: Center the contact form button */
 .contact-form button { 
-    align-self: center; /* <-- CHANGED from flex-start */
+    align-self: center;
     padding: 12px 24px; 
     font-size: 16px; 
     font-weight: 700; 
@@ -267,21 +272,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     .pricing-details { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
-    h1 { font-size: 36px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
-}
-
-/* --- NEW STYLES for Pricing Card Layout --- */
-.price-pack {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Pushes content apart vertically */
-    min-height: 220px; /* Ensures all cards have the same height */
-}
-
-.price-pack p {
-    flex-grow: 1; /* Allows the description to push the button down */
-    margin-top: 10px;
-    margin-bottom: 20px; /* Adds space above the button */
-}
+    h1 { font-s
