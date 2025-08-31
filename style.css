@@ -106,30 +106,32 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
+/* MODIFIED - Using absolute positioning for guaranteed centering */
 .accordion-question {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+    position: relative; /* Parent context for absolute positioning */
     cursor: pointer;
     font-size: 18px;
     font-weight: 500;
-    padding: 20px 0;
-    min-height: 70px;
-    text-align: center;
+    height: 70px; /* Explicit height for all rows */
+    width: 100%;
 }
 
-/* NEW RULE - This provides a more robust vertical centering for the text span */
+/* MODIFIED - This rule now handles the centering */
 .accordion-question > span:first-child {
-    display: flex;
-    align-items: center;
-    padding-right: 30px; /* Ensures text doesn't overlap with the icon area */
-    padding-left: 30px; /* Balances the padding */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%; /* Allow text to span width for centering */
+    text-align: center; /* Ensure text itself is centered */
+    padding: 0 30px; /* Prevent text from overlapping icon */
 }
 
 .accordion-question .icon {
     position: absolute;
     right: 10px;
+    top: 50%; /* Align icon vertically */
+    transform: translateY(-50%); /* Perfect vertical center for icon */
     font-size: 24px;
     font-weight: 300;
     transition: transform 0.3s ease;
