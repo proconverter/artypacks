@@ -73,7 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (credits >= 6) {
             messages = [`Still going strong—${credits} conversions remain.`, `Looking good! ${credits} conversions left to use.`, `You’ve got ${credits} conversions remaining—keep creating.`];
         } else if (credits >= 2) {
-            messages = [`Heads up—you’ve got ${credits} conversions left.`, `Almost there! Just ${credits} conversions remain.`, `Make them count—only ${credits} left.`];
+        messages = [
+            `Heads up—you’ve got ${credits} conversions left.`,
+            `You've got ${credits} conversions to use.`, // <-- REVISED MESSAGE
+            `Make them count—only ${credits} left.`
+        ];
         } else if (credits === 1) {
             messages = [`Last one! You have 1 conversion left—make it your best.`, `Almost out—just 1 conversion remains.`, `Final call: 1 conversion left.`];
         } else {
