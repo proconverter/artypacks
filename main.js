@@ -65,25 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- TIERED & RANDOMIZED CREDIT MESSAGES ---
-    const getCreditsMessage = (credits) => {
-        let messages = [];
-        if (credits >= 11) {
-            messages = [`You’re all set—${credits} conversions ready for you!`, `Nice! You’ve got ${credits} conversions waiting.`, `${credits} conversions available. Dive in!`];
-        } else if (credits >= 6) {
-            messages = [`Still going strong—${credits} conversions remain.`, `Looking good! ${credits} conversions left to use.`, `You’ve got ${credits} conversions remaining—keep creating.`];
-        } else if (credits >= 2) {
-            messages = [`Heads up—you’ve got ${credits} conversions left.`, `Almost there! Just ${credits} conversions remain.`, `Make them count—only ${credits} left.`];
-        } else if (credits === 1) {
-            messages = [`Last one! You have 1 conversion left—make it your best.`, `Almost out—just 1 conversion remains.`, `Final call: 1 conversion left.`];
-        } else {
-            messages = [`All used up—no conversions left on this key.`, `Your pack is finished. Time to top up!`, `No conversions remaining—grab a new pack to continue.`];
-        }
-        return messages[Math.floor(Math.random() * messages.length)];
-    };
-
-    // --- FINAL, SIMPLIFIED & CORRECTED VALIDATION LOGIC ---
-    async function validateLicenseWithRetries(key, isPostConversion = false) {
+    // --- ROBUST LICENSE VALIDATION WITH RETRIES (STABLE VERSION) ---
+    async function validateLicenseWithRetries(key) {
         validationController = new AbortController();
         const signal = validationController.signal;
 
@@ -95,15 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         let messageIndex = 0;
 
-        if (!isPostConversion) {
-            licenseStatus.className = 'license-status-message checking'; // Green text
-            const showNextMessage = () => {
-                licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
-                messageIndex++;
-            };
-            showNextMessage();
-            messageIntervalId = setInterval(showNextMessage, 3000);
-        }
+        // Set text to default (black) while checking
+        licenseStatus.className = 'license-status-message'; 
+        const showNextMessage = () => {
+            licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
+            messageIndex++;
+        };
+        showNextMessage();
+        messageIntervalId = setInterval(showNextMessage, 3000);
 
         for (let attempt = 1; attempt <= 15; attempt++) {
             try {
@@ -114,21 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     signal
                 });
 
-                // If we get here, the server responded (even with an error like 404)
                 clearInterval(messageIntervalId);
                 const result = await response.json();
 
                 if (response.ok && result.isValid) {
                     isLicenseValid = true;
-                    licenseStatus.className = 'license-status-message valid';
-                    if (isPostConversion) {
-                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else {
-                        licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
+                    licenseStatus.className = 'license-status-message valid'; // Green on success
+                    if (attempt > 1) { // It was a cold start
+                        licenseStatus.innerHTML = `Welcome! Thank you for your patience. Your license is valid with ${result.credits} conversions remaining.`;
+                    } else { // It was a fast response
+                        licenseStatus.innerHTML = `Valid Key! You have ${result.credits} conversions remaining.`;
                     }
                 } else {
                     isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.className = 'license-status-message invalid'; // Red on failure
                     licenseStatus.textContent = result.message || 'Invalid license key.';
                 }
                 checkLicenseAndToggleUI();
@@ -136,22 +117,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 if (signal.aborted) {
-                    console.log('Fetch aborted');
                     clearInterval(messageIntervalId);
                     return;
                 }
-                // This block catches network errors (server is down, CORS, etc.)
-                console.error(`Validation attempt ${attempt} failed:`, error);
                 if (attempt === 15) {
-                    // If all retries fail, show the final error
                     clearInterval(messageIntervalId);
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'Unable to connect to the validation server. Please check your connection and try again.';
+                    licenseStatus.textContent = 'The server is not responding. Please try again in a minute.';
                     checkLicenseAndToggleUI();
                     return;
                 }
-                // Wait before the next retry
+                // Wait 3 seconds before the next retry
                 await new Promise(resolve => setTimeout(resolve, 3000));
             }
         }
@@ -250,7 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
-            validateLicenseWithRetries(licenseKey, true);
+            // Re-validate the license to show the new credit count
+            validateLicenseWithRetries(licenseKey);
 
         } catch (error) {
             console.error('Conversion Error:', error);
