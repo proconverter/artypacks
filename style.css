@@ -26,7 +26,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Master Card Styling --- */
 .master-card {
-    background-color: #f9fafb; /* UPDATED to light grey */
+    background-color: #f4f4f4; /* UPDATED to light grey */
     padding: 50px 40px; 
     border-radius: 24px;
     display: flex; 
@@ -34,7 +34,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     align-items: center; 
     text-align: center; 
     gap: 30px;
-    border: 6px solid #ffffff; /* RE-INSTATED white border */
+    border: 12px solid #ffffff; /* RE-INSTATED white border */
 }
 
 /* --- Content Sections --- */
