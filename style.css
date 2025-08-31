@@ -98,14 +98,20 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
 
 /* --- Accordion Styles --- */
+/* MODIFIED - Added top border to the whole section */
 .info-accordion { 
     max-width: 100%; 
     text-align: center;
+    border-top: 1px solid #d4d4d8;
+    padding-top: 30px; /* Add padding to space the title from the new top line */
 }
-.accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
-.accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* THE FINAL, CLEAN, AND WORKING STYLES */
+/* MODIFIED - Removed all border rules from here */
+.accordion-item { 
+    width: 100%; 
+}
+
+/* MODIFIED - Added the bottom border here */
 .accordion-question {
     display: flex;
     align-items: center;
@@ -113,6 +119,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     min-height: 70px;
     cursor: pointer;
     padding: 10px;
+    border-bottom: 1px solid #d4d4d8; /* This is the correct placement for the line */
 }
 
 .accordion-question > span:first-child {
@@ -120,7 +127,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
     font-size: 18px;
     font-weight: 500;
-    padding: 0 20px; /* Gives space between text and icon */
+    padding: 0 20px;
 }
 
 .accordion-question .icon {
