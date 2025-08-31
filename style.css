@@ -106,24 +106,30 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* MODIFIED - This is the corrected rule for alignment */
 .accordion-question {
     display: flex;
-    justify-content: center; /* Horizontally centers the text span */
-    align-items: center; /* Vertically centers everything */
-    position: relative; /* Establishes a positioning context for the icon */
+    justify-content: center;
+    align-items: center;
+    position: relative;
     cursor: pointer;
     font-size: 18px;
     font-weight: 500;
     padding: 20px 0;
-    min-height: 70px; /* Ensures consistent row height */
+    min-height: 70px;
     text-align: center;
 }
 
-/* MODIFIED - Icon is now positioned absolutely */
+/* NEW RULE - This provides a more robust vertical centering for the text span */
+.accordion-question > span:first-child {
+    display: flex;
+    align-items: center;
+    padding-right: 30px; /* Ensures text doesn't overlap with the icon area */
+    padding-left: 30px; /* Balances the padding */
+}
+
 .accordion-question .icon {
-    position: absolute; /* Removes icon from flow */
-    right: 10px; /* Aligns icon to the far right */
+    position: absolute;
+    right: 10px;
     font-size: 24px;
     font-weight: 300;
     transition: transform 0.3s ease;
@@ -136,7 +142,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #52525b; 
     font-size: 16px; 
     line-height: 1.6; 
-    text-align: center; /* Answers should be centered */
+    text-align: center;
 }
 
 .accordion-answer p {
