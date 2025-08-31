@@ -87,7 +87,8 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .cta-button:disabled:hover { transform: none; background-color: #e5e7eb; }
 
-.section-divider { width: 100%; border: none; border-top: 1px solid #e5e5e5; margin: 10px 0; }
+/* UPDATED - Darker separator line */
+.section-divider { width: 100%; border: none; border-top: 1px solid #d4d4d8; margin: 10px 0; }
 
 /* --- How-It-Works Section --- */
 .how-it-works-grid { display: grid; grid-template-columns: 1fr; gap: 30px; width: 100%; margin-top: 20px; }
@@ -101,17 +102,20 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
     text-align: center;
 }
-.accordion-item { width: 100%; border-bottom: 1px solid #e5e5e5; }
-.accordion-item:first-of-type { border-top: 1px solid #e5e5e5; }
+/* UPDATED - Darker separator lines */
+.accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
+.accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
+/* UPDATED - Standardized row height and alignment */
 .accordion-question { 
     display: flex; 
-    justify-content: center;
+    justify-content: space-between; /* Pushes items to ends */
     align-items: center; 
     cursor: pointer; 
     font-size: 18px; 
     font-weight: 500; 
-    padding: 20px 0; 
+    padding: 0 10px; /* Controls side padding */
+    min-height: 70px; /* Ensures consistent row height */
     position: relative;
 }
 
@@ -119,8 +123,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     font-size: 24px; 
     font-weight: 300; 
     transition: transform 0.3s ease; 
-    position: absolute;
-    right: 10px;
+    position: static; /* REMOVED absolute positioning */
 }
 
 .accordion-answer { 
@@ -215,12 +218,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- App Section Styles --- */
 .app-section { 
-    background-color: #ffffff; /* ADDED background */
+    background-color: #ffffff;
     border-radius: 16px; 
     padding: 30px; 
     width: 100%; 
     max-width: 550px; 
-    border: 2px solid #d4d4d8; /* ADDED thicker, darker border */
+    border: 2px solid #d4d4d8;
 }
 .app-container { display: flex; flex-direction: column; gap: 30px; }
 .app-step { display: flex; align-items: flex-start; gap: 15px; }
