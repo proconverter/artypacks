@@ -297,3 +297,26 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 10px;
     margin-bottom: 20px; /* Adds space above the button */
 }
+/* --- NEW, CORRECTED: Custom Focus Styles for Contact Form --- */
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none; /* 1. Still need to turn off the default outline */
+    
+    /* 2. The Double Border Trick */
+    border: 2px solid #007bff; /* Create a solid blue border */
+    padding: 11px; /* Adjust padding to keep the inner size the same (12px original padding - 1px extra border width) */
+}
+
+/* We also need to adjust the non-focused state to have a transparent border */
+.contact-form input, 
+.contact-form textarea {
+    width: 100%;
+    padding: 12px; /* Original padding */
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    border: 1px solid #d4d4d8; /* Original border */
+    border-radius: 8px;
+    background-color: #f4f4f5;
+    transition: border 0.2s ease, padding 0.2s ease; /* Add transition for a smooth effect */
+}
+
