@@ -106,16 +106,16 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* UPDATED - Standardized row height and alignment */
+/* UPDATED - Centered text with consistent height */
 .accordion-question { 
     display: flex; 
-    justify-content: space-between; /* Pushes items to ends */
+    justify-content: center; /* REVERTED to center */
     align-items: center; 
     cursor: pointer; 
     font-size: 18px; 
     font-weight: 500; 
-    padding: 0 10px; /* Controls side padding */
-    min-height: 70px; /* Ensures consistent row height */
+    padding: 20px 0; /* REVERTED to original padding */
+    min-height: 70px; /* KEPT for consistent row height */
     position: relative;
 }
 
@@ -123,7 +123,8 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     font-size: 24px; 
     font-weight: 300; 
     transition: transform 0.3s ease; 
-    position: static; /* REMOVED absolute positioning */
+    position: absolute; /* REVERTED to absolute */
+    right: 10px; /* RE-ADDED right positioning */
 }
 
 .accordion-answer { 
