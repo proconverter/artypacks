@@ -1,12 +1,23 @@
-<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
   <!-- This group sets the style for all icons in the pattern -->
   <g fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 
-    <!-- Define the "download" icon shape to be reused -->
+    <!-- Define the icon shapes once to be reused, which is more efficient -->
     <defs>
+      <g id="upload-icon">
+        <circle cx="50" cy="50" r="47"/>
+        <circle cx="29.1" cy="50" r="10.4"/>
+        <circle cx="70.9" cy="50" r="10.4"/>
+      </g>
+      <g id="convert-icon">
+        <circle cx="50" cy="50" r="47"/>
+        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(0, 50, 50 )" />
+        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(120, 50, 50)" />
+        <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(240, 50, 50)" />
+      </g>
       <g id="download-icon">
         <circle cx="50" cy="50" r="47"/>
-        <g clip-path="url(#main-circle-clipper-for-download )">
+        <g clip-path="url(#main-circle-clipper-for-download)">
           <circle cx="3" cy="3" r="47"/>
           <circle cx="97" cy="3" r="47"/>
           <circle cx="3" cy="97" r="47"/>
@@ -18,25 +29,20 @@
       </clipPath>
     </defs>
 
-    <!-- Icon 1: UPLOAD (Positioned at x=0) -->
-    <g transform="translate(0, 0)">
-      <circle cx="50" cy="50" r="47"/>
-      <circle cx="29.1" cy="50" r="10.4"/>
-      <circle cx="70.9" cy="50" r="10.4"/>
-    </g>
+    <!-- ROW 1: Download, Upload, Convert -->
+    <use href="#download-icon" x="0" y="0" />
+    <use href="#upload-icon" x="100" y="0" />
+    <use href="#convert-icon" x="200" y="0" />
 
-    <!-- Icon 2: CONVERT (Positioned at x=100) -->
-    <g transform="translate(100, 0)">
-      <circle cx="50" cy="50" r="47"/>
-      <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(0, 50, 50)" />
-      <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(120, 50, 50)" />
-      <path d="M 50,3 A 23.5,23.5 0 0 1 50,50" transform="rotate(240, 50, 50)" />
-    </g>
+    <!-- ROW 2: Upload, Convert, Download -->
+    <use href="#upload-icon" x="0" y="100" />
+    <use href="#convert-icon" x="100" y="100" />
+    <use href="#download-icon" x="200" y="100" />
 
-    <!-- Icon 3: DOWNLOAD (Positioned at x=200) -->
-    <g transform="translate(200, 0)">
-      <use href="#download-icon"/>
-    </g>
+    <!-- ROW 3: Convert, Download, Upload -->
+    <use href="#convert-icon" x="0" y="200" />
+    <use href="#download-icon" x="100" y="200" />
+    <use href="#upload-icon" x="200" y="200" />
     
   </g>
 </svg>
