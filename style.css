@@ -105,30 +105,46 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-item { width: 100%; border-bottom: 1px solid #d4d4d8; }
 .accordion-item:first-of-type { border-top: 1px solid #d4d4d8; }
 
-/* FINAL WORKING SOLUTION - Using Flexbox with the root cause fixed */
+/***********************************************************************/
+/* START: DEBUGGING STYLES - THIS IS THE SECTION WE CARE ABOUT */
+/***********************************************************************/
+
 .accordion-question {
     display: flex;
-    align-items: center; /* Vertically center all items */
-    justify-content: space-between; /* Push text and icon apart */
-    width: 100%;
+    align-items: center;
+    justify-content: space-between;
     min-height: 70px;
     cursor: pointer;
     padding: 10px;
+    
+    /* DEBUG BORDER */
+    border: 3px solid blue !important; 
 }
 
 .accordion-question > span:first-child {
-    flex-grow: 1; /* Allow the text span to grow and fill available space */
-    text-align: center; /* Center the text within the span */
+    flex-grow: 1;
+    text-align: center;
     font-size: 18px;
     font-weight: 500;
-    padding: 0 20px; /* Give text space from icon */
+    padding: 0 20px;
+
+    /* DEBUG BORDER */
+    border: 2px dashed red !important;
 }
 
 .accordion-question .icon {
     font-size: 24px;
     font-weight: 300;
     transition: transform 0.3s ease;
+
+    /* DEBUG BORDER */
+    border: 2px dotted green !important;
 }
+
+/***********************************************************************/
+/* END: DEBUGGING STYLES */
+/***********************************************************************/
+
 
 .accordion-answer { 
     max-height: 0; 
@@ -140,11 +156,10 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
 }
 
-/* THIS IS THE CRITICAL FIX - Overriding the global p style */
 .accordion-answer p {
     margin-left: auto;
     margin-right: auto;
-    max-width: 100%; /* Ensure answer paragraphs can fill the container */
+    max-width: 100%; 
 }
 
 .accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
