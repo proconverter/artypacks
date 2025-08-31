@@ -4,8 +4,8 @@
 html {
     background-color: #00b4ff;
     background-image: url('/assets/background-pattern.svg');
-    /* --- The size is now 150px by 150px to match the new 1:1 aspect ratio of the 3x3 grid --- */
-    background-size: 150px 150px;
+    /* --- UPDATED: More performant and smaller background size --- */
+    background-size: 75px 75px;
     opacity: 0.8; 
 }
 
