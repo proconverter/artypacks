@@ -113,7 +113,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
 }
 
-/* THIS IS THE NEW, PERMANENT FIX */
 .accordion-answer p {
     margin-left: auto;
     margin-right: auto;
@@ -136,9 +135,35 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .page-footer a:hover { color: #18181b; }
 
 /* --- Contact Form Styles --- */
-.contact-form { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-.contact-form input, .contact-form textarea { width: 100%; padding: 12px; font-family: 'Inter', sans-serif; font-size: 16px; border: 1px solid #d4d4d8; border-radius: 8px; background-color: #f4f4f5; }
-.contact-form textarea { min-height: 120px; resize: vertical; }
+.contact-form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    margin-top: 10px; 
+}
+
+.contact-form input, 
+.contact-form textarea {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    background-color: #f4f4f5;
+    transition: border-color 0.2s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.contact-form textarea { 
+    min-height: 120px; 
+    resize: vertical; 
+}
 
 .contact-form button { 
     align-self: center;
@@ -152,8 +177,21 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #ffffff; 
     transition: background-color 0.2s ease; 
 }
-.contact-form button:hover { background-color: #3f3f46; }
-#form-status { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #f0fdf4; color: #166534; border-radius: 8px; margin-top: 15px; }
+
+.contact-form button:hover { 
+    background-color: #3f3f46; 
+}
+
+#form-status { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px; 
+    background-color: #f0fdf4; 
+    color: #166534; 
+    border-radius: 8px; 
+    margin-top: 15px; 
+}
 
 /* --- App Section Styles --- */
 .app-section { background-color: #ffffff; border-radius: 16px; padding: 30px; width: 100%; max-width: 550px; border: 1px solid #e5e5e5; }
@@ -187,9 +225,23 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .drop-zone:not(.disabled) { cursor: pointer; }
 .drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
 .drop-zone-icon { width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.6; fill: #a1a1aa; }
-.drop-zone-prompt p { margin: 0; color: #52525b; max-width: 100%; font-size: 16px; }
-.drop-zone-prompt p strong { color: #18181b; font-weight: 600; }
-.drop-zone-limits { font-size: 14px; color: #a1a1aa; margin-top: 8px !important; }
+
+/* THIS IS THE CORRECTED BLOCK */
+.drop-zone-prompt p { 
+    margin: 0; 
+    color: #52525b; 
+    max-width: 100%; 
+    font-size: 16px; 
+}
+.drop-zone-prompt p strong { 
+    color: #18181b; 
+    font-weight: 600; 
+}
+.drop-zone-limits { 
+    font-size: 14px !important; /* Use !important to override the general p rule */
+    color: #a1a1aa; 
+    margin-top: 8px !important; 
+}
 
 /* --- File List Styles --- */
 #file-list { margin-top: 15px; text-align: left; font-size: 14px; }
@@ -288,35 +340,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .price-pack {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pushes content apart vertically */
-    min-height: 220px; /* Ensures all cards have the same height */
+    justify-content: space-between;
+    min-height: 220px;
 }
 
 .price-pack p {
-    flex-grow: 1; /* Allows the description to push the button down */
+    flex-grow: 1;
     margin-top: 10px;
-    margin-bottom: 20px; /* Adds space above the button */
+    margin-bottom: 20px;
 }
-/* --- NEW, CORRECTED: Custom Focus Styles for Contact Form --- */
-.contact-form input:focus,
-.contact-form textarea:focus {
-    outline: none; /* 1. Still need to turn off the default outline */
-    
-    /* 2. The Double Border Trick */
-    border: 2px solid #007bff; /* Create a solid blue border */
-    padding: 11px; /* Adjust padding to keep the inner size the same (12px original padding - 1px extra border width) */
-}
-
-/* We also need to adjust the non-focused state to have a transparent border */
-.contact-form input, 
-.contact-form textarea {
-    width: 100%;
-    padding: 12px; /* Original padding */
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    border: 1px solid #d4d4d8; /* Original border */
-    border-radius: 8px;
-    background-color: #f4f4f5;
-    transition: border 0.2s ease, padding 0.2s ease; /* Add transition for a smooth effect */
-}
-
