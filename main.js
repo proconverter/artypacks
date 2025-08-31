@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('Form submission failed.');
                 }
-            } catch (error). {
+            } catch (error) { // <-- THIS IS THE CORRECTED LINE
                 console.error('Contact form error:', error);
                 alert('Sorry, there was an issue sending your message. Please try again later.');
             }
