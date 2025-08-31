@@ -125,4 +125,253 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (!isPostConversion) {
-            licenseStatus.className
+            licenseStatus.className = 'license-status-message checking'; // Use green color
+            showNextMessage();
+            messageIntervalId = setInterval(() => {
+                attempt++;
+                showNextMessage();
+            }, 2000);
+        }
+
+        for (let i = 0; i < 15; i++) {
+            try {
+                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ licenseKey: key }),
+                    signal
+                });
+
+                if (signal.aborted) return;
+
+                clearInterval(messageIntervalId);
+                const result = await response.json();
+
+                if (response.ok && result.isValid) {
+                    isLicenseValid = true;
+                    licenseStatus.className = 'license-status-message valid';
+                    if (isPostConversion) {
+                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    } else if (i > 0) { // It was a cold start
+                        licenseStatus.innerHTML = `Welcome! Thank you for your patience. Your license is valid with ${result.credits} conversions remaining.`;
+                    } else { // It was a fast response
+                        licenseStatus.innerHTML = `Welcome! Your key is confirmed—let’s get you started.`;
+                    }
+                } else {
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.textContent = result.message || 'Invalid license key.';
+                }
+                checkLicenseAndToggleUI();
+                return;
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Validation aborted.');
+                    clearInterval(messageIntervalId);
+                    return;
+                }
+                if (i < 14) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                } else {
+                    clearInterval(messageIntervalId);
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.textContent = 'The server is not responding. Please try again in a minute.';
+                    checkLicenseAndToggleUI();
+                }
+            }
+        }
+    }
+
+    // --- FILE HANDLING & UI ---
+    const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
+    const handleFileSelect = (e) => processFiles(e.target.files);
+
+    const checkLicenseAndToggleUI = () => {
+        dropZone.classList.toggle('disabled', !isLicenseValid);
+        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
+        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
+        if (isLicenseValid) {
+            activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
+        } else {
+            activationNotice.textContent = 'Converter locked – enter license key above.';
+        }
+    };
+
+    const processFiles = (files) => {
+        let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
+        if (newFiles.length === 0 && files.length > 0) {
+            alert("Invalid file type. Please upload only .brushset files.");
+            return;
+        }
+        uploadedFiles = [...uploadedFiles, ...newFiles].slice(0, 3);
+        updateFileList();
+        checkLicenseAndToggleUI();
+    };
+
+    const updateFileList = () => {
+        fileList.innerHTML = '';
+        if (uploadedFiles.length === 0) return;
+        const list = document.createElement('ul');
+        list.className = 'file-list-container';
+        uploadedFiles.forEach((file, index) => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `<span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-file-btn';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove file';
+            removeBtn.onclick = () => removeFile(index);
+            listItem.appendChild(removeBtn);
+            list.appendChild(listItem);
+        });
+        fileList.appendChild(list);
+    };
+
+    const removeFile = (index) => {
+        uploadedFiles.splice(index, 1);
+        updateFileList();
+        checkLicenseAndToggleUI();
+    };
+
+    // --- CONVERSION PROCESS ---
+    const handleConversion = async () => {
+        const licenseKey = licenseKeyInput.value.trim();
+        if (!licenseKey || uploadedFiles.length === 0) return;
+
+        const originalFilesForHistory = [...uploadedFiles];
+        resetStatusUI();
+        appStatus.style.display = 'block';
+        progressBar.style.display = 'block';
+        convertButton.disabled = true;
+        licenseKeyInput.disabled = true;
+        dropZone.classList.add('disabled');
+
+        try {
+            updateProgress(10, 'Validating and preparing upload...');
+            const formData = new FormData();
+            formData.append('licenseKey', licenseKey);
+            uploadedFiles.forEach(file => { formData.append('files', file); });
+
+            updateProgress(30, 'Uploading and converting...');
+            const response = await fetch(VITE_CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
+
+            updateProgress(100, 'Conversion successful! Your download will begin automatically.');
+            
+            const tempLink = document.createElement('a');
+            tempLink.href = result.downloadUrl;
+            tempLink.setAttribute('download', '');
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+
+            sessionHistory.unshift({
+                sourceFiles: originalFilesForHistory.map(f => f.name)
+            });
+            updateHistoryList();
+
+            newConversionButton.style.display = 'block';
+            progressBar.style.display = 'none';
+            
+            // Re-validate the license to show the new credit count
+            validateLicenseWithRetries(licenseKey, true); // Pass true for post-conversion check
+
+        } catch (error) {
+            console.error('Conversion Error:', error);
+            showError(error.message);
+            licenseKeyInput.disabled = false;
+            checkLicenseAndToggleUI();
+        }
+    };
+    
+    const resetForNewConversion = () => {
+        uploadedFiles = [];
+        updateFileList();
+        resetStatusUI();
+        licenseKeyInput.disabled = false;
+        checkLicenseAndToggleUI();
+    };
+
+    // --- HISTORY "RECEIPT" FUNCTIONS ---
+    const updateHistoryList = () => {
+        historyList.innerHTML = '';
+        if (sessionHistory.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
+
+        historySection.style.display = 'block';
+        sessionHistory.forEach((item, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'history-item';
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'history-item-info';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = `Conversion #${sessionHistory.length - index}`;
+            const filesP = document.createElement('p');
+            filesP.textContent = item.sourceFiles.join(', ');
+            infoDiv.appendChild(titleSpan);
+            infoDiv.appendChild(filesP);
+            listItem.appendChild(infoDiv);
+            historyList.appendChild(listItem);
+        });
+    };
+
+    // --- HELPER FUNCTIONS ---
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc3545';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+        newConversionButton.style.display = 'none';
+    };
+
+    // --- ACCORDION & CONTACT FORM ---
+    const setupAccordion = () => {
+        document.querySelectorAll('.accordion-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+    };
+
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            try {
+                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    // --- START THE APP ---
+    initializeApp();
+});
