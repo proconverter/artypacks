@@ -1,0 +1,12 @@
+{
+  "name": "artypacks-frontend",
+  "version": "1.0.0",
+  "description": "Static frontend for ArtyPacks converter",
+  "main": "main.js",
+  "scripts": {
+    "build": "node inject-env.js"
+  },
+  "dependencies": {
+    "replace-in-file": "^7.1.0"
+  }
+}
