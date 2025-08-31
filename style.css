@@ -2,19 +2,68 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-    background-color: #00b4ff;
-    /* --- THIS IS THE NEW, CORRECTED BACKGROUND --- */
-    background-image: url('/assets/background-pattern.svg');
-    background-size: 50px 50px;
-    /* You can add a subtle opacity to the whole pattern if you wish */
-    /* background-blend-mode: overlay; */ /* This is an option to blend it */
+    /* The old background is removed from here and applied to the body pseudo-element */
+    background-color: #00b4ff; /* This will be the fallback color */
 }
 
 body {
     font-family: 'Inter', sans-serif; color: #18181b; line-height: 1.6;
     display: flex; justify-content: center; padding: 40px 20px;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    
+    /* --- NEW: Dynamic Background Setup --- */
+    position: relative; /* Required for the pseudo-element */
+    background-color: #00b4ff; /* Set your desired blue background color here */
+    z-index: 0;
 }
+
+/* This pseudo-element creates the floating icons background layer */
+body::before {
+    content: '';
+    position: fixed; /* Use fixed to cover the whole viewport and stay put */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Puts the background layer behind all other content */
+    opacity: 0.08; /* Subtle opacity so it's not distracting */
+
+    background-image: 
+        url('/assets/icon-upload-stroked.svg'),
+        url('/assets/icon-convert-stroked.svg'),
+        url('/assets/icon-download-stroked.svg'),
+        url('/assets/icon-upload-stroked.svg'),
+        url('/assets/icon-convert-stroked.svg'),
+        url('/assets/icon-download-stroked.svg'),
+        url('/assets/icon-upload-stroked.svg'),
+        url('/assets/icon-convert-stroked.svg'),
+        url('/assets/icon-download-stroked.svg');
+    
+    background-repeat: no-repeat;
+
+    /* Randomized positions */
+    background-position: 
+        10% 20%, 80% 15%, 45% 40%,
+        90% 85%, 15% 90%, 50% 70%,
+        75% 55%, 20% 50%, 95% 5%;
+
+    /* Randomized sizes */
+    background-size: 
+        80px, 60px, 100px,
+        50px, 90px, 70px,
+        110px, 55px, 75px;
+
+    /* Subtle floating animation */
+    animation: float 15s ease-in-out infinite;
+}
+
+/* Keyframes for the floating animation */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+}
+
 
 .page-wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 40px; }
 
