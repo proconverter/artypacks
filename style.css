@@ -3,10 +3,9 @@
 
 html {
     background-color: #00b4ff;
-    /* --- This points to the new 3-icon pattern file --- */
     background-image: url('/assets/background-pattern.svg');
-    /* --- The size is now 150px wide by 50px tall to match the 3:1 aspect ratio --- */
-    background-size: 150px 50px;
+    /* --- The size is now 150px by 150px to match the new 1:1 aspect ratio of the 3x3 grid --- */
+    background-size: 150px 150px;
     opacity: 0.8; 
 }
 
