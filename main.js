@@ -52,22 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
-    // --- MODIFIED: DEBOUNCED LICENSE INPUT HANDLER ---
+    // --- DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
-        clearTimeout(debounceTimer); // Clear previous timer
+        clearTimeout(debounceTimer);
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
         
         const key = licenseKeyInput.value.trim();
         
-        // Only start debounced validation if key has a minimum length
         if (key.length > 5) {
             licenseStatus.className = 'license-status-message checking';
-            licenseStatus.textContent = 'Checking...'; // Provide immediate feedback
+            licenseStatus.textContent = 'Checking...';
             
             debounceTimer = setTimeout(() => {
                 validateLicenseWithRetries(key);
-            }, 500); // Wait for 500ms of inactivity before validating
+            }, 500);
         } else {
             isLicenseValid = false;
             checkLicenseAndToggleUI();
@@ -93,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- VALIDATION LOGIC (Now called by debounced handler) ---
+    // --- MODIFIED VALIDATION LOGIC WITH 'FINALLY' BLOCK ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         if (validationController) validationController.abort();
         validationController = new AbortController();
@@ -105,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let messageIndex = 0;
 
         if (!isPostConversion) {
-            clearInterval(messageIntervalId); // Stop any previous "Checking..." message
+            clearInterval(messageIntervalId);
             const showNextMessage = () => {
                 licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
                 messageIndex++;
@@ -122,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 signal
             });
 
-            clearInterval(messageIntervalId);
             const result = await response.json();
 
             if (response.ok && result.isValid) {
@@ -138,11 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             if (signal.aborted) return;
-            clearInterval(messageIntervalId);
             isLicenseValid = false;
             licenseStatus.className = 'license-status-message invalid';
             licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
             checkLicenseAndToggleUI();
+        } finally {
+            // CRITICAL FIX: This block will always run, ensuring the interval is cleared.
+            clearInterval(messageIntervalId);
         }
     }
 
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- MODIFIED: CONVERSION PROCESS WITH REAL PROGRESS BAR ---
+    // --- CONVERSION PROCESS WITH REAL PROGRESS BAR ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -213,16 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
 
-        // Listener for upload progress
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
-                // Calculate progress from 10% to 90% for the upload phase
                 const uploadProgress = 10 + (event.loaded / event.total) * 80;
                 updateProgress(uploadProgress, 'Uploading and converting...');
             }
         };
 
-        // Listener for request completion
         xhr.onload = async () => {
             const result = JSON.parse(xhr.responseText);
 
@@ -244,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 await validateLicenseWithRetries(licenseKey, true);
             } else {
-                // Handle server-side errors
                 licenseKeyInput.disabled = false;
                 await validateLicenseWithRetries(licenseKey);
                 showError(result.message || 'An unknown error occurred.');
@@ -254,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Listener for network errors
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
             licenseKeyInput.disabled = false;
