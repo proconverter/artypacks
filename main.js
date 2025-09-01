@@ -220,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         xhr.onload = async () => {
-            // Use try-catch for parsing JSON, as response might not be valid JSON on error
             try {
                 const result = JSON.parse(xhr.responseText);
 
@@ -266,17 +265,24 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- FINAL, SIMPLIFIED RESET FUNCTION ---
+    // --- FINAL, CORRECTED RESET FUNCTION (YOUR SUGGESTION) ---
     const resetForNewConversion = () => {
+        // 1. Clear the file list from the UI and state
         uploadedFiles = [];
         updateFileList();
+        
+        // 2. Hide the progress bar and "Conversion successful" message
         resetStatusUI();
+        
+        // 3. Re-enable the license key input field
         licenseKeyInput.disabled = false;
         
-        // The post-conversion validation has already updated the license status
-        // to "0 credits remaining" and set isLicenseValid to false.
-        // All we need to do is call checkLicenseAndToggleUI() to make sure
-        // the UI (like the drop zone) is disabled correctly.
+        // 4. Clear the license status message area completely
+        licenseStatus.innerHTML = '';
+        licenseStatus.className = 'license-status-message';
+
+        // 5. The license is now invalid, so update the state and UI
+        isLicenseValid = false;
         checkLicenseAndToggleUI();
     };
 
@@ -305,58 +311,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- HELPER FUNCTIONS ---
-    const updateProgress = (percentage, message) => {
-        progressFill.style.width = `${percentage}%`;
-        statusMessage.textContent = message;
-        statusMessage.style.color = '#3f3f46';
-    };
-
-    const showError = (message) => {
-        statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc2626';
-        progressBar.style.display = 'none';
-    };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
-        newConversionButton.style.display = 'none';
-    };
-
-    // --- ACCORDION & CONTACT FORM ---
-    const setupAccordion = () => {
-        document.querySelectorAll('.accordion-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const item = question.parentElement;
-                item.classList.toggle('open');
-            });
-        });
-    };
-
-    const setupContactForm = () => {
-        if (!contactForm) return;
-        contactForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(contactForm);
-            try {
-                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
-                if (response.ok) {
-                    formStatus.style.display = 'flex';
-                    contactForm.reset();
-                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
-                } else {
-                    throw new Error('Form submission failed.');
-                }
-            } catch (error) {
-                console.error('Contact form error:', error);
-                alert('Sorry, there was an issue sending your message. Please try again later.');
-            }
-        });
-    };
-
-    // --- START THE APP ---
-    initializeApp();
-});
+    // --- HEL
