@@ -178,12 +178,16 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin: 20px auto 0;
 }
 
-/* --- Page Footer --- */
+/* --- Page Footer (MODIFIED FOR WHITE BOX) --- */
 .page-footer { 
-    padding: 0 20px; 
+    background-color: #ffffff; /* Add white background */
+    padding: 15px 25px;       /* Add some padding */
+    border-radius: 12px;      /* Add rounded corners */
     text-align: center; 
     font-size: 14px; 
     color: #71717a; 
+    max-width: 400px;         /* Give it a max-width */
+    width: 100%;              /* Make it responsive */
 }
 .page-footer a { 
     color: #71717a; 
