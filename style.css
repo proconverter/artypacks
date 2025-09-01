@@ -15,7 +15,7 @@ html::before {
     width: 100%;
     height: 100%;
     background-color: #00b4ff;
-    background-image: url('/assets/background-pattern.svg'  );
+    background-image: url('/assets/background-pattern.svg' );
     background-size: 75px 75px;
     opacity: 0.8; /* Opacity is now isolated here */
     z-index: -1; /* Sits behind the main content */
@@ -27,21 +27,22 @@ body {
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
-.page-wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 40px; }
+.page-wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 0; } /* Removed gap */
 
 /* --- Typography --- */
 h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px; }
 h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
 h3 { font-size: 18px; font-weight: 700; }
 h4 { font-size: 16px; font-weight: 700; }
-h5 { font-size: 15px; font-weight: 700; } /* Added for feature list */
+h5 { font-size: 15px; font-weight: 700; }
 p { font-size: 16px; max-width: 600px; }
 a { color: #007bff; text-decoration: none; font-weight: 700; }
 
-/* --- Master Card Styling --- */
+/* --- Master Card Styling (MODIFIED) --- */
 .master-card {
     background-color: #f4f4f4;
-    padding: 50px 40px; 
+    /* MODIFIED: Adjusted padding to accommodate the footer */
+    padding: 50px 40px 25px 40px; 
     border-radius: 24px;
     display: flex; 
     flex-direction: column; 
@@ -88,7 +89,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .cta-button:disabled:hover { transform: none; background-color: #e5e7eb; }
 
-/* MODIFIED - Updated thickness to match app box */
 .section-divider { width: 100%; border: none; border-top: 2px solid #d4d4d8; margin: 10px 0; }
 
 /* --- How-It-Works Section --- */
@@ -104,7 +104,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
 }
 
-/* MODIFIED - Updated thickness to match app box */
 .accordion-item { 
     width: 100%; 
     border-bottom: 2px solid #d4d4d8; 
@@ -150,27 +149,36 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; } /* Increased max-height */
+.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
 .pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-.price-pack { border: 1px solid #e5e5e5; padding: 20px; border-radius: 12px; }
-.price-pack.recommended { border-color: #e5e5e5; box-shadow: none; } /* MODIFIED - Removed blue border and shadow */
+.price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; } /* Reduced padding */
 .price-pack h4 { margin-bottom: 5px; }
-.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; } /* MODIFIED - Removed bottom margin */
+.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; } /* Removed margin-bottom */
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
-
-/* --- REMOVED FEATURE LIST STYLES --- */
 
 .single-buy-button {
     max-width: 300px;
-    margin: 30px auto 0; /* MODIFIED - Adjusted top margin */
+    margin: 20px auto 0;
 }
 
-/* --- Page Footer --- */
-.page-footer { padding: 20px; text-align: center; font-size: 14px; color: #71717a; }
-.page-footer a { color: #71717a; font-weight: 400; text-decoration: underline; transition: color 0.2s ease; }
+/* --- Page Footer (MODIFIED) --- */
+.page-footer { 
+    width: 100%;
+    padding: 20px 0 0 0; /* Removed bottom padding, added top padding */
+    text-align: center; 
+    font-size: 14px; 
+    color: #71717a; 
+    margin-top: 10px; /* Added margin to separate from accordion */
+}
+.page-footer a { 
+    color: #71717a; 
+    font-weight: 700; /* Made bold to match image */
+    text-decoration: none; /* Removed underline to match image */
+    transition: color 0.2s ease; 
+}
 .page-footer a:hover { color: #18181b; }
 
 /* --- Contact Form Styles --- */
@@ -272,7 +280,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
 .drop-zone-icon { width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.6; fill: #a1a1aa; }
 
-/* THIS IS THE CORRECTED BLOCK */
 .drop-zone-prompt p { 
     margin: 0; 
     color: #52525b; 
@@ -284,7 +291,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     font-weight: 600; 
 }
 .drop-zone-limits { 
-    font-size: 14px !important; /* Use !important to override the general p rule */
+    font-size: 14px !important;
     color: #a1a1aa; 
     margin-top: 8px !important; 
 }
@@ -380,5 +387,5 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 @media (max-width: 767px) {
     h1 { font-size: 36px; }
     h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
+    .master-card { padding: 40px 20px 20px 20px; }
 }
