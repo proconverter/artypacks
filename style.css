@@ -15,7 +15,7 @@ html::before {
     width: 100%;
     height: 100%;
     background-color: #00b4ff;
-    background-image: url('/assets/background-pattern.svg' );
+    background-image: url('/assets/background-pattern.svg'  );
     background-size: 75px 75px;
     opacity: 0.8; /* Opacity is now isolated here */
     z-index: -1; /* Sits behind the main content */
@@ -161,14 +161,19 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .price-pack p { font-size: 14px; color: #52525b; margin-bottom: 15px; max-width: 100%; }
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
 
-/* --- NEW STYLES for Feature List and Single Button --- */
+/* --- NEW & MODIFIED STYLES for Feature List and Single Button --- */
 .feature-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: 25px;
-    text-align: left;
+    text-align: center; /* MODIFIED */
     margin: 30px auto;
     max-width: 500px;
+}
+.feature-list-title { /* NEW */
+    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: 700;
 }
 .feature-list-item h5 {
     margin-bottom: 5px;
@@ -241,7 +246,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     justify-content: space-between; 
     align-items: center; 
     padding: 15px; 
-    background-color: #f0fdf4; 
+    background-color: #f0fdf4; _
     color: #166534; 
     border-radius: 8px; 
     margin-top: 15px; 
@@ -389,4 +394,11 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Responsive Design --- */
 @media (min-width: 768px) {
     .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 
+    .pricing-details { grid-template-columns: repeat(3, 1fr); }
+    .feature-list { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 767px) {
+    h1 { font-size: 36px; }
+    h2.section-title { font-size: 28px; }
+    .master-card { padding: 40px 20px;
