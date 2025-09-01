@@ -36,7 +36,7 @@ body {
     max-width: 800px; 
     display: flex; 
     flex-direction: column; 
-    gap: 0; /* MODIFIED: Set gap to 0 */
+    gap: 0;
     align-items: center;
 }
 
@@ -53,13 +53,14 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .master-card {
     background-color: #f4f4f4;
     padding: 50px 40px; 
-    border-radius: 24px;
+    border-radius: 24px 24px 0 0; /* MODIFIED: Top corners rounded, bottom corners sharp */
     display: flex; 
     flex-direction: column; 
     align-items: center; 
     text-align: center; 
     gap: 30px;
     border: 12px solid #ffffff;
+    border-bottom: none; /* MODIFIED: Remove bottom border to merge with footer */
     width: 100%;
 }
 
@@ -175,31 +176,34 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin: 20px auto 0;
 }
 
-/* --- Page Footer (MODIFIED FOR NEW STRUCTURE) --- */
+/* --- Page Footer (CORRECTED FOR SEAMLESS LOOK) --- */
 .page-footer { 
     background-color: #ffffff;
     padding: 20px 25px;
-    border-radius: 12px;
+    border-radius: 0 0 24px 24px; /* MODIFIED: Top corners sharp, bottom corners rounded */
     text-align: center; 
     font-size: 14px; 
     color: #71717a; 
-    max-width: 800px; /* Match the master-card width */
+    max-width: 800px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px; /* Reduced gap */
+    border: 12px solid #ffffff; /* Add matching white border */
+    border-top: none; /* Remove top border to merge with card */
 }
 
 .copyright-line {
-    margin-bottom: 5px;
+    margin: 0;
+    font-size: 13px; /* Slightly smaller for balance */
 }
 
-.footer-accordion {
+.footer-links {
     display: flex;
     justify-content: center;
     gap: 25px;
     width: 100%;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap;
 }
 
 .footer-accordion-item {
@@ -213,6 +217,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     cursor: pointer;
     color: #52525b;
     transition: color 0.2s ease;
+    font-size: 13px;
 }
 
 .footer-accordion-trigger:hover {
@@ -224,25 +229,27 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     overflow: hidden;
     transition: max-height 0.4s ease-out, padding-top 0.4s ease-out;
     text-align: left;
-    font-size: 14px;
+    font-size: 13px;
     color: #52525b;
     line-height: 1.5;
-    width: 100%; /* Take full width for content */
+    width: 100%;
+    padding: 0 20px; /* Add horizontal padding to content */
 }
 
 .footer-accordion-content h4 {
     margin-top: 15px;
     margin-bottom: 10px;
+    text-align: center;
 }
 
 .footer-accordion-content p {
-    font-size: 14px;
+    font-size: 13px;
     max-width: 100%;
     margin-bottom: 10px;
 }
 
 .footer-accordion-item.open .footer-accordion-content {
-    max-height: 1000px; /* Adjust as needed */
+    max-height: 1000px;
     padding-top: 10px;
     transition: max-height 0.5s ease-in, padding-top 0.5s ease-in;
 }
