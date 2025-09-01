@@ -27,7 +27,14 @@ body {
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
-.page-wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 0; } /* Removed gap */
+/* MODIFIED: Added gap to space the footer from the card */
+.page-wrapper { 
+    width: 100%; 
+    max-width: 800px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 25px; 
+}
 
 /* --- Typography --- */
 h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px; }
@@ -38,11 +45,10 @@ h5 { font-size: 15px; font-weight: 700; }
 p { font-size: 16px; max-width: 600px; }
 a { color: #007bff; text-decoration: none; font-weight: 700; }
 
-/* --- Master Card Styling (MODIFIED) --- */
+/* --- Master Card Styling (REVERTED) --- */
 .master-card {
     background-color: #f4f4f4;
-    /* MODIFIED: Adjusted padding to accommodate the footer */
-    padding: 50px 40px 25px 40px; 
+    padding: 50px 40px; 
     border-radius: 24px;
     display: flex; 
     flex-direction: column; 
@@ -154,9 +160,9 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Pricing Accordion --- */
 .pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-.price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; } /* Reduced padding */
+.price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; }
 .price-pack h4 { margin-bottom: 5px; }
-.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; } /* Removed margin-bottom */
+.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; }
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
 
 .single-buy-button {
@@ -166,17 +172,15 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Page Footer (MODIFIED) --- */
 .page-footer { 
-    width: 100%;
-    padding: 20px 0 0 0; /* Removed bottom padding, added top padding */
+    padding: 0 20px; /* Reverted padding */
     text-align: center; 
     font-size: 14px; 
     color: #71717a; 
-    margin-top: 10px; /* Added margin to separate from accordion */
 }
 .page-footer a { 
     color: #71717a; 
-    font-weight: 700; /* Made bold to match image */
-    text-decoration: none; /* Removed underline to match image */
+    font-weight: 700;
+    text-decoration: none;
     transition: color 0.2s ease; 
 }
 .page-footer a:hover { color: #18181b; }
@@ -275,9 +279,9 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Drop Zone Styles --- */
 .drop-zone { border: 2px dashed #d4d4d8; border-radius: 12px; padding: 40px 30px; text-align: center; transition: border-color 0.3s ease, background-color 0.3s ease; }
-.drop-zone.disabled { cursor: not-allowed; background-color: #f9fafb; opacity: 0.6; }
-.drop-zone:not(.disabled) { cursor: pointer; }
-.drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
+.drop-zone._disabled_ { cursor: not-allowed; background-color: #f9fafb; opacity: 0.6; }
+.drop-zone:not(._disabled_) { cursor: pointer; }
+.drop-zone:not(._disabled_):hover, .drop-zone:not(._disabled_).dragover { border-color: #007bff; background-color: #f8f9fa; }
 .drop-zone-icon { width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.6; fill: #a1a1aa; }
 
 .drop-zone-prompt p { 
@@ -387,5 +391,5 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 @media (max-width: 767px) {
     h1 { font-size: 36px; }
     h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px 20px 20px; }
+    .master-card { padding: 40px 20px; }
 }
