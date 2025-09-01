@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'    );
+    const licenseKeyInput = document.getElementById('license-key'     );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -188,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.innerHTML = `<span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
-            removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
             listItem.appendChild(removeBtn);
@@ -203,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (REPLACED WITH XHR FOR PROGRESS BAR) ---
+    // --- CONVERSION PROCESS (UNCHANGED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -330,11 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (UNCHANGED) ---
+    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
     const setupAccordion = () => {
-        document.querySelectorAll('.accordion-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const item = question.parentElement;
+        // MODIFIED: Selects both main accordion questions and the footer trigger
+        document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const item = trigger.parentElement;
                 item.classList.toggle('open');
             });
         });
