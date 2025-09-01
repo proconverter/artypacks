@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let validationController;
     let messageIntervalId;
     let debounceTimer;
-    let ignoreNextInput = false; // CRITICAL FIX: Flag to ignore the ghost input event
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -53,14 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
-    // --- MODIFIED DEBOUNCED LICENSE INPUT HANDLER ---
+    // --- DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
-        // CRITICAL FIX: Check and consume the ignore flag
-        if (ignoreNextInput) {
-            ignoreNextInput = false;
-            return;
-        }
-
         clearTimeout(debounceTimer);
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
@@ -272,19 +265,23 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- FINAL, CORRECTED RESET FUNCTION ---
+    // --- FINAL, SIMPLE, AND CORRECT RESET FUNCTION ---
     const resetForNewConversion = () => {
+        // Clear the file list from the UI and state
         uploadedFiles = [];
         updateFileList();
+        
+        // Hide the progress bar and "Conversion successful" message
         resetStatusUI();
         
-        // The post-conversion validation has already set the correct final status message.
-        // We just need to re-enable the input and prevent the ghost event.
-        
-        // CRITICAL FIX: Set the flag before re-enabling the input
-        ignoreNextInput = true; 
+        // Re-enable the license key input field
         licenseKeyInput.disabled = false;
         
+        // Manually clear the license status message area to a neutral state
+        licenseStatus.innerHTML = '';
+        licenseStatus.className = 'license-status-message';
+
+        // The license is now invalid, so update the state and disable the UI
         isLicenseValid = false;
         checkLicenseAndToggleUI();
     };
@@ -320,3 +317,52 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = message;
         statusMessage.style.color = '#3f3f46';
     };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+        newConversionButton.style.display = 'none';
+    };
+
+    // --- ACCORDION & CONTACT FORM ---
+    const setupAccordion = () => {
+        document.querySelectorAll('.accordion-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+    };
+
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            try {
+                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    // --- START THE APP ---
+    initializeApp();
+});
