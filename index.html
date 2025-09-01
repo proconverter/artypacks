@@ -63,7 +63,6 @@
                         <div class="step-content">
                             <label for="file-upload">Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
-                                <!-- CORRECTED: The prompt is now INSIDE the drop-zone -->
                                 <div class="drop-zone-prompt">
                                     <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate files here</strong></p>
@@ -248,7 +247,7 @@
                         <span class="icon">+</span>
                     </div>
                     <div class="accordion-answer">
-                        <p>Yes, it is completely safe. Your privacy is our top priority. We never permanently store your .brushset files. They are processed on our secure servers and are automatically deleted after a short period of inactivity following the conversion.</p>
+                        <p>Your privacy is our top priority. We never store your `.brushset` files. They are processed on our secure servers and are automatically deleted within one hour of conversion.</p>
                     </div>
                 </div>
                 <!-- Accordion Item: Help -->
@@ -272,12 +271,40 @@
             </section>
         </div>
 
-        <!-- === FOOTER SECTION (Correctly placed outside the master-card ) === -->
+        <!-- === FOOTER SECTION (CORRECTED STRUCTURE ) === -->
         <footer class="page-footer">
-            <p>
-                &copy; <span id="current-year">2025</span> Artypacks. All rights reserved.  
-                <a href="legal.html">Terms & Privacy</a>
-            </p>
+            <p class="copyright-line">&copy; <span id="current-year">2025</span> Artypacks.app. All Rights Reserved.</p>
+            
+            <div class="footer-links">
+                <div class="footer-accordion-item">
+                    <div class="footer-accordion-trigger">
+                        <span>Terms</span>
+                    </div>
+                    <div class="footer-accordion-content">
+                        <h4>Terms of Service</h4>
+                        <p>By using this service, you agree to the following terms:</p>
+                        <p><strong>Permitted Use & Responsibility:</strong> Our tool is intended to help you use your legally purchased Procreate brushes in other applications. By using our service, you confirm that you either own the intellectual property of the brushes you upload or have a license from the original creator that permits you to extract and use them in this manner. You are solely responsible for ensuring your use of the converted files complies with the original creator's licensing terms. Creating new commercial products (like PNG or ABR packs) for resale from brushes you do not own is typically a violation of copyright and is not a permitted use of our service.</p>
+                        <p><strong>License Key & Credits:</strong> Your purchase on Etsy provides you with a license key that grants you a specific number of conversion credits. Each successful conversion uses one credit.</p>
+                        <p><strong>Failed Conversions:</strong> If a conversion fails due to an error with our service, your credit will not be used. However, we are not responsible for failures caused by corrupted, password-protected, or incorrectly formatted files.</p>
+                        <p><strong>Disclaimer:</strong> This service is provided "as-is." While we strive to provide a reliable tool, we cannot guarantee it will be free of errors.</p>
+                        <p>If you encounter any issues, please send us a message using the form under the "Have a question or need help?" section of our FAQ, and we will be happy to assist you.</p>
+                    </div>
+                </div>
+                
+                <div class="footer-accordion-item">
+                    <div class="footer-accordion-trigger">
+                        <span>Privacy</span>
+                    </div>
+                    <div class="footer-accordion-content">
+                        <h4>Privacy Policy</h4>
+                        <p>We built this service with your privacy as a top priority.</p>
+                        <p><strong>No Automatic Data Collection:</strong> We do not automatically collect or store any personal information like your name or email address when you use our conversion tool. You do not need an account to use the service.</p>
+                        <p><strong>Contact Form:</strong> If you choose to contact us for support via our contact form, you will be asked to provide an email address. We collect this only to reply to your message. We do not store your email for marketing purposes or share it with third parties.</p>
+                        <p><strong>No File Storage:</strong> Your privacy is paramount. All uploaded files are stored temporarily on an ephemeral filesystem for the sole purpose of conversion. These files are automatically and permanently deleted after a short period of inactivity or when the conversion process ends. We do not keep, store, or back up your files.</p>
+                        <p><strong>Payment & License Keys:</strong> Your purchase is handled entirely through Etsy. We only receive a license key from your purchase to validate your credits and have no access to your payment information.</p>
+                    </div>
+                </div>
+            </div>
         </footer>
     </div>
 
