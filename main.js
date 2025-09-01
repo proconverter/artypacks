@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
-    let debounceTimer; // For license key input debouncing
+    let debounceTimer;
+    let ignoreNextInput = false; // CRITICAL FIX: Flag to ignore the ghost input event
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -52,8 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
-    // --- DEBOUNCED LICENSE INPUT HANDLER ---
+    // --- MODIFIED DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
+        // CRITICAL FIX: Check and consume the ignore flag
+        if (ignoreNextInput) {
+            ignoreNextInput = false;
+            return;
+        }
+
         clearTimeout(debounceTimer);
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
@@ -265,23 +272,19 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- FINAL, CORRECTED RESET FUNCTION (YOUR SUGGESTION) ---
+    // --- FINAL, CORRECTED RESET FUNCTION ---
     const resetForNewConversion = () => {
-        // 1. Clear the file list from the UI and state
         uploadedFiles = [];
         updateFileList();
-        
-        // 2. Hide the progress bar and "Conversion successful" message
         resetStatusUI();
         
-        // 3. Re-enable the license key input field
+        // The post-conversion validation has already set the correct final status message.
+        // We just need to re-enable the input and prevent the ghost event.
+        
+        // CRITICAL FIX: Set the flag before re-enabling the input
+        ignoreNextInput = true; 
         licenseKeyInput.disabled = false;
         
-        // 4. Clear the license status message area completely
-        licenseStatus.innerHTML = '';
-        licenseStatus.className = 'license-status-message';
-
-        // 5. The license is now invalid, so update the state and UI
         isLicenseValid = false;
         checkLicenseAndToggleUI();
     };
@@ -311,4 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- HEL
+    // --- HELPER FUNCTIONS ---
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+        statusMessage.style.color = '#3f3f46';
+    };
