@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- VALIDATION LOGIC ---
+    // --- FINAL, CORRECTED VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -117,11 +117,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok && result.isValid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = isPostConversion ? getCreditsMessage(result.credits) : `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
+                    if (isPostConversion) {
+                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    } else {
+                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
+                    }
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.innerHTML = result.message && result.message.toLowerCase().includes("credits") ? getCreditsMessage(0) : (result.message || 'Invalid license key.');
+                    if (result.message && result.message.toLowerCase().includes("credits")) {
+                        licenseStatus.innerHTML = getCreditsMessage(0);
+                    } else {
+                        licenseStatus.textContent = result.message || 'Invalid license key.';
+                    }
                 }
                 checkLicenseAndToggleUI();
                 return;
@@ -152,7 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.toggle('disabled', !isLicenseValid);
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
-        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
+        if (isLicenseValid) {
+            activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
+        } else {
+            activationNotice.textContent = 'Converter locked – enter license key above.';
+        }
     };
 
     const processFiles = (files) => {
@@ -225,7 +237,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tempLink.click();
             document.body.removeChild(tempLink);
 
-            sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
+            sessionHistory.unshift({
+                sourceFiles: originalFilesForHistory.map(f => f.name)
+            });
             updateHistoryList();
 
             newConversionButton.style.display = 'block';
@@ -237,7 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Conversion Error:', error);
             showError(error.message);
             licenseKeyInput.disabled = false;
-            checkLicenseAndToggleUI();
+            if (!licenseKeyInput.disabled) {
+                 checkLicenseAndToggleUI();
+            }
         }
     };
     
@@ -278,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
-        statusMessage.style.color = '#3f3f46';
     };
 
     const showError = (message) => {
