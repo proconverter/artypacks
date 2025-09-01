@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'   );
+    const licenseKeyInput = document.getElementById('license-key'    );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -82,13 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- FINAL, CORRECTED VALIDATION LOGIC ---
+    // --- MODIFIED VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
+        if (validationController) validationController.abort();
         validationController = new AbortController();
         const signal = validationController.signal;
 
         const coldStartMessages = [
-            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Cross-referencing database...", "Almost there...", "Finalizing verification...", "Unlocking converter...", "Hold tight...", "Confirming details..."
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
         ];
         let messageIndex = 0;
 
@@ -125,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    // THIS IS THE CORRECTED LOGIC BLOCK
                     if (result.message && result.message.toLowerCase().includes("credits")) {
                         licenseStatus.innerHTML = getCreditsMessage(0);
                     } else {
@@ -204,9 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS ---
+    // --- MODIFIED CONVERSION PROCESS ---
     const handleConversion = async () => {
-        const licenseKey = licenseKeyInput.value.trim();
+        const licenseKey = licenseKeyInput.value.trim(); // Defined here
         if (!licenseKey || uploadedFiles.length === 0) return;
 
         const originalFilesForHistory = [...uploadedFiles];
@@ -227,7 +227,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(VITE_CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
             const result = await response.json();
 
-            if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
+            if (!response.ok) {
+                licenseKeyInput.disabled = false;
+                await validateLicenseWithRetries(licenseKey);
+                throw new Error(result.message || 'An unknown error occurred.');
+            }
 
             updateProgress(100, 'Conversion successful! Your download will begin automatically.');
             
@@ -246,13 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
             newConversionButton.style.display = 'block';
             progressBar.style.display = 'none';
             
-            validateLicenseWithRetries(key, true);
+            // CRITICAL FIX: Use the correct variable 'licenseKey' and wait for the update
+            await validateLicenseWithRetries(licenseKey, true);
 
         } catch (error) {
             console.error('Conversion Error:', error);
             showError(error.message);
-            licenseKeyInput.disabled = false;
-            checkLicenseAndToggleUI();
+            if (!licenseKeyInput.disabled) {
+                 checkLicenseAndToggleUI();
+            }
         }
     };
     
@@ -261,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFileList();
         resetStatusUI();
         licenseKeyInput.disabled = false;
-        checkLicenseAndToggleUI();
+        validateLicenseWithRetries(licenseKeyInput.value.trim());
     };
 
     // --- HISTORY "RECEIPT" FUNCTIONS ---
@@ -293,11 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
+        statusMessage.style.color = '#3f3f46';
     };
 
     const showError = (message) => {
         statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc3545';
+        statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
     };
 
