@@ -34,6 +34,7 @@ h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px
 h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
 h3 { font-size: 18px; font-weight: 700; }
 h4 { font-size: 16px; font-weight: 700; }
+h5 { font-size: 15px; font-weight: 700; } /* Added for feature list */
 p { font-size: 16px; max-width: 600px; }
 a { color: #007bff; text-decoration: none; font-weight: 700; }
 
@@ -149,7 +150,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { max-height: 800px; padding-bottom: 25px; transition: max-height 0.4s ease-in, padding-bottom 0.4s ease-in; }
+.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; } /* Increased max-height */
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
@@ -159,6 +160,28 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .price-pack h4 { margin-bottom: 5px; }
 .price-pack p { font-size: 14px; color: #52525b; margin-bottom: 15px; max-width: 100%; }
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
+
+/* --- NEW STYLES for Feature List and Single Button --- */
+.feature-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+    text-align: left;
+    margin: 30px auto;
+    max-width: 500px;
+}
+.feature-list-item h5 {
+    margin-bottom: 5px;
+}
+.feature-list-item p {
+    font-size: 14px;
+    color: #52525b;
+    max-width: 100%;
+}
+.single-buy-button {
+    max-width: 300px;
+    margin: 20px auto 0;
+}
 
 /* --- Page Footer --- */
 .page-footer { padding: 20px; text-align: center; font-size: 14px; color: #71717a; }
@@ -366,24 +389,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Responsive Design --- */
 @media (min-width: 768px) {
     .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 768px) {
-    h1 { font-size: 36px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
-}
-
-/* --- NEW STYLES for Pricing Card Layout --- */
-.price-pack {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 220px;
-}
-
-.price-pack p {
-    flex-grow: 1;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
+    .pricing-details { grid-template-columns: repeat(3, 
