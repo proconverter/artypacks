@@ -156,36 +156,16 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Pricing Accordion --- */
 .pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
 .price-pack { border: 1px solid #e5e5e5; padding: 20px; border-radius: 12px; }
-.price-pack.recommended { border-color: #007bff; box-shadow: 0 0 10px rgba(0, 123, 255, 0.2); }
+.price-pack.recommended { border-color: #e5e5e5; box-shadow: none; } /* MODIFIED - Removed blue border and shadow */
 .price-pack h4 { margin-bottom: 5px; }
-.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 15px; max-width: 100%; }
+.price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; } /* MODIFIED - Removed bottom margin */
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
 
-/* --- NEW & MODIFIED STYLES for Feature List and Single Button --- */
-.feature-list {
-    display: grid;
-    grid-template-columns: 1fr; /* MODIFIED - Reverted to single column */
-    gap: 25px;
-    text-align: center; /* MODIFIED */
-    margin: 30px auto;
-    max-width: 500px;
-}
-.feature-list-title { /* NEW */
-    margin-bottom: 5px;
-    font-size: 16px;
-    font-weight: 700;
-}
-.feature-list-item h5 {
-    margin-bottom: 5px;
-}
-.feature-list-item p {
-    font-size: 14px;
-    color: #52525b;
-    max-width: 100%;
-}
+/* --- REMOVED FEATURE LIST STYLES --- */
+
 .single-buy-button {
     max-width: 300px;
-    margin: 20px auto 0;
+    margin: 30px auto 0; /* MODIFIED - Adjusted top margin */
 }
 
 /* --- Page Footer --- */
@@ -395,9 +375,10 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 @media (min-width: 768px) {
     .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
     .pricing-details { grid-template-columns: repeat(3, 1fr); }
-    /* REMOVED the 3-column layout for feature-list on desktop */
 }
 
 @media (max-width: 767px) {
     h1 { font-size: 36px; }
-    h2.section-title { font-
+    h2.section-title { font-size: 28px; }
+    .master-card { padding: 40px 20px; }
+}
