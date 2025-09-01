@@ -164,7 +164,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- NEW & MODIFIED STYLES for Feature List and Single Button --- */
 .feature-list {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* MODIFIED - Reverted to single column */
     gap: 25px;
     text-align: center; /* MODIFIED */
     margin: 30px auto;
@@ -246,7 +246,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     justify-content: space-between; 
     align-items: center; 
     padding: 15px; 
-    background-color: #f0fdf4; _
+    background-color: #f0fdf4; 
     color: #166534; 
     border-radius: 8px; 
     margin-top: 15px; 
@@ -395,10 +395,9 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 @media (min-width: 768px) {
     .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
     .pricing-details { grid-template-columns: repeat(3, 1fr); }
-    .feature-list { grid-template-columns: repeat(3, 1fr); }
+    /* REMOVED the 3-column layout for feature-list on desktop */
 }
 
 @media (max-width: 767px) {
     h1 { font-size: 36px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px;
+    h2.section-title { font-
