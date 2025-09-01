@@ -176,52 +176,60 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin: 20px auto 0;
 }
 
-/* --- Page Footer (MODIFIED FOR COMPACT LAYOUT) --- */
+/* --- Page Footer (MODIFIED FOR SINGLE-LINE LAYOUT) --- */
 .page-footer { 
     background-color: #ffffff;
-    padding: 20px 25px; /* MODIFIED: Adjusted padding */
+    padding: 20px 25px;
     border-radius: 0 0 24px 24px;
-    text-align: center; 
-    font-size: 14px; 
-    color: #71717a; 
     max-width: 800px;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* MODIFIED: Adjusted gap */
     border: 12px solid #ffffff;
     border-top: none;
+    text-align: center; /* Ensures everything inside is centered */
+}
+
+.footer-container {
+    width: 100%;
+}
+
+.footer-main-line {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px; /* Space between copyright and link */
+    flex-wrap: wrap; /* Allows wrapping on very small screens */
+    font-size: 13px;
+    color: #71717a;
 }
 
 .copyright-line {
-    margin: 0;
-    font-size: 13px;
-    width: 100%; /* MODIFIED: Ensure it takes full width for centering */
-    text-align: center; /* MODIFIED: Explicitly center text */
-}
-
-.footer-links {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.footer-accordion-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    white-space: nowrap; /* Prevents the copyright text from breaking */
 }
 
 .footer-accordion-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between "Terms & Privacy" and the icon */
     font-weight: 700;
     cursor: pointer;
     color: #52525b;
     transition: color 0.2s ease;
-    font-size: 13px;
+    white-space: nowrap;
 }
 
 .footer-accordion-trigger:hover {
     color: #18181b;
+}
+
+.footer-icon {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.footer-accordion-item.open .footer-icon {
+    transform: rotate(45deg);
 }
 
 .footer-accordion-content {
@@ -234,6 +242,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     line-height: 1.5;
     width: 100%;
     padding: 0 20px;
+    margin-top: 15px; /* Adds space when the accordion opens */
 }
 
 .footer-accordion-content h4 {
@@ -242,7 +251,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center;
 }
 
-/* ADDED: Style for new h5 subheadings */
 .footer-accordion-content h5 {
     font-size: 14px;
     font-weight: 700;
@@ -262,6 +270,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     padding-top: 10px;
     transition: max-height 0.5s ease-in, padding-top 0.5s ease-in;
 }
+
 
 /* --- Contact Form Styles --- */
 .contact-form { 
