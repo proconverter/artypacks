@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let uploadedFiles = [];
     let sessionHistory = [];
     let isLicenseValid = false;
-    let validationController;
+    let validationController; // Will be managed explicitly
     let messageIntervalId;
     let debounceTimer;
 
@@ -55,7 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
         clearTimeout(debounceTimer);
-        if (validationController) validationController.abort();
+        // Explicitly abort any previous validation request
+        if (validationController) {
+            validationController.abort();
+        }
         clearInterval(messageIntervalId);
         
         const key = licenseKeyInput.value.trim();
@@ -92,9 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- VALIDATION LOGIC WITH 'FINALLY' BLOCK ---
+    // --- VALIDATION LOGIC WITH EXPLICIT ABORTCONTROLLER ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
-        if (validationController) validationController.abort();
+        // Create a new controller for this specific validation attempt.
         validationController = new AbortController();
         const signal = validationController.signal;
 
@@ -106,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPostConversion) {
             clearInterval(messageIntervalId);
             const showNextMessage = () => {
+                if (signal.aborted) {
+                    clearInterval(messageIntervalId);
+                    return;
+                }
                 licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
                 messageIndex++;
             };
@@ -118,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ licenseKey: key }),
-                signal
+                signal // Pass the signal to the fetch request
             });
 
             const result = await response.json();
@@ -135,7 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
             checkLicenseAndToggleUI();
 
         } catch (error) {
-            if (signal.aborted) return;
+            // Only show error if it wasn't an intentional abort
+            if (signal.aborted) {
+                console.log("Fetch aborted.");
+                return;
+            }
             isLicenseValid = false;
             licenseStatus.className = 'license-status-message invalid';
             licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
@@ -265,8 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- FINAL, SIMPLE, AND CORRECT RESET FUNCTION ---
+    // --- FINAL, ROBUST RESET FUNCTION ---
     const resetForNewConversion = () => {
+        // Explicitly abort any validation request that might be in-flight.
+        if (validationController) {
+            validationController.abort();
+        }
+        
         // Clear the file list from the UI and state
         uploadedFiles = [];
         updateFileList();
@@ -277,10 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Re-enable the license key input field
         licenseKeyInput.disabled = false;
         
-        // Manually clear the license status message area to a neutral state
-        licenseStatus.innerHTML = '';
-        licenseStatus.className = 'license-status-message';
-
+        // The post-conversion validation has already set the correct final status message.
+        // We leave it on screen so the user knows their key has no credits.
+        // If the user wants to clear it, they can just start typing a new key.
+        
         // The license is now invalid, so update the state and disable the UI
         isLicenseValid = false;
         checkLicenseAndToggleUI();
@@ -289,62 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- HISTORY "RECEIPT" FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
-        if (sessionHistory.length === 0) {
-            historySection.style.display = 'none';
-            return;
-        }
-
-        historySection.style.display = 'block';
-        sessionHistory.forEach((item, index) => {
-            const listItem = document.createElement('li');
-            listItem.className = 'history-item';
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'history-item-info';
-            const titleSpan = document.createElement('span');
-            titleSpan.textContent = `Conversion #${sessionHistory.length - index}`;
-            const filesP = document.createElement('p');
-            filesP.textContent = item.sourceFiles.join(', ');
-            infoDiv.appendChild(titleSpan);
-            infoDiv.appendChild(filesP);
-            listItem.appendChild(infoDiv);
-            historyList.appendChild(listItem);
-        });
-    };
-
-    // --- HELPER FUNCTIONS ---
-    const updateProgress = (percentage, message) => {
-        progressFill.style.width = `${percentage}%`;
-        statusMessage.textContent = message;
-        statusMessage.style.color = '#3f3f46';
-    };
-
-    const showError = (message) => {
-        statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc2626';
-        progressBar.style.display = 'none';
-    };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
-        newConversionButton.style.display = 'none';
-    };
-
-    // --- ACCORDION & CONTACT FORM ---
-    const setupAccordion = () => {
-        document.querySelectorAll('.accordion-question').forEach(question => {
-            question.addEventListener('click', () => {
-                const item = question.parentElement;
-                item.classList.toggle('open');
-            });
-        });
-    };
-
-    const setupContactForm = () => {
-        if (!contactForm) return;
-        contactForm.addEventListener('submit', async (e) => {
+        if (sessionHistory.length === t.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(contactForm);
             try {
