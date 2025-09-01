@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
+    let debounceTimer; // For license key input debouncing
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -51,15 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
+    // --- MODIFIED: DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
+        clearTimeout(debounceTimer); // Clear previous timer
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
-        isLicenseValid = false;
-        checkLicenseAndToggleUI();
+        
         const key = licenseKeyInput.value.trim();
+        
+        // Only start debounced validation if key has a minimum length
         if (key.length > 5) {
-            validateLicenseWithRetries(key);
+            licenseStatus.className = 'license-status-message checking';
+            licenseStatus.textContent = 'Checking...'; // Provide immediate feedback
+            
+            debounceTimer = setTimeout(() => {
+                validateLicenseWithRetries(key);
+            }, 500); // Wait for 500ms of inactivity before validating
         } else {
+            isLicenseValid = false;
+            checkLicenseAndToggleUI();
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
         }
@@ -82,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- MODIFIED VALIDATION LOGIC ---
+    // --- VALIDATION LOGIC (Now called by debounced handler) ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         if (validationController) validationController.abort();
         validationController = new AbortController();
@@ -94,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let messageIndex = 0;
 
         if (!isPostConversion) {
-            licenseStatus.className = 'license-status-message checking';
+            clearInterval(messageIntervalId); // Stop any previous "Checking..." message
             const showNextMessage = () => {
                 licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
                 messageIndex++;
@@ -103,53 +114,35 @@ document.addEventListener('DOMContentLoaded', () => {
             messageIntervalId = setInterval(showNextMessage, 3000);
         }
 
-        for (let attempt = 1; attempt <= 20; attempt++) {
-            try {
-                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ licenseKey: key }),
-                    signal
-                });
+        try {
+            const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: key }),
+                signal
+            });
 
-                clearInterval(messageIntervalId);
-                const result = await response.json();
+            clearInterval(messageIntervalId);
+            const result = await response.json();
 
-                if (response.ok && result.isValid) {
-                    isLicenseValid = true;
-                    licenseStatus.className = 'license-status-message valid';
-                    if (isPostConversion) {
-                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else {
-                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
-                    }
-                } else {
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    if (result.message && result.message.toLowerCase().includes("credits")) {
-                        licenseStatus.innerHTML = getCreditsMessage(0);
-                    } else {
-                        licenseStatus.textContent = result.message || 'Invalid license key.';
-                    }
-                }
-                checkLicenseAndToggleUI();
-                return;
-
-            } catch (error) {
-                if (signal.aborted) {
-                    clearInterval(messageIntervalId);
-                    return;
-                }
-                if (attempt === 20) {
-                    clearInterval(messageIntervalId);
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
-                    checkLicenseAndToggleUI();
-                    return;
-                }
-                await new Promise(resolve => setTimeout(resolve, 2500));
+            if (response.ok && result.isValid) {
+                isLicenseValid = true;
+                licenseStatus.className = 'license-status-message valid';
+                licenseStatus.innerHTML = isPostConversion ? getCreditsMessage(result.credits) : `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
+            } else {
+                isLicenseValid = false;
+                licenseStatus.className = 'license-status-message invalid';
+                licenseStatus.innerHTML = result.message && result.message.toLowerCase().includes("credits") ? getCreditsMessage(0) : (result.message || 'Invalid license key.');
             }
+            checkLicenseAndToggleUI();
+
+        } catch (error) {
+            if (signal.aborted) return;
+            clearInterval(messageIntervalId);
+            isLicenseValid = false;
+            licenseStatus.className = 'license-status-message invalid';
+            licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
+            checkLicenseAndToggleUI();
         }
     }
 
@@ -161,11 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.toggle('disabled', !isLicenseValid);
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
-        if (isLicenseValid) {
-            activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
-        } else {
-            activationNotice.textContent = 'Converter locked – enter license key above.';
-        }
+        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
     };
 
     const processFiles = (files) => {
@@ -204,9 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- MODIFIED CONVERSION PROCESS ---
-    const handleConversion = async () => {
-        const licenseKey = licenseKeyInput.value.trim(); // Defined here
+    // --- MODIFIED: CONVERSION PROCESS WITH REAL PROGRESS BAR ---
+    const handleConversion = () => {
+        const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
         const originalFilesForHistory = [...uploadedFiles];
@@ -217,49 +206,63 @@ document.addEventListener('DOMContentLoaded', () => {
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
 
-        try {
-            updateProgress(10, 'Validating and preparing upload...');
-            const formData = new FormData();
-            formData.append('licenseKey', licenseKey);
-            uploadedFiles.forEach(file => { formData.append('files', file); });
+        const formData = new FormData();
+        formData.append('licenseKey', licenseKey);
+        uploadedFiles.forEach(file => { formData.append('files', file); });
 
-            updateProgress(30, 'Uploading and converting...');
-            const response = await fetch(VITE_CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
-            const result = await response.json();
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
 
-            if (!response.ok) {
+        // Listener for upload progress
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                // Calculate progress from 10% to 90% for the upload phase
+                const uploadProgress = 10 + (event.loaded / event.total) * 80;
+                updateProgress(uploadProgress, 'Uploading and converting...');
+            }
+        };
+
+        // Listener for request completion
+        xhr.onload = async () => {
+            const result = JSON.parse(xhr.responseText);
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+                updateProgress(100, 'Conversion successful! Your download will begin automatically.');
+                
+                const tempLink = document.createElement('a');
+                tempLink.href = result.downloadUrl;
+                tempLink.setAttribute('download', '');
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+
+                sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
+                updateHistoryList();
+
+                newConversionButton.style.display = 'block';
+                progressBar.style.display = 'none';
+                
+                await validateLicenseWithRetries(licenseKey, true);
+            } else {
+                // Handle server-side errors
                 licenseKeyInput.disabled = false;
                 await validateLicenseWithRetries(licenseKey);
-                throw new Error(result.message || 'An unknown error occurred.');
+                showError(result.message || 'An unknown error occurred.');
+                if (!licenseKeyInput.disabled) {
+                    checkLicenseAndToggleUI();
+                }
             }
+        };
 
-            updateProgress(100, 'Conversion successful! Your download will begin automatically.');
-            
-            const tempLink = document.createElement('a');
-            tempLink.href = result.downloadUrl;
-            tempLink.setAttribute('download', '');
-            document.body.appendChild(tempLink);
-            tempLink.click();
-            document.body.removeChild(tempLink);
+        // Listener for network errors
+        xhr.onerror = () => {
+            showError('A network error occurred. Please check your connection and try again.');
+            licenseKeyInput.disabled = false;
+            checkLicenseAndToggleUI();
+        };
 
-            sessionHistory.unshift({
-                sourceFiles: originalFilesForHistory.map(f => f.name)
-            });
-            updateHistoryList();
-
-            newConversionButton.style.display = 'block';
-            progressBar.style.display = 'none';
-            
-            // CRITICAL FIX: Use the correct variable 'licenseKey' and wait for the update
-            await validateLicenseWithRetries(licenseKey, true);
-
-        } catch (error) {
-            console.error('Conversion Error:', error);
-            showError(error.message);
-            if (!licenseKeyInput.disabled) {
-                 checkLicenseAndToggleUI();
-            }
-        }
+        updateProgress(10, 'Validating and preparing upload...');
+        xhr.send(formData);
     };
     
     const resetForNewConversion = () => {
