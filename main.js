@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         licenseKeyInput.addEventListener('input', handleLicenseInput);
         dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragleave'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
@@ -220,32 +220,39 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         xhr.onload = async () => {
-            const result = JSON.parse(xhr.responseText);
+            // Use try-catch for parsing JSON, as response might not be valid JSON on error
+            try {
+                const result = JSON.parse(xhr.responseText);
 
-            if (xhr.status >= 200 && xhr.status < 300) {
-                updateProgress(100, 'Conversion successful! Your download will begin automatically.');
-                
-                const tempLink = document.createElement('a');
-                tempLink.href = result.downloadUrl;
-                tempLink.setAttribute('download', '');
-                document.body.appendChild(tempLink);
-                tempLink.click();
-                document.body.removeChild(tempLink);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    updateProgress(100, 'Conversion successful! Your download will begin automatically.');
+                    
+                    const tempLink = document.createElement('a');
+                    tempLink.href = result.downloadUrl;
+                    tempLink.setAttribute('download', '');
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
 
-                sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
-                updateHistoryList();
+                    sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
+                    updateHistoryList();
 
-                newConversionButton.style.display = 'block';
-                progressBar.style.display = 'none';
-                
-                await validateLicenseWithRetries(licenseKey, true);
-            } else {
-                licenseKeyInput.disabled = false;
-                await validateLicenseWithRetries(licenseKey);
-                showError(result.message || 'An unknown error occurred.');
-                if (!licenseKeyInput.disabled) {
-                    checkLicenseAndToggleUI();
+                    newConversionButton.style.display = 'block';
+                    progressBar.style.display = 'none';
+                    
+                    await validateLicenseWithRetries(licenseKey, true);
+                } else {
+                    licenseKeyInput.disabled = false;
+                    await validateLicenseWithRetries(licenseKey);
+                    showError(result.message || 'An unknown error occurred.');
+                    if (!licenseKeyInput.disabled) {
+                        checkLicenseAndToggleUI();
+                    }
                 }
+            } catch (e) {
+                showError('An unexpected server response was received.');
+                licenseKeyInput.disabled = false;
+                checkLicenseAndToggleUI();
             }
         };
 
@@ -259,16 +266,18 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- CORRECTED RESET FUNCTION ---
+    // --- FINAL, SIMPLIFIED RESET FUNCTION ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
         resetStatusUI();
         licenseKeyInput.disabled = false;
         
-        // Re-validate the key to get the final "0 credits" message from the server.
-        // The fixes in `validateLicenseWithRetries` ensure this is now safe.
-        validateLicenseWithRetries(licenseKeyInput.value.trim());
+        // The post-conversion validation has already updated the license status
+        // to "0 credits remaining" and set isLicenseValid to false.
+        // All we need to do is call checkLicenseAndToggleUI() to make sure
+        // the UI (like the drop zone) is disabled correctly.
+        checkLicenseAndToggleUI();
     };
 
     // --- HISTORY "RECEIPT" FUNCTIONS ---
