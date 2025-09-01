@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- MODIFIED VALIDATION LOGIC WITH 'FINALLY' BLOCK ---
+    // --- VALIDATION LOGIC WITH 'FINALLY' BLOCK ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         if (validationController) validationController.abort();
         validationController = new AbortController();
@@ -141,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
             checkLicenseAndToggleUI();
         } finally {
-            // CRITICAL FIX: This block will always run, ensuring the interval is cleared.
             clearInterval(messageIntervalId);
         }
     }
@@ -260,11 +259,15 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
+    // --- CORRECTED RESET FUNCTION ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
         resetStatusUI();
         licenseKeyInput.disabled = false;
+        
+        // Re-validate the key to get the final "0 credits" message from the server.
+        // The fixes in `validateLicenseWithRetries` ensure this is now safe.
         validateLicenseWithRetries(licenseKeyInput.value.trim());
     };
 
