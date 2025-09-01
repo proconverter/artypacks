@@ -27,9 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let uploadedFiles = [];
     let sessionHistory = [];
     let isLicenseValid = false;
-    let validationController; // Will be managed explicitly
+    let validationController;
     let messageIntervalId;
-    let debounceTimer;
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         licenseKeyInput.addEventListener('input', handleLicenseInput);
         dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); if (!dropZone.classList.contains('disabled')) dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragleave'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
@@ -52,27 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
-    // --- DEBOUNCED LICENSE INPUT HANDLER ---
     const handleLicenseInput = () => {
-        clearTimeout(debounceTimer);
-        // Explicitly abort any previous validation request
-        if (validationController) {
-            validationController.abort();
-        }
+        if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
-        
+        isLicenseValid = false;
+        checkLicenseAndToggleUI();
         const key = licenseKeyInput.value.trim();
-        
         if (key.length > 5) {
-            licenseStatus.className = 'license-status-message checking';
-            licenseStatus.textContent = 'Checking...';
-            
-            debounceTimer = setTimeout(() => {
-                validateLicenseWithRetries(key);
-            }, 500);
+            validateLicenseWithRetries(key);
         } else {
-            isLicenseValid = false;
-            checkLicenseAndToggleUI();
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
         }
@@ -95,24 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return messages[Math.floor(Math.random() * messages.length)];
     };
 
-    // --- VALIDATION LOGIC WITH EXPLICIT ABORTCONTROLLER ---
+    // --- VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
-        // Create a new controller for this specific validation attempt.
         validationController = new AbortController();
         const signal = validationController.signal;
 
         const coldStartMessages = [
-            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Cross-referencing database...", "Almost there...", "Finalizing verification...", "Unlocking converter...", "Hold tight...", "Confirming details..."
         ];
         let messageIndex = 0;
 
         if (!isPostConversion) {
-            clearInterval(messageIntervalId);
+            licenseStatus.className = 'license-status-message checking';
             const showNextMessage = () => {
-                if (signal.aborted) {
-                    clearInterval(messageIntervalId);
-                    return;
-                }
                 licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
                 messageIndex++;
             };
@@ -120,39 +102,45 @@ document.addEventListener('DOMContentLoaded', () => {
             messageIntervalId = setInterval(showNextMessage, 3000);
         }
 
-        try {
-            const response = await fetch(VITE_CHECK_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey: key }),
-                signal // Pass the signal to the fetch request
-            });
+        for (let attempt = 1; attempt <= 20; attempt++) {
+            try {
+                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ licenseKey: key }),
+                    signal
+                });
 
-            const result = await response.json();
+                clearInterval(messageIntervalId);
+                const result = await response.json();
 
-            if (response.ok && result.isValid) {
-                isLicenseValid = true;
-                licenseStatus.className = 'license-status-message valid';
-                licenseStatus.innerHTML = isPostConversion ? getCreditsMessage(result.credits) : `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
-            } else {
-                isLicenseValid = false;
-                licenseStatus.className = 'license-status-message invalid';
-                licenseStatus.innerHTML = result.message && result.message.toLowerCase().includes("credits") ? getCreditsMessage(0) : (result.message || 'Invalid license key.');
-            }
-            checkLicenseAndToggleUI();
-
-        } catch (error) {
-            // Only show error if it wasn't an intentional abort
-            if (signal.aborted) {
-                console.log("Fetch aborted.");
+                if (response.ok && result.isValid) {
+                    isLicenseValid = true;
+                    licenseStatus.className = 'license-status-message valid';
+                    licenseStatus.innerHTML = isPostConversion ? getCreditsMessage(result.credits) : `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
+                } else {
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.innerHTML = result.message && result.message.toLowerCase().includes("credits") ? getCreditsMessage(0) : (result.message || 'Invalid license key.');
+                }
+                checkLicenseAndToggleUI();
                 return;
+
+            } catch (error) {
+                if (signal.aborted) {
+                    clearInterval(messageIntervalId);
+                    return;
+                }
+                if (attempt === 20) {
+                    clearInterval(messageIntervalId);
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
+                    checkLicenseAndToggleUI();
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 2500));
             }
-            isLicenseValid = false;
-            licenseStatus.className = 'license-status-message invalid';
-            licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
-            checkLicenseAndToggleUI();
-        } finally {
-            clearInterval(messageIntervalId);
         }
     }
 
@@ -203,8 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS WITH REAL PROGRESS BAR ---
-    const handleConversion = () => {
+    // --- CONVERSION PROCESS ---
+    const handleConversion = async () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
@@ -216,96 +204,110 @@ document.addEventListener('DOMContentLoaded', () => {
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
 
-        const formData = new FormData();
-        formData.append('licenseKey', licenseKey);
-        uploadedFiles.forEach(file => { formData.append('files', file); });
+        try {
+            updateProgress(10, 'Validating and preparing upload...');
+            const formData = new FormData();
+            formData.append('licenseKey', licenseKey);
+            uploadedFiles.forEach(file => { formData.append('files', file); });
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
+            updateProgress(30, 'Uploading and converting...');
+            const response = await fetch(VITE_CONVERT_API_ENDPOINT, { method: 'POST', body: formData });
+            const result = await response.json();
 
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const uploadProgress = 10 + (event.loaded / event.total) * 80;
-                updateProgress(uploadProgress, 'Uploading and converting...');
-            }
-        };
+            if (!response.ok) throw new Error(result.message || 'An unknown error occurred.');
 
-        xhr.onload = async () => {
-            try {
-                const result = JSON.parse(xhr.responseText);
+            updateProgress(100, 'Conversion successful! Your download will begin automatically.');
+            
+            const tempLink = document.createElement('a');
+            tempLink.href = result.downloadUrl;
+            tempLink.setAttribute('download', '');
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
 
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    updateProgress(100, 'Conversion successful! Your download will begin automatically.');
-                    
-                    const tempLink = document.createElement('a');
-                    tempLink.href = result.downloadUrl;
-                    tempLink.setAttribute('download', '');
-                    document.body.appendChild(tempLink);
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
+            sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
+            updateHistoryList();
 
-                    sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
-                    updateHistoryList();
+            newConversionButton.style.display = 'block';
+            progressBar.style.display = 'none';
+            
+            await validateLicenseWithRetries(licenseKey, true);
 
-                    newConversionButton.style.display = 'block';
-                    progressBar.style.display = 'none';
-                    
-                    await validateLicenseWithRetries(licenseKey, true);
-                } else {
-                    licenseKeyInput.disabled = false;
-                    await validateLicenseWithRetries(licenseKey);
-                    showError(result.message || 'An unknown error occurred.');
-                    if (!licenseKeyInput.disabled) {
-                        checkLicenseAndToggleUI();
-                    }
-                }
-            } catch (e) {
-                showError('An unexpected server response was received.');
-                licenseKeyInput.disabled = false;
-                checkLicenseAndToggleUI();
-            }
-        };
-
-        xhr.onerror = () => {
-            showError('A network error occurred. Please check your connection and try again.');
+        } catch (error) {
+            console.error('Conversion Error:', error);
+            showError(error.message);
             licenseKeyInput.disabled = false;
             checkLicenseAndToggleUI();
-        };
-
-        updateProgress(10, 'Validating and preparing upload...');
-        xhr.send(formData);
+        }
     };
     
-    // --- FINAL, ROBUST RESET FUNCTION ---
     const resetForNewConversion = () => {
-        // Explicitly abort any validation request that might be in-flight.
-        if (validationController) {
-            validationController.abort();
-        }
-        
-        // Clear the file list from the UI and state
         uploadedFiles = [];
         updateFileList();
-        
-        // Hide the progress bar and "Conversion successful" message
         resetStatusUI();
-        
-        // Re-enable the license key input field
         licenseKeyInput.disabled = false;
-        
-        // The post-conversion validation has already set the correct final status message.
-        // We leave it on screen so the user knows their key has no credits.
-        // If the user wants to clear it, they can just start typing a new key.
-        
-        // The license is now invalid, so update the state and disable the UI
-        isLicenseValid = false;
         checkLicenseAndToggleUI();
     };
 
     // --- HISTORY "RECEIPT" FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
-        if (sessionHistory.length === t.addEventListener('submit', async (e) => {
+        if (sessionHistory.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
+
+        historySection.style.display = 'block';
+        sessionHistory.forEach((item, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'history-item';
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'history-item-info';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = `Conversion #${sessionHistory.length - index}`;
+            const filesP = document.createElement('p');
+            filesP.textContent = item.sourceFiles.join(', ');
+            infoDiv.appendChild(titleSpan);
+            infoDiv.appendChild(filesP);
+            listItem.appendChild(infoDiv);
+            historyList.appendChild(listItem);
+        });
+    };
+
+    // --- HELPER FUNCTIONS ---
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+        statusMessage.style.color = '#3f3f46';
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+        newConversionButton.style.display = 'none';
+    };
+
+    // --- ACCORDION & CONTACT FORM ---
+    const setupAccordion = () => {
+        document.querySelectorAll('.accordion-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+    };
+
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(contactForm);
             try {
