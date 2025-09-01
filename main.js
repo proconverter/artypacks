@@ -331,11 +331,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ACCORDION & CONTACT FORM (MODIFIED) ---
     const setupAccordion = () => {
-        // MODIFIED: Selects both main accordion questions and the footer trigger
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                const item = trigger.parentElement;
-                item.classList.toggle('open');
+                // MODIFIED: Use .closest() to find the correct parent item reliably
+                const item = trigger.closest('.accordion-item, .footer-accordion-item');
+                if (item) {
+                    item.classList.toggle('open');
+                }
             });
         });
     };
