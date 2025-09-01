@@ -1,16 +1,15 @@
 /* --- Global Styles & Resets --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* CORRECTED - Opacity is now applied only to the background via a pseudo-element */
 html {
-    position: relative; /* Needed for the pseudo-element positioning */
-    z-index: 1; /* Ensures content is on top */
-    height: 100%; /* Make html take full height */
+    position: relative;
+    z-index: 1;
+    height: 100%;
 }
 
 html::before {
     content: '';
-    position: fixed; /* Covers the entire viewport */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -18,29 +17,27 @@ html::before {
     background-color: #00b4ff;
     background-image: url('/assets/background-pattern.svg' );
     background-size: 75px 75px;
-    opacity: 0.8; /* Opacity is now isolated here */
-    z-index: -1; /* Sits behind the main content */
+    opacity: 0.8;
+    z-index: -1;
 }
 
-/* MODIFIED FOR FOOTER CENTERING */
 body {
     font-family: 'Inter', sans-serif; color: #18181b; line-height: 1.6;
     display: flex; 
     justify-content: center; 
-    align-items: center; /* Center the page-wrapper vertically */
+    align-items: center;
     padding: 40px 20px;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh; /* Ensure body takes at least the full viewport height */
+    min-height: 100vh;
 }
 
-/* MODIFIED FOR FOOTER CENTERING */
 .page-wrapper { 
     width: 100%; 
     max-width: 800px; 
     display: flex; 
     flex-direction: column; 
-    gap: 25px; /* Adjusted gap for aesthetics */
-    align-items: center; /* Center children horizontally */
+    gap: 0; /* MODIFIED: Set gap to 0 */
+    align-items: center;
 }
 
 /* --- Typography --- */
@@ -63,7 +60,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     text-align: center; 
     gap: 30px;
     border: 12px solid #ffffff;
-    width: 100%; /* Ensure it takes the full width of the wrapper */
+    width: 100%;
 }
 
 /* --- Content Sections --- */
@@ -178,24 +175,77 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin: 20px auto 0;
 }
 
-/* --- Page Footer (MODIFIED FOR WHITE BOX) --- */
+/* --- Page Footer (MODIFIED FOR NEW STRUCTURE) --- */
 .page-footer { 
-    background-color: #ffffff; /* Add white background */
-    padding: 15px 25px;       /* Add some padding */
-    border-radius: 12px;      /* Add rounded corners */
+    background-color: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
     text-align: center; 
     font-size: 14px; 
     color: #71717a; 
-    max-width: 400px;         /* Give it a max-width */
-    width: 100%;              /* Make it responsive */
+    max-width: 800px; /* Match the master-card width */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
-.page-footer a { 
-    color: #71717a; 
-    font-weight: 400; 
-    text-decoration: underline; 
-    transition: color 0.2s ease; 
+
+.copyright-line {
+    margin-bottom: 5px;
 }
-.page-footer a:hover { color: #18181b; }
+
+.footer-accordion {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    width: 100%;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.footer-accordion-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.footer-accordion-trigger {
+    font-weight: 700;
+    cursor: pointer;
+    color: #52525b;
+    transition: color 0.2s ease;
+}
+
+.footer-accordion-trigger:hover {
+    color: #18181b;
+}
+
+.footer-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding-top 0.4s ease-out;
+    text-align: left;
+    font-size: 14px;
+    color: #52525b;
+    line-height: 1.5;
+    width: 100%; /* Take full width for content */
+}
+
+.footer-accordion-content h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.footer-accordion-content p {
+    font-size: 14px;
+    max-width: 100%;
+    margin-bottom: 10px;
+}
+
+.footer-accordion-item.open .footer-accordion-content {
+    max-height: 1000px; /* Adjust as needed */
+    padding-top: 10px;
+    transition: max-height 0.5s ease-in, padding-top 0.5s ease-in;
+}
 
 /* --- Contact Form Styles --- */
 .contact-form { 
