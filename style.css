@@ -41,7 +41,21 @@ body {
 }
 
 /* --- Typography --- */
-h1 { font-size: 48px; font-weight: 800; line-height: 1.2; letter-spacing: -1.5px; }
+h1 { 
+    font-size: 48px; 
+    font-weight: 800; 
+    line-height: 1.2; 
+    letter-spacing: -1.5px; 
+}
+
+/* ADDED: Style for the smaller, second line of the h1 */
+.h1-subline {
+    display: block; /* Ensures it sits on its own line */
+    font-size: 32px; /* Smaller font size */
+    margin-top: 8px; /* Adds a bit of space from the line above */
+    letter-spacing: -0.5px; /* Adjust letter-spacing for the new size */
+}
+
 h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
 h3 { font-size: 18px; font-weight: 700; }
 h4 { font-size: 16px; font-weight: 700; }
@@ -477,6 +491,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 @media (max-width: 767px) {
     h1 { font-size: 36px; }
+    .h1-subline { font-size: 24px; } /* Adjust subline for mobile */
     h2.section-title { font-size: 28px; }
     .master-card { padding: 40px 20px; }
     body { align-items: flex-start; } /* Disable vertical centering on mobile for better scrolling */
