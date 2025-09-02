@@ -48,12 +48,11 @@ h1 {
     letter-spacing: -1.5px; 
 }
 
-/* ADDED: Style for the smaller, second line of the h1 */
 .h1-subline {
-    display: block; /* Ensures it sits on its own line */
-    font-size: 32px; /* Smaller font size */
-    margin-top: 8px; /* Adds a bit of space from the line above */
-    letter-spacing: -0.5px; /* Adjust letter-spacing for the new size */
+    display: block;
+    font-size: 32px;
+    margin-top: 8px;
+    letter-spacing: -0.5px;
 }
 
 h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
@@ -175,8 +174,15 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
-.accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
+.accordion-item.open .accordion-answer { 
+    max-height: 2000px; /* MODIFIED: Increased max-height for mobile */
+    padding-bottom: 25px; 
+    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
+}
+
+.accordion-item.open .accordion-question .icon { 
+    transform: rotate(45deg); 
+}
 
 /* --- Pricing Accordion --- */
 .pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
@@ -280,7 +286,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 .footer-accordion-item.open .footer-accordion-content {
-    max-height: 2000px; /* MODIFIED: Increased max-height for mobile */
+    max-height: 2000px; 
     padding-top: 10px;
     transition: max-height 0.5s ease-in, padding-top 0.5s ease-in;
 }
