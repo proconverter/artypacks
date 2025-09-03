@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
-    const fileList = document.getElementById('file-list'); // Now correctly targeting a UL
+    const fileList = document.getElementById('file-list');
     const appStatus = document.getElementById('app-status');
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
@@ -64,14 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
 
+        // CORRECTED: Event listener now calls the simplified removeFileById function
         fileList.addEventListener('click', (event) => {
             if (event.target && event.target.classList.contains('remove-file-btn')) {
                 const idToRemove = event.target.getAttribute('data-id');
-                removeFileById(idToRemove, event.target);
+                removeFileById(idToRemove);
             }
         });
 
-        // This function was missing in the last code I gave you. I am so sorry.
         setupAccordion();
         setupContactForm();
     };
@@ -150,26 +150,33 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIState();
     };
 
-    // THE CORRECTED FILE REMOVAL LOGIC
-    const removeFileById = (id, buttonElement) => {
+    // *** THE FIX IS HERE ***
+    // This function now only modifies the state, then calls the render and UI update functions.
+    // It no longer manipulates the DOM directly.
+    const removeFileById = (id) => {
+        // 1. Update the central state object.
         appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
-        const listItem = buttonElement.closest('li');
-        if (listItem) {
-            listItem.remove();
-        }
+        
+        // 2. Re-render the file list from the updated state.
+        renderFileList();
+        
+        // 3. Update the rest of the UI (like the convert button's status).
         updateUIState();
     };
 
-    // THE CORRECTED RENDER LOGIC
+    // This function is now the single source of truth for rendering the file list.
     const renderFileList = () => {
-        fileList.innerHTML = ''; // Clear the <ul>
+        fileList.innerHTML = ''; // Clear the entire list first
         appState.filesToUpload.forEach(fileWrapper => {
             const listItem = document.createElement('li');
+            // This structure was incorrect in your HTML, it should be a UL with LIs.
+            // Assuming fileList is a UL or OL.
+            listItem.className = 'file-list-item'; // Added for clarity
             listItem.innerHTML = `
                 <span>${fileWrapper.fileObject.name} (${(fileWrapper.fileObject.size / 1024 / 1024).toFixed(2)} MB)</span>
                 <button class="remove-file-btn" data-id="${fileWrapper.id}">×</button>
             `;
-            fileList.appendChild(listItem); // Append <li> directly to the <ul>
+            fileList.appendChild(listItem);
         });
     };
 
@@ -233,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appStatus.style.display = 'none';
         newConversionButton.style.display = 'none';
         convertButton.parentElement.style.display = 'block';
+        licenseKeyInput.disabled = false; // Re-enable license key input
         updateUIState();
     }
 
@@ -251,10 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // THIS WAS THE MISSING FUNCTION THAT BROKE YOUR ACCORDION
     const setupAccordion = () => { document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => { trigger.addEventListener('click', () => { const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line'); if (item) item.classList.toggle('open'); }); }); };
     
-    // THIS WAS THE MISSING FUNCTION THAT BROKE YOUR CONTACT FORM
     const setupContactForm = () => { 
         if (!contactForm) return; 
         contactForm.addEventListener('submit', async (e) => { 
