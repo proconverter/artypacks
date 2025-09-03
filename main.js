@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (UNCHANGED) ---
+    // --- CONVERSION PROCESS (MODIFIED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -246,7 +246,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    await validateLicenseWithRetries(licenseKey, true);
+                    // --- THIS IS THE FIX ---
+                    // The following line is commented out to prevent the post-conversion error.
+                    // await validateLicenseWithRetries(licenseKey, true);
+                    
+                    // Instead, we manually update the UI to a stable state.
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message valid';
+                    licenseStatus.innerHTML = 'Credit used. Thank you!';
+                    checkLicenseAndToggleUI();
+                    // --- END OF FIX ---
+
                 } else {
                     licenseKeyInput.disabled = false;
                     await validateLicenseWithRetries(licenseKey);
@@ -272,12 +282,18 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- RESET FUNCTION (UNCHANGED) ---
+    // --- RESET FUNCTION (MODIFIED) ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
         resetStatusUI();
         licenseKeyInput.disabled = false;
+        
+        // --- THIS IS THE FIX ---
+        // Clear the old "Credit used" message when starting over.
+        licenseStatus.innerHTML = '';
+        // --- END OF FIX ---
+
         checkLicenseAndToggleUI();
     };
 
@@ -326,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
+    // --- ACCORDION & CONTACT FORM (UNCHANGED) ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
