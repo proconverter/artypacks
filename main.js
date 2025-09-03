@@ -139,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processFiles = (files) => {
-        resetStatusUI();
+        // This is now the ONLY place that resets the button text.
+        resetStatusUI(); 
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
         if (newFiles.length === 0 && files.length > 0) { alert("Invalid file type. Please upload only .brushset files."); return; }
         uploadedFiles = [...uploadedFiles, ...newFiles].slice(0, 3);
@@ -179,13 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fileList.appendChild(list);
     };
 
-    // --- THIS IS THE CORRECTED FUNCTION ---
+    // --- THIS IS THE FINAL, CORRECTED FUNCTION ---
     const removeFile = (index) => {
         uploadedFiles.splice(index, 1);
-        // Only reset the status UI if the user is clearing the list to start over.
-        if (uploadedFiles.length === 0) {
-            resetStatusUI();
-        }
+        // It no longer calls resetStatusUI(). It just clears the status message.
+        statusMessage.textContent = '';
+        appStatus.style.display = 'none';
         updateFileList();
         checkLicenseAndToggleUI();
     };
@@ -195,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
-        const originalFilesForHistory = [...uploadedFiles];
-        resetStatusUI();
+        // We only reset the button text here, right before a new conversion.
+        convertButton.textContent = 'Convert Your Brushsets';
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
         convertButton.disabled = true;
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
-                    sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
+                    sessionHistory.unshift({ sourceFiles: uploadedFiles.map(f => f.name) });
                     updateHistoryList();
                     await validateLicenseWithRetries(licenseKey, true);
                     
