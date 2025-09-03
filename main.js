@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
     const statusMessage = document.getElementById('status-message');
-    const newConversionButton = document.getElementById('new-conversion-button');
     const historySection = document.getElementById('history-section');
     const historyList = document.getElementById('history-list');
     const contactForm = document.getElementById('contact-form');
@@ -180,10 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const removeFile = (index) => {
-        resetStatusUI();
         uploadedFiles.splice(index, 1);
+        // If the file list is now empty, reset the button text and hide the status message.
+        if (uploadedFiles.length === 0) {
+            resetStatusUI();
+        }
         updateFileList();
-        checkLicenseAndToggleUI();
+        checkLicenseAndToggleUI(); // This will correctly disable the button.
     };
 
     // --- CONVERSION PROCESS ---
@@ -208,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.onload = async () => {
             licenseKeyInput.disabled = false;
+            dropZone.classList.remove('disabled'); // Re-enable drop zone after conversion attempt
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -222,11 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateHistoryList();
                     await validateLicenseWithRetries(licenseKey, true);
                     
+                    // Check if the license is still valid AFTER the conversion
                     if (isLicenseValid) {
                         updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
                         convertButton.textContent = 'Convert New Files';
+                        // Keep the button enabled to invite the next conversion
+                        convertButton.disabled = false; 
                     } else {
                         updateProgress(100, 'Final conversion successful!');
+                        // The checkLicenseAndToggleUI call will handle disabling the button
+                        checkLicenseAndToggleUI();
                     }
 
                 } else {
@@ -253,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         progressFill.style.width = '0%';
         statusMessage.textContent = '';
         statusMessage.style.color = '';
-        newConversionButton.style.display = 'none';
         convertButton.textContent = 'Convert Your Brushsets';
     };
 
