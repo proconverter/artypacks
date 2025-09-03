@@ -48,11 +48,12 @@ h1 {
     letter-spacing: -1.5px; 
 }
 
+/* ADDED: Style for the smaller, second line of the h1 */
 .h1-subline {
-    display: block;
-    font-size: 32px;
-    margin-top: 8px;
-    letter-spacing: -0.5px;
+    display: block; /* Ensures it sits on its own line */
+    font-size: 32px; /* Smaller font size */
+    margin-top: 8px; /* Adds a bit of space from the line above */
+    letter-spacing: -0.5px; /* Adjust letter-spacing for the new size */
 }
 
 h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
@@ -174,21 +175,22 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { 
-    max-height: 2000px; /* MODIFIED: Increased max-height for mobile */
-    padding-bottom: 25px; 
-    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
-}
-
-.accordion-item.open .accordion-question .icon { 
-    transform: rotate(45deg); 
-}
+.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
+.accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
 .pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-.price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; }
+.price-pack { border: 1px solid #e5e5e5; padding: 20px 15px; border-radius: 12px; }
 .price-pack h4 { margin-bottom: 5px; }
 .price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; }
+
+/* MODIFIED: Style for the new credits line */
+.price-pack-credits {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 15px !important; /* Creates the space before the description */
+}
+
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
 
 .single-buy-button {
@@ -286,7 +288,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 .footer-accordion-item.open .footer-accordion-content {
-    max-height: 2000px; 
+    max-height: 2000px; /* MODIFIED: Increased max-height for mobile */
     padding-top: 10px;
     transition: max-height 0.5s ease-in, padding-top 0.5s ease-in;
 }
@@ -413,6 +415,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .file-list-container li { background-color: #f4f4f5; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 .remove-file-btn { background: none; border: none; font-size: 20px; color: #71717a; cursor: pointer; line-height: 1; padding: 2px 5px; }
 .remove-file-btn:hover { color: #18181b; }
+.remove-file-btn::after { content: '×'; } /* Use CSS content for the 'x' */
 
 /* --- Activation Notice --- */
 .activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
