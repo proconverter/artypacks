@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- TIERED & RANDOMIZED CREDIT MESSAGES (MODIFIED) ---
+    // --- TIERED & RANDOMIZED CREDIT MESSAGES ---
     const getCreditsMessage = (credits) => {
         let messages = [];
         
@@ -82,11 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         let message = messages[Math.floor(Math.random() * messages.length)];
-        // Use innerHTML, so we can use <strong> tags for emphasis
         return message.replace(/\[X\]/g, `<strong>${credits}</strong>`);
     };
 
-    // --- VALIDATION LOGIC ---
+    // --- VALIDATION LOGIC (CORRECTED) ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -125,10 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
+                    // **THE FIX IS HERE:** Use .innerHTML instead of .textContent
                     if (result.message && result.message.toLowerCase().includes("credits")) {
                         licenseStatus.innerHTML = getCreditsMessage(0);
                     } else {
-                        licenseStatus.textContent = result.message || 'Invalid license key.';
+                        licenseStatus.innerHTML = result.message || 'Invalid license key.';
                     }
                 }
                 checkLicenseAndToggleUI();
@@ -143,7 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(messageIntervalId);
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'Unable to connect to the validation server. Please try again in a minute.';
+                    // **AND HERE:** Use .innerHTML for consistency
+                    licenseStatus.innerHTML = 'Unable to connect to the validation server. Please try again in a minute.';
                     checkLicenseAndToggleUI();
                     return;
                 }
@@ -157,14 +158,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        const hasCredits = isLicenseValid && (!licenseStatus.innerHTML.includes('0') || licenseStatus.innerHTML.includes('left'));
-        const canUpload = hasCredits && isLicenseValid;
+        // More robust check to see if there are credits.
+        const hasCredits = isLicenseValid && !licenseStatus.innerHTML.includes('You’ve used all your conversions') && !licenseStatus.innerHTML.includes('No conversions left');
 
-        dropZone.classList.toggle('disabled', !canUpload);
-        dropZone.title = canUpload ? '' : 'Please enter a valid license key with credits to upload files.';
-        convertButton.disabled = !(canUpload && uploadedFiles.length > 0);
+        dropZone.classList.toggle('disabled', !hasCredits);
+        dropZone.title = hasCredits ? '' : 'Please enter a valid license key with credits to upload files.';
+        convertButton.disabled = !(hasCredits && uploadedFiles.length > 0);
         
-        if (canUpload) {
+        if (hasCredits) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else if (isLicenseValid && !hasCredits) {
             activationNotice.textContent = 'Converter locked – no credits remaining.';
@@ -255,10 +256,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    await validateLicenseWithRetries(licenseKey, true);
+                    await validateLicenseWithRetries(key, true);
                 } else {
                     licenseKeyInput.disabled = false;
-                    await validateLicenseWithRetries(licenseKey);
+                    await validateLicenseWithRetries(key);
                     showError(result.message || 'An unknown error occurred.');
                     if (!licenseKeyInput.disabled) {
                         checkLicenseAndToggleUI();
@@ -305,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'history-item-info';
             const titleSpan = document.createElement('span');
-            titleSpan.textContent = `Conversion #${session.length - index}`;
+            titleSpan.textContent = `Conversion #${sessionHistory.length - index}`;
             const filesP = document.createElement('p');
             filesP.textContent = item.sourceFiles.join(', ');
             infoDiv.appendChild(titleSpan);
@@ -325,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = `Error: ${message}`;
         statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
-        newConversionButton.style.display = 'block'; // Allow user to start over
+        newConversionButton.style.display = 'block';
     };
 
     const resetStatusUI = () => {
