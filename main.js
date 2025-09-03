@@ -30,17 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let validationController;
     let messageIntervalId;
     let sessionHistory = [];
+    let debounceTimeout; // *** ADDITION 1: A variable to hold our debounce timer
 
     // --- CORE UI LOGIC ---
     function updateUIState() {
-        // The button's state now ONLY depends on whether the license is valid.
         convertButton.disabled = !appState.isLicenseValid;
-
-        // The rest of the UI updates remain the same
         dropZone.classList.toggle('disabled', !appState.isLicenseValid);
         dropZone.title = appState.isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         
-        // Update File List DOM
         fileList.innerHTML = '';
         if (appState.filesToUpload.length > 0) {
             fileList.classList.remove('hidden');
@@ -126,11 +123,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS AND HANDLERS ---
     function setupEventListeners() {
+        // *** ADDITION 2: The Debounce Logic ***
         licenseKeyInput.addEventListener('input', (e) => {
+            // Clear the previous timer on every keystroke
+            clearTimeout(debounceTimeout);
+
             const key = e.target.value.trim();
+
             if (key.length > 5) {
-                validateLicense(key);
+                // Set a new timer. The validation will only run if the user stops typing for 500ms.
+                debounceTimeout = setTimeout(() => {
+                    validateLicense(key);
+                }, 500); // 500ms = half a second
             } else {
+                // If the key is too short, clear the status immediately.
                 appState.isLicenseValid = false;
                 licenseStatus.innerHTML = '';
                 updateUIState();
@@ -158,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
         
-        // Accordion and other UI listeners
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line');
@@ -211,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.removeChild(tempLink);
                     
                     appState.filesToUpload = [];
-                    await validateLicense(licenseKey, true); // Re-check credits
+                    await validateLicense(licenseKey, true);
                     statusMessage.textContent = 'Download success!';
                     newConversionButton.style.display = 'block';
                     convertButton.style.display = 'none';
@@ -236,9 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = `Error: ${message}`;
         statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
-        // Reset UI to allow another attempt
         licenseKeyInput.disabled = false;
-        convertButton.disabled = false; // Re-enable based on license state
+        convertButton.disabled = false;
         updateUIState();
     }
 
