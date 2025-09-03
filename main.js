@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
 
-        // CORRECTED: Event listener now calls the simplified removeFileById function
         fileList.addEventListener('click', (event) => {
             if (event.target && event.target.classList.contains('remove-file-btn')) {
                 const idToRemove = event.target.getAttribute('data-id');
@@ -141,37 +140,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let newFiles = Array.from(files)
             .filter(file => file.name.endsWith('.brushset'))
             .map(file => ({ id: `file-${Date.now()}-${Math.random()}`, fileObject: file }));
+
         if (newFiles.length === 0 && files.length > 0) {
             alert("Invalid file type. Please upload only .brushset files.");
+            fileInput.value = null; // Reset input even on failure
             return;
         }
+
         appState.filesToUpload = [...appState.filesToUpload, ...newFiles].slice(0, 3);
         renderFileList();
         updateUIState();
+
+        // *** THE FINAL FIX ***
+        // Reset the file input so the 'change' event will fire again for the same file.
+        fileInput.value = null;
     };
 
-    // *** THE FIX IS HERE ***
-    // This function now only modifies the state, then calls the render and UI update functions.
-    // It no longer manipulates the DOM directly.
     const removeFileById = (id) => {
-        // 1. Update the central state object.
         appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
-        
-        // 2. Re-render the file list from the updated state.
         renderFileList();
-        
-        // 3. Update the rest of the UI (like the convert button's status).
         updateUIState();
     };
 
-    // This function is now the single source of truth for rendering the file list.
     const renderFileList = () => {
-        fileList.innerHTML = ''; // Clear the entire list first
+        fileList.innerHTML = '';
         appState.filesToUpload.forEach(fileWrapper => {
             const listItem = document.createElement('li');
-            // This structure was incorrect in your HTML, it should be a UL with LIs.
-            // Assuming fileList is a UL or OL.
-            listItem.className = 'file-list-item'; // Added for clarity
             listItem.innerHTML = `
                 <span>${fileWrapper.fileObject.name} (${(fileWrapper.fileObject.size / 1024 / 1024).toFixed(2)} MB)</span>
                 <button class="remove-file-btn" data-id="${fileWrapper.id}">×</button>
@@ -240,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appStatus.style.display = 'none';
         newConversionButton.style.display = 'none';
         convertButton.parentElement.style.display = 'block';
-        licenseKeyInput.disabled = false; // Re-enable license key input
+        licenseKeyInput.disabled = false;
         updateUIState();
     }
 
