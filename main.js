@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.title = 'Remove file';
-            removeBtn.textContent = '×'; // This now provides the ONLY 'x'
+            removeBtn.textContent = '×';
             removeBtn.setAttribute('data-index', index);
 
             listItem.appendChild(textSpan);
@@ -179,9 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
         fileList.appendChild(list);
     };
 
+    // --- THIS IS THE CORRECTED FUNCTION ---
     const removeFile = (index) => {
-        resetStatusUI();
         uploadedFiles.splice(index, 1);
+        // Only reset the status UI if the user is clearing the list to start over.
+        if (uploadedFiles.length === 0) {
+            resetStatusUI();
+        }
         updateFileList();
         checkLicenseAndToggleUI();
     };
