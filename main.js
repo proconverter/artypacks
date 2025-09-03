@@ -127,17 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(debounceTimeout);
             const key = e.target.value.trim();
 
-            // *** THE FINAL POLISH ***
-            // Only start validating when the key is a more reasonable length.
-            // This prevents error messages on partially typed keys.
-            if (key.length > 10) { // Changed from 5 to 10
+            if (key.length > 10) {
                 debounceTimeout = setTimeout(() => {
                     validateLicense(key);
                 }, 500);
             } else {
-                // If the key is too short, don't show an error, just clear the status.
                 appState.isLicenseValid = false;
-                licenseStatus.innerHTML = ''; // Clear previous valid/invalid messages
+                licenseStatus.innerHTML = '';
                 updateUIState();
             }
         });
@@ -163,10 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
         
+        // --- ACCORDION LOGIC (CORRECTED) ---
+        // This is the corrected section. It uses the same reliable logic as before.
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line');
-                if (item) item.classList.toggle('open');
+                // The .closest() method is the key to making this work for both
+                // the main FAQ and the special footer structure.
+                const item = trigger.closest('.accordion-item, .footer-accordion-item');
+                if (item) {
+                    item.classList.toggle('open');
+                }
             });
         });
     }
