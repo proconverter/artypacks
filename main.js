@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- CONFIGURATION ---
+    const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
+    const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
+
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key');
     const licenseStatus = document.getElementById('license-status');
@@ -7,29 +11,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const fileList = document.getElementById('file-list');
+    const appStatus = document.getElementById('app-status');
+    const progressBar = document.getElementById('progress-bar');
+    const progressFill = document.getElementById('progress-fill');
+    const statusMessage = document.getElementById('status-message');
+    const historySection = document.getElementById('history-section');
+    const historyList = document.getElementById('history-list');
+    const contactForm = document.getElementById('contact-form');
+    const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
-    // ... other selectors are not relevant to the core bug
+    const newConversionButton = document.getElementById('new-conversion-button');
 
     // --- STATE MANAGEMENT ---
     const appState = {
         isLicenseValid: false,
-        filesToUpload: [] // The array of file wrappers { id, fileObject }
+        filesToUpload: []
     };
+    let validationController;
+    let messageIntervalId;
+    let sessionHistory = [];
 
-    // --- THE ONE FUNCTION TO RULE THEM ALL ---
-    // This single function is responsible for making the UI match the state.
-    function refreshUI() {
-        // 1. Update Button State
-        const licenseOk = appState.isLicenseValid;
-        const filesPresent = appState.filesToUpload.length > 0;
-        convertButton.disabled = !(licenseOk && filesPresent);
+    // --- CORE UI LOGIC ---
+    function updateUIState() {
+        // The button's state now ONLY depends on whether the license is valid.
+        convertButton.disabled = !appState.isLicenseValid;
 
-        // 2. Update Drop Zone State
-        dropZone.classList.toggle('disabled', !licenseOk);
-        dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
+        // The rest of the UI updates remain the same
+        dropZone.classList.toggle('disabled', !appState.isLicenseValid);
+        dropZone.title = appState.isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         
-        // 3. Update File List DOM
-        fileList.innerHTML = ''; // Always clear first
+        // Update File List DOM
+        fileList.innerHTML = '';
         if (appState.filesToUpload.length > 0) {
             fileList.classList.remove('hidden');
             appState.filesToUpload.forEach(fileWrapper => {
@@ -43,10 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             fileList.classList.add('hidden');
         }
+        
+        if (!appState.isLicenseValid) {
+            activationNotice.textContent = 'Converter locked – enter license key above.';
+        } else {
+            if (appState.filesToUpload.length === 0) {
+                 activationNotice.textContent = 'Ready. Please add one or more .brushset files.';
+            } else {
+                 activationNotice.textContent = `Ready to convert ${appState.filesToUpload.length} file(s).`;
+            }
+        }
     }
 
-    // --- STATE-MODIFYING FUNCTIONS (Now brutally simple) ---
-
+    // --- STATE-MODIFYING FUNCTIONS ---
     function addFiles(incomingFiles) {
         const newFiles = Array.from(incomingFiles)
             .filter(file => file.name.endsWith('.brushset'))
@@ -54,58 +75,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (newFiles.length === 0 && incomingFiles.length > 0) {
             alert("Invalid file type. Please upload only .brushset files.");
-            return; // Do not change state
+            return;
         }
-
-        // Create a new array, don't just push
-        const updatedFiles = [...appState.filesToUpload, ...newFiles];
         
-        // Enforce the limit
+        const updatedFiles = [...appState.filesToUpload, ...newFiles];
         appState.filesToUpload = updatedFiles.slice(0, 3);
-
-        // ALWAYS refresh the entire UI after changing state
-        refreshUI();
+        updateUIState();
     }
 
     function removeFile(fileId) {
-        // Create a new array by filtering
         appState.filesToUpload = appState.filesToUpload.filter(f => f.id !== fileId);
-        
-        // ALWAYS refresh the entire UI after changing state
-        refreshUI();
+        updateUIState();
     }
 
-    function setLicenseValidity(isValid) {
-        appState.isLicenseValid = isValid;
+    async function validateLicense(key, isPostConversion = false) {
+        if (validationController) validationController.abort();
+        clearInterval(messageIntervalId);
         
-        // Update license-specific text
-        if (isValid) {
-            licenseStatus.innerHTML = 'License Valid'; // Simplified
-            licenseStatus.className = 'license-status-message valid';
-            activationNotice.textContent = 'This tool extracts stamp images (min 1024px).';
-        } else {
-            licenseStatus.innerHTML = 'Invalid License'; // Simplified
+        validationController = new AbortController();
+        const signal = validationController.signal;
+
+        try {
+            const response = await fetch(VITE_CHECK_API_ENDPOINT, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ licenseKey: key }), 
+                signal 
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.isValid) {
+                appState.isLicenseValid = true;
+                licenseStatus.className = 'license-status-message valid';
+                licenseStatus.innerHTML = `You have ${result.credits} conversion${result.credits === 1 ? '' : 's'} left.`;
+            } else {
+                appState.isLicenseValid = false;
+                licenseStatus.className = 'license-status-message invalid';
+                licenseStatus.innerHTML = result.message || 'Invalid license key.';
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            appState.isLicenseValid = false;
             licenseStatus.className = 'license-status-message invalid';
-            activationNotice.textContent = 'Converter locked – enter license key above.';
+            licenseStatus.innerHTML = 'Could not connect to validation server.';
         }
-
-        // ALWAYS refresh the entire UI after changing state
-        refreshUI();
+        
+        updateUIState();
     }
 
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS AND HANDLERS ---
     function setupEventListeners() {
-        // License Input
         licenseKeyInput.addEventListener('input', (e) => {
-            // Simplified for this fix: any key > 5 chars is valid
-            setLicenseValidity(e.target.value.trim().length > 5);
+            const key = e.target.value.trim();
+            if (key.length > 5) {
+                validateLicense(key);
+            } else {
+                appState.isLicenseValid = false;
+                licenseStatus.innerHTML = '';
+                updateUIState();
+            }
         });
 
-        // File Input (Click, Drop, etc.)
         dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
         fileInput.addEventListener('change', (e) => {
             addFiles(e.target.files);
-            e.target.value = null; // CRITICAL: Reset the input
+            e.target.value = null;
         });
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); });
         dropZone.addEventListener('drop', (e) => {
@@ -114,17 +149,109 @@ document.addEventListener('DOMContentLoaded', () => {
             addFiles(e.dataTransfer.files);
         });
 
-        // File List (Remove button)
         fileList.addEventListener('click', (event) => {
             if (event.target.classList.contains('remove-file-btn')) {
-                const idToRemove = event.target.getAttribute('data-id');
-                removeFile(idToRemove);
+                removeFile(event.target.getAttribute('data-id'));
             }
         });
+        
+        convertButton.addEventListener('click', handleConversion);
+        newConversionButton.addEventListener('click', resetForNewConversion);
+        
+        // Accordion and other UI listeners
+        document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line');
+                if (item) item.classList.toggle('open');
+            });
+        });
+    }
+
+    // --- FULL CONVERSION LOGIC ---
+    function handleConversion() {
+        if (appState.filesToUpload.length === 0) {
+            alert('Please add one or more .brushset files to convert.');
+            return;
+        }
+
+        const licenseKey = licenseKeyInput.value.trim();
+        convertButton.disabled = true;
+        licenseKeyInput.disabled = true;
+        dropZone.classList.add('disabled');
+        appStatus.style.display = 'block';
+        progressBar.style.display = 'block';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+
+        const formData = new FormData();
+        formData.append('licenseKey', licenseKey);
+        appState.filesToUpload.forEach(fileWrapper => { formData.append('files', fileWrapper.fileObject); });
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
+
+        xhr.upload.onprogress = (event) => { 
+            if (event.lengthComputable) { 
+                const percentage = 10 + (event.loaded / event.total) * 80;
+                progressFill.style.width = `${percentage}%`;
+                statusMessage.textContent = 'Uploading and converting...';
+            } 
+        };
+
+        xhr.onload = async () => {
+            try {
+                const result = JSON.parse(xhr.responseText);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    progressBar.style.display = 'none';
+                    const tempLink = document.createElement('a');
+                    tempLink.href = result.downloadUrl;
+                    tempLink.setAttribute('download', '');
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                    
+                    appState.filesToUpload = [];
+                    await validateLicense(licenseKey, true); // Re-check credits
+                    statusMessage.textContent = 'Download success!';
+                    newConversionButton.style.display = 'block';
+                    convertButton.style.display = 'none';
+                } else {
+                    showError(result.message || 'An unknown error occurred.');
+                }
+            } catch (e) {
+                showError('An unexpected server response was received.');
+            }
+        };
+
+        xhr.onerror = () => {
+            showError('A network error occurred. Please check your connection and try again.');
+        };
+
+        progressFill.style.width = '10%';
+        statusMessage.textContent = 'Validating and preparing upload...';
+        xhr.send(formData);
+    }
+
+    function showError(message) {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
+        progressBar.style.display = 'none';
+        // Reset UI to allow another attempt
+        licenseKeyInput.disabled = false;
+        convertButton.disabled = false; // Re-enable based on license state
+        updateUIState();
+    }
+
+    function resetForNewConversion() {
+        appStatus.style.display = 'none';
+        newConversionButton.style.display = 'none';
+        convertButton.style.display = 'block';
+        licenseKeyInput.disabled = false;
+        updateUIState();
     }
 
     // --- INITIALIZATION ---
     if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
     setupEventListeners();
-    refreshUI(); // Initial call to set the correct initial state
+    updateUIState();
 });
