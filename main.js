@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filesToUpload: []
     };
     let validationController;
-    let messageIntervalId;
+    let messageIntervalId; // Restored for loading messages
     let sessionHistory = [];
     let debounceTimeout;
 
@@ -43,13 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.classList.remove('hidden');
             appState.filesToUpload.forEach(fileWrapper => {
                 const listItem = document.createElement('li');
-                // --- MODIFICATION: Added file size back in ---
                 const fileSize = (fileWrapper.fileObject.size / 1024 / 1024).toFixed(2);
                 listItem.innerHTML = `
                     <span>${fileWrapper.fileObject.name} (${fileSize} MB)</span>
                     <button class="remove-file-btn" data-id="${fileWrapper.id}">×</button>
                 `;
-                // --- END MODIFICATION ---
                 fileList.appendChild(listItem);
             });
         } else {
@@ -88,12 +86,33 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIState();
     }
 
+    // --- MODIFICATION: RE-IMPLEMENTED COLD START MESSAGES ---
     async function validateLicense(key, isPostConversion = false) {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
         
         validationController = new AbortController();
         const signal = validationController.signal;
+
+        // Define the loading messages
+        const coldStartMessages = [
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", 
+            "Authenticating...", "Just a moment...", "Checking credentials...", 
+            "Cross-referencing database...", "Almost there...", "Finalizing verification...", 
+            "Unlocking converter...", "Hold tight...", "Confirming details..."
+        ];
+        let messageIndex = 0;
+
+        // Show loading messages only on initial validation, not after a conversion
+        if (!isPostConversion) {
+            licenseStatus.className = 'license-status-message checking';
+            const showNextMessage = () => {
+                licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
+                messageIndex++;
+            };
+            showNextMessage(); // Show the first message immediately
+            messageIntervalId = setInterval(showNextMessage, 3000); // Cycle through messages
+        }
 
         try {
             const response = await fetch(VITE_CHECK_API_ENDPOINT, { 
@@ -103,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 signal 
             });
             
+            clearInterval(messageIntervalId); // Stop the loading messages
             const result = await response.json();
             
             if (response.ok && result.isValid) {
@@ -115,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseStatus.innerHTML = result.message || 'Invalid license key.';
             }
         } catch (error) {
+            clearInterval(messageIntervalId); // Stop loading messages on error too
             if (error.name === 'AbortError') return;
             appState.isLicenseValid = false;
             licenseStatus.className = 'license-status-message invalid';
@@ -136,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 500);
             } else {
                 appState.isLicenseValid = false;
+                clearInterval(messageIntervalId); // Clear any running messages if user deletes key
                 licenseStatus.innerHTML = '';
                 updateUIState();
             }
@@ -216,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.removeChild(tempLink);
                     
                     appState.filesToUpload = [];
-                    await validateLicense(licenseKey, true);
+                    await validateLicense(licenseKey, true); // Pass 'true' to prevent loading messages here
                     statusMessage.textContent = 'Download success!';
                     newConversionButton.style.display = 'block';
                     convertButton.style.display = 'none';
