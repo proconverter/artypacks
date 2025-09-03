@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- TIERED & RANDOMIZED CREDIT MESSAGES (REVERTED TO SIMPLE VERSION) ---
+    // --- CREDIT MESSAGES ---
     const getCreditsMessage = (credits) => {
         if (credits > 0) {
             return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         licenseStatus.innerHTML = result.message || 'Invalid license key.';
                     }
                 }
-                checkLicenseAndToggleUI();
+                checkLicenseAndToggl
+eUI();
                 return;
 
             } catch (error) {
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FILE HANDLING & UI (UNCHANGED) ---
+    // --- FILE HANDLING & UI ---
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
@@ -216,21 +217,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
-                const uploadProgress = 10 + (event.loaded / event.total) * 80; // Progress from 10% to 90%
+                const uploadProgress = 10 + (event.loaded / event.total) * 80;
                 updateProgress(uploadProgress, 'Uploading and converting...');
             }
         };
 
-        // --- MODIFIED PART ---
         xhr.onload = async () => {
             try {
-                // THIS IS THE NEW LOGGING LINE
-                console.log("RAW SERVER RESPONSE:", xhr.responseText);
-
                 const result = JSON.parse(xhr.responseText);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    updateProgress(100, 'Conversion successful! Your download will begin automatically.');
+                    // --- FIX #2: Improved success message ---
+                    updateProgress(100, 'Conversion successful! Your download has started.');
                     
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
@@ -245,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
+                    // --- FIX #1: Manually disable convert button to prevent re-enabling ---
+                    convertButton.disabled = true;
+
                     await validateLicenseWithRetries(licenseKey, true);
                 } else {
                     licenseKeyInput.disabled = false;
@@ -260,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkLicenseAndToggleUI();
             }
         };
-        // --- END OF MODIFIED PART ---
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- RESET FUNCTION (UNCHANGED) ---
+    // --- RESET FUNCTION ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- HISTORY "RECEIPT" FUNCTIONS (UNCHANGED) ---
+    // --- HISTORY "RECEIPT" FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionHistory.length === 0) {
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- HELPER FUNCTIONS (UNCHANGED) ---
+    // --- HELPER FUNCTIONS ---
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
@@ -326,11 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
+    // --- ACCORDION & CONTACT FORM ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                // MODIFIED: Use .closest() to find the correct parent item reliably
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
