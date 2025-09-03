@@ -174,20 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateFileList = () => {
         fileList.innerHTML = '';
-        if (uploadedFiles.length === 0) return;
-        const list = document.createElement('ul');
-        list.className = 'file-list-container';
+        if (uploadedFiles.length === 0) {
+            fileList.classList.add('hidden');
+            return;
+        }
+        fileList.classList.remove('hidden');
         uploadedFiles.forEach((file, index) => {
             const listItem = document.createElement('li');
-            listItem.innerHTML = `<span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            listItem.innerHTML = `<span>${file.name} (${fileSize} MB)</span>`;
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
+            removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
             listItem.appendChild(removeBtn);
-            list.appendChild(listItem);
+            fileList.appendChild(listItem);
         });
-        fileList.appendChild(list);
     };
 
     const removeFile = (index) => {
@@ -196,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (UNCHANGED) ---
+    // --- CONVERSION PROCESS (MODIFIED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -243,8 +246,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    // The problematic line is commented out.
+                    // --- THIS IS THE FIX ---
+                    // The line below caused the post-conversion validation error.
+                    // It is now commented out to prevent the error.
                     // await validateLicenseWithRetries(licenseKey, true);
+                    // --- END OF FIX ---
 
                 } else {
                     licenseKeyInput.disabled = false;
@@ -325,11 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
+    // --- ACCORDION & CONTACT FORM (UNCHANGED) ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                // MODIFIED: Use .closest() to find the correct parent item reliably
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
