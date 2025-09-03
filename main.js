@@ -123,8 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         licenseStatus.innerHTML = result.message || 'Invalid license key.';
                     }
                 }
-                checkLicenseAndToggl
-eUI();
+                // --- THIS IS THE FIX ---
+                // Corrected the typo from the previous version.
+                checkLicenseAndToggleUI();
                 return;
 
             } catch (error) {
@@ -227,7 +228,6 @@ eUI();
                 const result = JSON.parse(xhr.responseText);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // --- FIX #2: Improved success message ---
                     updateProgress(100, 'Conversion successful! Your download has started.');
                     
                     const tempLink = document.createElement('a');
@@ -243,7 +243,6 @@ eUI();
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    // --- FIX #1: Manually disable convert button to prevent re-enabling ---
                     convertButton.disabled = true;
 
                     await validateLicenseWithRetries(licenseKey, true);
