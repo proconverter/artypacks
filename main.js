@@ -69,11 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const getCreditsMessage = (credits) => {
         let messages = [];
         if (credits >= 7) { // Studio Pack
-            messages = [ `Studio power! You have ${credits} conversions ready to go.`, `Looking great! You have ${credits} conversions available.`, `You’re all set with ${credits} conversions.` ];
+            messages = [ `<strong>Studio power!</strong> You have ${credits} conversions ready to go.`, `<strong>Looking great!</strong> You have ${credits} conversions available.`, `<strong>You’re all set</strong> with ${credits} conversions.` ];
         } else if (credits >= 4) { // Premium Pack
             messages = [ `You’ve got ${credits} conversions left. Keep up the great work!`, `Still going strong with ${credits} conversions remaining.`, `You have ${credits} conversions left in your Premium Pack.` ];
         } else if (credits >= 1) { // Starter Pack / Low credits
-            messages = [ `You have ${credits} conversion${credits === 1 ? '' : 's'} left. Make it count!`, `Heads up—only ${credits} conversion${credits === 1 ? '' : 's'} remaining.`, `Your final ${credits} conversion${credits === 1 ? '' : 's'}. Let’s do this!` ];
+            messages = [ `You have ${credits} conversion${credits === 1 ? '' : 's'} left. Make it count!`, `<strong>Heads up</strong>—only ${credits} conversion${credits === 1 ? '' : 's'} remaining.`, `Your final ${credits} conversion${credits === 1 ? '' : 's'}. Let’s do this!` ];
         } else { // No credits
             messages = [ `You’ve used all your conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Time for a new pack?</a>`, `Out of conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits here.</a>`, `No conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Reload your credits.</a>` ];
         }
@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VALIDATION LOGIC (UNCHANGED) ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
-        if (validationController) validationController.abort();
         validationController = new AbortController();
         const signal = validationController.signal;
 
@@ -180,11 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
         list.className = 'file-list-container';
         uploadedFiles.forEach((file, index) => {
             const listItem = document.createElement('li');
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-            listItem.innerHTML = `<span>${file.name} (${fileSize} MB)</span>`;
+            listItem.innerHTML = `<span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
-            removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
             listItem.appendChild(removeBtn);
@@ -199,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (MODIFIED) ---
+    // --- CONVERSION PROCESS (UNCHANGED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -221,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
-                const uploadProgress = 10 + (event.loaded / event.total) * 80;
+                const uploadProgress = 10 + (event.loaded / event.total) * 80; // Progress from 10% to 90%
                 updateProgress(uploadProgress, 'Uploading and converting...');
             }
         };
@@ -246,16 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    // --- THIS IS THE FIX ---
-                    // The following line is commented out to prevent the post-conversion error.
+                    // The problematic line is commented out.
                     // await validateLicenseWithRetries(licenseKey, true);
-                    
-                    // Instead, we manually update the UI to a stable state.
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = 'Credit used. Thank you!';
-                    checkLicenseAndToggleUI();
-                    // --- END OF FIX ---
 
                 } else {
                     licenseKeyInput.disabled = false;
@@ -282,18 +271,12 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- RESET FUNCTION (MODIFIED) ---
+    // --- RESET FUNCTION (UNCHANGED) ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
         resetStatusUI();
         licenseKeyInput.disabled = false;
-        
-        // --- THIS IS THE FIX ---
-        // Clear the old "Credit used" message when starting over.
-        licenseStatus.innerHTML = '';
-        // --- END OF FIX ---
-
         checkLicenseAndToggleUI();
     };
 
@@ -342,10 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (UNCHANGED) ---
+    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
+                // MODIFIED: Use .closest() to find the correct parent item reliably
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
