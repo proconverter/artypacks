@@ -98,12 +98,22 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #0056b3;
 }
 
-/* --- CTA Buttons --- */
+/* --- CTA Buttons (MODIFIED) --- */
 .cta-button {
-    display: inline-block; background-color: #007bff; color: #ffffff;
-    padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 700;
+    display: inline-block; 
+    background-color: #007bff; 
+    color: #ffffff;
+    padding: 16px 32px; 
+    border-radius: 12px; 
+    font-size: 18px; 
+    font-weight: 700;
     transition: transform 0.2s ease, background-color 0.2s ease;
-    border: none; cursor: pointer; width: 100%;
+    border: none; 
+    cursor: pointer; 
+    /* MODIFICATION: Changed width to auto and added max-width */
+    width: auto;
+    max-width: 100%; /* Ensures it doesn't overflow on small screens */
+    min-width: 280px; /* Gives it a nice minimum size */
 }
 .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
 .cta-button.secondary { background-color: #e5e7eb; color: #374151; }
@@ -399,10 +409,18 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 8px !important; 
 }
 
-/* --- File List Styles --- */
+/* --- File List Styles (MODIFIED) --- */
 #file-list { margin-top: 15px; text-align: left; font-size: 14px; }
 .file-list-container { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.file-list-container li { background-color: #f4f4f5; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+/* MODIFICATION: Added flexbox to align items */
+.file-list-container li { 
+    background-color: #f4f4f5; 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    display: flex; 
+    justify-content: space-between; /* This pushes the button to the right */
+    align-items: center; 
+}
 .remove-file-btn { background: none; border: none; font-size: 20px; color: #71717a; cursor: pointer; line-height: 1; padding: 2px 5px; }
 .remove-file-btn:hover { color: #18181b; }
 
@@ -495,8 +513,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     body { align-items: flex-start; }
 }
 
-/* *** THIS IS THE REQUIRED FIX *** */
-/* This class ensures the file list container is completely removed from the layout when it's empty. */
 .hidden {
     display: none !important;
 }
