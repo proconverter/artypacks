@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
-    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
+    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks'; // This is kept in case you want to add the link back later
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (credits > 0) {
             return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
         } else {
-            // This is the message with the link
-            return `You have no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits here.</a>`;
+            // Change #3: Removed the link as requested.
+            return `You have no conversions left.`;
         }
     };
 
@@ -101,9 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    // FIX #1: Check the specific message from the server
                     if (result.message && result.message.includes("no conversions left")) {
-                        licenseStatus.innerHTML = getCreditsMessage(0); // Use the function that creates the link
+                        licenseStatus.innerHTML = getCreditsMessage(0);
                     } else {
                         licenseStatus.innerHTML = result.message || 'Invalid license key.';
                     }
@@ -160,8 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.title = 'Remove file';
-            // FIX #2: Explicitly set innerHTML to prevent "xx" bug
-            removeBtn.innerHTML = '&times;';
+            // Change #2: Set textContent directly to prevent HTML entity issues.
+            removeBtn.textContent = '×';
             removeBtn.onclick = () => removeFile(index);
             listItem.appendChild(removeBtn);
             list.appendChild(listItem);
@@ -208,12 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateHistoryList();
                     await validateLicenseWithRetries(licenseKey, true);
                     
-                    // FIX #3: Only show the reminder if the license is still valid
                     if (isLicenseValid) {
-                        updateProgress(100, 'Download started! Please remove the old files before starting a new conversion.');
+                        // Change #1: Updated text.
+                        updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
                         convertButton.textContent = 'Convert New Files';
                     } else {
-                        updateProgress(100, 'Final conversion successful! Your download has started.');
+                        // Change #4: Updated text.
+                        updateProgress(100, 'Final conversion successful!');
                     }
 
                 } else {
