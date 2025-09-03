@@ -415,7 +415,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .file-list-container li { background-color: #f4f4f5; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 .remove-file-btn { background: none; border: none; font-size: 20px; color: #71717a; cursor: pointer; line-height: 1; padding: 2px 5px; }
 .remove-file-btn:hover { color: #18181b; }
-.remove-file-btn::after { content: '×'; } /* Use CSS content for the 'x' */
 
 /* --- Activation Notice --- */
 .activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
