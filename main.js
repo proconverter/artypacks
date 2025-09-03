@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // THIS IS NOW CORRECT. It reads the variables directly from your index.html
+    // This reads the variables directly from your index.html <script> tag.
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
-    // This button was in your HTML but never used. We will use it now.
     const newConversionButton = document.getElementById('new-conversion-button');
 
     // --- STATE MANAGEMENT ---
@@ -39,10 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseOk = appState.isLicenseValid;
         const filesPresent = appState.filesToUpload.length > 0;
 
-        // Main convert button is only enabled when license is valid and files are present.
         convertButton.disabled = !(licenseOk && filesPresent);
-
-        // Drop zone is only enabled when license is valid.
         dropZone.classList.toggle('disabled', !licenseOk);
         dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
 
@@ -69,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
-        // Add listener for the new conversion button
         newConversionButton.addEventListener('click', resetForNewConversion);
 
         fileListContainer.addEventListener('click', (event) => {
@@ -229,22 +224,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
                     
-                    // Clear the old files from state and UI
                     appState.filesToUpload = [];
                     renderFileList();
 
                     await validateLicenseWithRetries(licenseKey, true);
 
                     updateProgress(100, 'Download success!');
-                    // Show the "Start New Conversion" button
                     newConversionButton.style.display = 'block';
-                    // Hide the original convert button's parent
                     convertButton.parentElement.style.display = 'none';
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     await validateLicenseWithRetries(licenseKey);
-                    // On error, re-enable inputs
                     licenseKeyInput.disabled = false;
                     updateUIState();
                 }
