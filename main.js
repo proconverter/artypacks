@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let validationController;
     let messageIntervalId;
     let sessionHistory = [];
-    let debounceTimeout; // *** ADDITION 1: A variable to hold our debounce timer
+    let debounceTimeout;
 
     // --- CORE UI LOGIC ---
     function updateUIState() {
@@ -123,22 +123,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS AND HANDLERS ---
     function setupEventListeners() {
-        // *** ADDITION 2: The Debounce Logic ***
         licenseKeyInput.addEventListener('input', (e) => {
-            // Clear the previous timer on every keystroke
             clearTimeout(debounceTimeout);
-
             const key = e.target.value.trim();
 
-            if (key.length > 5) {
-                // Set a new timer. The validation will only run if the user stops typing for 500ms.
+            // *** THE FINAL POLISH ***
+            // Only start validating when the key is a more reasonable length.
+            // This prevents error messages on partially typed keys.
+            if (key.length > 10) { // Changed from 5 to 10
                 debounceTimeout = setTimeout(() => {
                     validateLicense(key);
-                }, 500); // 500ms = half a second
+                }, 500);
             } else {
-                // If the key is too short, clear the status immediately.
+                // If the key is too short, don't show an error, just clear the status.
                 appState.isLicenseValid = false;
-                licenseStatus.innerHTML = '';
+                licenseStatus.innerHTML = ''; // Clear previous valid/invalid messages
                 updateUIState();
             }
         });
