@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'      );
+    const licenseKeyInput = document.getElementById('license-key'       );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (UNCHANGED) ---
+    // --- CONVERSION PROCESS ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -221,8 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // --- MODIFIED PART ---
         xhr.onload = async () => {
             try {
+                // THIS IS THE NEW LOGGING LINE
+                console.log("RAW SERVER RESPONSE:", xhr.responseText);
+
                 const result = JSON.parse(xhr.responseText);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -241,10 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     newConversionButton.style.display = 'block';
                     progressBar.style.display = 'none';
                     
-                    await validateLicenseWithRetries(key, true);
+                    await validateLicenseWithRetries(licenseKey, true);
                 } else {
                     licenseKeyInput.disabled = false;
-                    await validateLicenseWithRetries(key);
+                    await validateLicenseWithRetries(licenseKey);
                     showError(result.message || 'An unknown error occurred.');
                     if (!licenseKeyInput.disabled) {
                         checkLicenseAndToggleUI();
@@ -256,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkLicenseAndToggleUI();
             }
         };
+        // --- END OF MODIFIED PART ---
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
