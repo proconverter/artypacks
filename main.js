@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
     const statusMessage = document.getElementById('status-message');
-    const newConversionButton = document.getElementById('new-conversion-button'); // We will hide this
+    const newConversionButton = document.getElementById('new-conversion-button');
     const historySection = document.getElementById('history-section');
     const historyList = document.getElementById('history-list');
     const contactForm = document.getElementById('contact-form');
@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
-        // The newConversionButton listener is no longer needed as the button is hidden.
         setupAccordion();
         setupContactForm();
     };
@@ -70,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (credits > 0) {
             return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
         } else {
+            // This is the message with the link
             return `You have no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits here.</a>`;
         }
     };
@@ -83,10 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!isPostConversion) {
             licenseStatus.className = 'license-status-message checking';
-            const showNextMessage = () => {
-                licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
-                messageIndex++;
-            };
+            const showNextMessage = () => { licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length]; messageIndex++; };
             showNextMessage();
             messageIntervalId = setInterval(showNextMessage, 3000);
         }
@@ -100,15 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok && result.isValid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    if (isPostConversion) {
-                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else {
-                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
-                    }
+                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.innerHTML = result.message || 'Invalid license key.';
+                    // FIX #1: Check the specific message from the server
+                    if (result.message && result.message.includes("no conversions left")) {
+                        licenseStatus.innerHTML = getCreditsMessage(0); // Use the function that creates the link
+                    } else {
+                        licenseStatus.innerHTML = result.message || 'Invalid license key.';
+                    }
                 }
                 checkLicenseAndToggleUI();
                 return;
@@ -143,12 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processFiles = (files) => {
-        resetStatusUI(); // Reset status messages when new files are added
+        resetStatusUI();
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
-        if (newFiles.length === 0 && files.length > 0) {
-            alert("Invalid file type. Please upload only .brushset files.");
-            return;
-        }
+        if (newFiles.length === 0 && files.length > 0) { alert("Invalid file type. Please upload only .brushset files."); return; }
         uploadedFiles = [...uploadedFiles, ...newFiles].slice(0, 3);
         updateFileList();
         checkLicenseAndToggleUI();
@@ -165,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.title = 'Remove file';
+            // FIX #2: Explicitly set innerHTML to prevent "xx" bug
             removeBtn.innerHTML = '&times;';
             removeBtn.onclick = () => removeFile(index);
             listItem.appendChild(removeBtn);
@@ -173,12 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fileList.appendChild(list);
     };
 
-    const removeFile = (index) => {
-        resetStatusUI(); // Reset status messages when files are removed
-        uploadedFiles.splice(index, 1);
-        updateFileList();
-        checkLicenseAndToggleUI();
-    };
+    const removeFile = (index) => { resetStatusUI(); uploadedFiles.splice(index, 1); updateFileList(); checkLicenseAndToggleUI(); };
 
     // --- CONVERSION PROCESS ---
     const handleConversion = () => {
@@ -202,25 +193,29 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.upload.onprogress = (event) => { if (event.lengthComputable) { updateProgress(10 + (event.loaded / event.total) * 80, 'Uploading and converting...'); } };
 
         xhr.onload = async () => {
-            licenseKeyInput.disabled = false; // Re-enable license input regardless of outcome
+            licenseKeyInput.disabled = false;
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // --- NEW UX FLOW ---
-                    updateProgress(100, 'Download started! Please remove the old files before starting a new conversion.');
-                    convertButton.textContent = 'Convert New Files'; // Change button text
                     progressBar.style.display = 'none';
-
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
                     tempLink.setAttribute('download', '');
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
-
                     sessionHistory.unshift({ sourceFiles: originalFilesForHistory.map(f => f.name) });
                     updateHistoryList();
                     await validateLicenseWithRetries(licenseKey, true);
+                    
+                    // FIX #3: Only show the reminder if the license is still valid
+                    if (isLicenseValid) {
+                        updateProgress(100, 'Download started! Please remove the old files before starting a new conversion.');
+                        convertButton.textContent = 'Convert New Files';
+                    } else {
+                        updateProgress(100, 'Final conversion successful! Your download has started.');
+                    }
+
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     await validateLicenseWithRetries(licenseKey);
@@ -245,8 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
         progressFill.style.width = '0%';
         statusMessage.textContent = '';
         statusMessage.style.color = '';
-        newConversionButton.style.display = 'none'; // Ensure this is always hidden
-        convertButton.textContent = 'Convert Your Brushsets'; // Reset button text
+        newConversionButton.style.display = 'none';
+        convertButton.textContent = 'Convert Your Brushsets';
     };
 
     // --- HISTORY & ACCORDION ---
