@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
-    const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
+    // CRITICAL FIX: Replace the placeholder with your actual Render backend URL.
+    const BACKEND_URL = "https://artypacks-converter-backend-SANDBOX.onrender.com"; // <-- PASTE YOUR RENDER BACKEND URL HERE
+    const VITE_CONVERT_API_ENDPOINT = `${BACKEND_URL}/convert`;
+    const VITE_CHECK_API_ENDPOINT = `${BACKEND_URL}/check-license`;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
@@ -26,11 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const appState = {
         isLicenseValid: false,
         filesToUpload: [], // Stores objects like { id, fileObject }
-        isBusy: false        // NEW: Prevents interaction during critical state transitions
+        isBusy: false        // Prevents interaction during critical state transitions
     };
     let validationController;
     let messageIntervalId;
-    let sessionHistory = []; // Assuming sessionHistory should be defined here
+    let sessionHistory = [];
 
     // --- CORE UI LOGIC ---
     function updateUIState() {
@@ -39,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
             convertButton.disabled = true;
             licenseKeyInput.disabled = true;
             dropZone.classList.add('disabled');
-            // Make file remove buttons non-interactive
             fileListContainer.querySelectorAll('.remove-file-btn').forEach(btn => btn.style.pointerEvents = 'none');
             return; // Stop further UI updates until not busy
         }
@@ -204,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fileListContainer.appendChild(list);
     };
 
-    // --- REVISED AND ROBUST HANDLECONVERSION FUNCTION ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || appState.filesToUpload.length === 0) return;
@@ -230,9 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // --- CRITICAL FIX: Correct order of operations ---
-
-                    // 1. Trigger download
+                    // --- Correct order of operations ---
                     progressBar.style.display = 'none';
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
@@ -241,18 +239,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     tempLink.click();
                     document.body.removeChild(tempLink);
 
-                    // 2. Update history
                     sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
 
-                    // 3. COMPLETELY RESET state for the next job
                     appState.filesToUpload = [];
-                    renderFileList(); // Visually clear the file list immediately
+                    renderFileList();
 
-                    // 4. Perform asynchronous license check (UI is already clean)
                     await validateLicenseWithRetries(licenseKey, true);
 
-                    // 5. FINALLY, update UI with the final status message
                     if (appState.isLicenseValid) {
                         updateProgress(100, 'Download success! Ready for new conversion.');
                     } else {
@@ -262,20 +256,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
-                    await validateLicenseWithRetries(licenseKey); // Re-check license on error
+                    await validateLicenseWithRetries(licenseKey);
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
             } finally {
                 // --- END of job: Unlock the UI ---
                 appState.isBusy = false;
-                updateUIState(); // Re-evaluate and update the entire UI based on the final, correct state
+                updateUIState();
             }
         };
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
-            // --- END of job: Unlock the UI ---
             appState.isBusy = false;
             updateUIState();
         };
