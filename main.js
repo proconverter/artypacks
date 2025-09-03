@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
-    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks'; // This is kept in case you want to add the link back later
+    const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (credits > 0) {
             return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
         } else {
-            // Change #3: Removed the link as requested.
             return `You have no conversions left.`;
         }
     };
@@ -148,27 +147,42 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
+    // --- THIS IS THE CORRECTED FUNCTION ---
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (uploadedFiles.length === 0) return;
         const list = document.createElement('ul');
         list.className = 'file-list-container';
+        
         uploadedFiles.forEach((file, index) => {
             const listItem = document.createElement('li');
-            listItem.innerHTML = `<span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file-btn';
-            removeBtn.title = 'Remove file';
-            // Change #2: Set textContent directly to prevent HTML entity issues.
-            removeBtn.textContent = '×';
-            removeBtn.onclick = () => removeFile(index);
-            listItem.appendChild(removeBtn);
+            
+            // Build the entire HTML string at once for reliability
+            const itemHTML = `
+                <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                <button class="remove-file-btn" data-index="${index}" title="Remove file">&times;</button>
+            `;
+            listItem.innerHTML = itemHTML;
             list.appendChild(listItem);
         });
+
+        // Add a single event listener to the list for efficiency
+        list.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('remove-file-btn')) {
+                const indexToRemove = parseInt(e.target.getAttribute('data-index'), 10);
+                removeFile(indexToRemove);
+            }
+        });
+
         fileList.appendChild(list);
     };
 
-    const removeFile = (index) => { resetStatusUI(); uploadedFiles.splice(index, 1); updateFileList(); checkLicenseAndToggleUI(); };
+    const removeFile = (index) => {
+        resetStatusUI();
+        uploadedFiles.splice(index, 1);
+        updateFileList(); // Re-render the list
+        checkLicenseAndToggleUI();
+    };
 
     // --- CONVERSION PROCESS ---
     const handleConversion = () => {
@@ -208,11 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     await validateLicenseWithRetries(licenseKey, true);
                     
                     if (isLicenseValid) {
-                        // Change #1: Updated text.
                         updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
                         convertButton.textContent = 'Convert New Files';
                     } else {
-                        // Change #4: Updated text.
                         updateProgress(100, 'Final conversion successful!');
                     }
 
