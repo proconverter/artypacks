@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key' );
+    const licenseKeyInput = document.getElementById('license-key'  );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -25,18 +25,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- STATE MANAGEMENT ---
     const appState = {
         isLicenseValid: false,
-        filesToUpload: [] // Will now store objects like { id, fileObject }
+        filesToUpload: [], // Stores objects like { id, fileObject }
+        isBusy: false        // NEW: Prevents interaction during critical state transitions
     };
     let validationController;
     let messageIntervalId;
+    let sessionHistory = []; // Assuming sessionHistory should be defined here
 
     // --- CORE UI LOGIC ---
     function updateUIState() {
+        // If the app is busy, disable interaction controls until it's done.
+        if (appState.isBusy) {
+            convertButton.disabled = true;
+            licenseKeyInput.disabled = true;
+            dropZone.classList.add('disabled');
+            // Make file remove buttons non-interactive
+            fileListContainer.querySelectorAll('.remove-file-btn').forEach(btn => btn.style.pointerEvents = 'none');
+            return; // Stop further UI updates until not busy
+        }
+
+        // Restore interactive state
+        licenseKeyInput.disabled = false;
+        fileListContainer.querySelectorAll('.remove-file-btn').forEach(btn => btn.style.pointerEvents = 'auto');
+
         const licenseOk = appState.isLicenseValid;
         const filesPresent = appState.filesToUpload.length > 0;
+        
         convertButton.disabled = !(licenseOk && filesPresent);
         dropZone.classList.toggle('disabled', !licenseOk);
         dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
+        
         if (licenseOk) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else {
@@ -61,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
         
-        // Event Delegation for Remove Buttons (using data-id)
         fileListContainer.addEventListener('click', (event) => {
+            if (appState.isBusy) return; // Prevent removal while busy
             if (event.target && event.target.classList.contains('remove-file-btn')) {
                 const idToRemove = event.target.getAttribute('data-id');
                 removeFileById(idToRemove);
@@ -137,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
-    // MODIFIED to add unique IDs
     const processFiles = (files) => {
         resetStatusUI();
         let newFiles = Array.from(files)
@@ -158,9 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIState();
     };
 
-    // NEW function that replaces the old removeFile(index)
     const removeFileById = (id) => {
-        // Use filter() for a safe, immutable update
         appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
         
         if (appState.filesToUpload.length === 0) {
@@ -171,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIState();
     };
 
-    // MODIFIED to use the unique ID
     const renderFileList = () => {
         fileListContainer.innerHTML = '';
         if (appState.filesToUpload.length === 0) return;
@@ -190,16 +204,17 @@ document.addEventListener('DOMContentLoaded', () => {
         fileListContainer.appendChild(list);
     };
 
+    // --- REVISED AND ROBUST HANDLECONVERSION FUNCTION ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || appState.filesToUpload.length === 0) return;
 
+        // --- START of job: Lock the UI ---
+        appState.isBusy = true;
         resetStatusUI();
+        updateUIState(); // Immediately disable UI based on isBusy flag
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
-        convertButton.disabled = true;
-        licenseKeyInput.disabled = true;
-        dropZone.classList.add('disabled');
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
@@ -212,10 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.upload.onprogress = (event) => { if (event.lengthComputable) { updateProgress(10 + (event.loaded / event.total) * 80, 'Uploading and converting...'); } };
 
         xhr.onload = async () => {
-            licenseKeyInput.disabled = false;
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
+                    // --- CRITICAL FIX: Correct order of operations ---
+
+                    // 1. Trigger download
                     progressBar.style.display = 'none';
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
@@ -223,29 +240,46 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
+
+                    // 2. Update history
                     sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
-                    
+
+                    // 3. COMPLETELY RESET state for the next job
+                    appState.filesToUpload = [];
+                    renderFileList(); // Visually clear the file list immediately
+
+                    // 4. Perform asynchronous license check (UI is already clean)
                     await validateLicenseWithRetries(licenseKey, true);
-                    
+
+                    // 5. FINALLY, update UI with the final status message
                     if (appState.isLicenseValid) {
-                        updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
-                        convertButton.textContent = 'Convert New Files';
+                        updateProgress(100, 'Download success! Ready for new conversion.');
                     } else {
-                        updateProgress(100, 'Final conversion successful!');
+                        updateProgress(100, 'Final conversion successful! Your license is now depleted.');
                     }
+                    convertButton.textContent = 'Convert Your Brushsets';
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
-                    await validateLicenseWithRetries(licenseKey);
+                    await validateLicenseWithRetries(licenseKey); // Re-check license on error
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
-                updateUIState();
+            } finally {
+                // --- END of job: Unlock the UI ---
+                appState.isBusy = false;
+                updateUIState(); // Re-evaluate and update the entire UI based on the final, correct state
             }
         };
 
-        xhr.onerror = () => { showError('A network error occurred. Please check your connection and try again.'); licenseKeyInput.disabled = false; updateUIState(); };
+        xhr.onerror = () => {
+            showError('A network error occurred. Please check your connection and try again.');
+            // --- END of job: Unlock the UI ---
+            appState.isBusy = false;
+            updateUIState();
+        };
+
         updateProgress(10, 'Validating and preparing upload...');
         xhr.send(formData);
     };
@@ -262,10 +296,13 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.textContent = 'Convert Your Brushsets';
     };
 
-    // --- HISTORY & ACCORDION (Unchanged) ---
+    // --- HISTORY & ACCORDION ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
-        if (sessionHistory.length === 0) { historySection.style.display = 'none'; return; }
+        if (sessionHistory.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
         historySection.style.display = 'block';
         sessionHistory.forEach((item, index) => {
             const listItem = document.createElement('li');
@@ -276,7 +313,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const setupAccordion = () => { document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => { trigger.addEventListener('click', () => { const item = trigger.closest('.accordion-item, .footer-accordion-item'); if (item) item.classList.toggle('open'); }); }); };
-    const setupContactForm = () => { if (!contactForm) return; contactForm.addEventListener('submit', async (e) => { e.preventDefault(); const formData = new FormData(contactForm); try { const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } }); if (response.ok) { formStatus.style.display = 'flex'; contactForm.reset(); setTimeout(() => { formStatus.style.display = 'none'; }, 5000); } else { throw new Error('Form submission failed.'); } } catch (error) { console.error('Contact form error:', error); alert('Sorry, there was an issue sending your message. Please try again later.'); } }); };
+    
+    const setupContactForm = () => { 
+        if (!contactForm) return; 
+        contactForm.addEventListener('submit', async (e) => { 
+            e.preventDefault(); 
+            const formData = new FormData(contactForm); 
+            try { 
+                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } }); 
+                if (response.ok) { 
+                    formStatus.style.display = 'flex'; 
+                    contactForm.reset(); 
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000); 
+                } else { 
+                    throw new Error('Form submission failed.'); 
+                } 
+            } catch (error) { 
+                console.error('Contact form error:', error); 
+                alert('Sorry, there was an issue sending your message. Please try again later.'); 
+            } 
+        }); 
+    };
 
     // --- START THE APP ---
     initializeApp();
