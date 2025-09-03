@@ -65,27 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- TIERED & RANDOMIZED CREDIT MESSAGES ---
+    // --- TIERED & RANDOMIZED CREDIT MESSAGES (REVERTED TO SIMPLE VERSION) ---
     const getCreditsMessage = (credits) => {
-        let messages = [];
-        
-        if (credits >= 7) { // Studio Tier (7-10)
-            messages = [ `You’re all set with [X] conversions. Ready when you are!`, `Looking great! You have [X] conversions available.`, `Plenty of credits left! You have [X] conversions remaining.` ];
-        } else if (credits >= 4) { // Premium Tier (4-6)
-            messages = [ `Still going strong—[X] conversions remain.`, `You've got [X] conversions left to use. Keep up the great work!`, `You have [X] conversions remaining. Keep creating!` ];
-        } else if (credits >= 2) { // Starter/Low Tier (2-3)
-            messages = [ `Heads up—you’ve got [X] conversions left. Time to make them count!`, `Getting low. You have [X] conversions to use.`, `You have [X] conversions left. Planning your next credit pack yet?` ];
-        } else if (credits === 1) { // Final Credit
-            messages = [ `Last one! You have <strong>1</strong> conversion left—make it your best.`, `This is it! Just <strong>1</strong> conversion remains.`, `Final call: <strong>1</strong> conversion left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more here!</a>` ];
-        } else { // No Credits
-            messages = [ `You’ve used all your conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Pick up a new pack here.</a>`, `Out of conversions? <a href="${ETSY_STORE_LINK}" target="_blank">Add more credits in just a click.</a>`, `No conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits to unlock new ones.</a>` ];
+        if (credits > 0) {
+            return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
+        } else {
+            return `You have no conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits here.</a>`;
         }
-        
-        let message = messages[Math.floor(Math.random() * messages.length)];
-        return message.replace(/\[X\]/g, `<strong>${credits}</strong>`);
     };
 
-    // --- VALIDATION LOGIC (CORRECTED) ---
+    // --- VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -120,11 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok && result.isValid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    if (isPostConversion) {
+                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    } else {
+                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
+                    }
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    // **THE FIX IS HERE:** Use .innerHTML instead of .textContent
                     if (result.message && result.message.toLowerCase().includes("credits")) {
                         licenseStatus.innerHTML = getCreditsMessage(0);
                     } else {
@@ -143,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(messageIntervalId);
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
-                    // **AND HERE:** Use .innerHTML for consistency
                     licenseStatus.innerHTML = 'Unable to connect to the validation server. Please try again in a minute.';
                     checkLicenseAndToggleUI();
                     return;
@@ -153,22 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FILE HANDLING & UI ---
+    // --- FILE HANDLING & UI (UNCHANGED) ---
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        // More robust check to see if there are credits.
-        const hasCredits = isLicenseValid && !licenseStatus.innerHTML.includes('You’ve used all your conversions') && !licenseStatus.innerHTML.includes('No conversions left');
-
-        dropZone.classList.toggle('disabled', !hasCredits);
-        dropZone.title = hasCredits ? '' : 'Please enter a valid license key with credits to upload files.';
-        convertButton.disabled = !(hasCredits && uploadedFiles.length > 0);
-        
-        if (hasCredits) {
+        dropZone.classList.toggle('disabled', !isLicenseValid);
+        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
+        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
+        if (isLicenseValid) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
-        } else if (isLicenseValid && !hasCredits) {
-            activationNotice.textContent = 'Converter locked – no credits remaining.';
         } else {
             activationNotice.textContent = 'Converter locked – enter license key above.';
         }
@@ -209,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS ---
+    // --- CONVERSION PROCESS (UNCHANGED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -282,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- RESET FUNCTION ---
+    // --- RESET FUNCTION (UNCHANGED) ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
@@ -291,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- HISTORY "RECEIPT" FUNCTIONS ---
+    // --- HISTORY "RECEIPT" FUNCTIONS (UNCHANGED) ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionHistory.length === 0) {
@@ -316,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- HELPER FUNCTIONS ---
+    // --- HELPER FUNCTIONS (UNCHANGED) ---
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
@@ -326,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = `Error: ${message}`;
         statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
-        newConversionButton.style.display = 'block';
     };
 
     const resetStatusUI = () => {
@@ -337,10 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM ---
+    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
+                // MODIFIED: Use .closest() to find the correct parent item reliably
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
