@@ -254,7 +254,7 @@ We do not support dynamic brushes that change with pressure or direction, such a
                         </ol>
                         <h5 style="margin-top:15px; text-align:left; max-width: 500px; margin-left:auto; margin-right:auto;">On an Android Phone or Tablet:</h5>
                         <ol style="text-align: left; max-width: 500px; margin: 10px auto 15px; padding-left: 20px;">
-                            <li><strong>Check Your Notifications:</strong> Swipe down from the top of your screen to open the notification shade. You will see a "Download complete" notification from your browser. Tapping it will open the file.</li>
+                            <li><strong>Check Your Notifications:</strong> Swipe down from the top of your screen to open the notification shade. You will see a "Download complete" notification from your. Tapping it will open the file.</li>
                             <li><strong>Use Your Browser's Downloads:</strong> If you miss the notification, open your browser (e.g., Chrome), tap the three-dot menu (⋮) in the top-right corner, and select "Downloads". You will see your .zip file there.</li>
                             <li><strong>Find in Files App:</strong> Your file is saved in the "Files" or "My Files" app, inside the "Downloads" folder. Simply tap the .zip file to extract its contents.</li>
                         </ol>
@@ -354,72 +354,5 @@ We do not support dynamic brushes that change with pressure or direction, such a
     </div>
 
     <script src="/main.js"></script>
-
-    <!-- === START: TEMPORARY DEBUGGER SCRIPT === -->
-    <script>
-        // Create a div to show logs on the screen
-        const logContainer = document.createElement('div');
-        logContainer.style.position = 'fixed';
-        logContainer.style.bottom = '0';
-        logContainer.style.left = '0';
-        logContainer.style.width = '100%';
-        logContainer.style.maxHeight = '30vh';
-        logContainer.style.overflowY = 'scroll';
-        logContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        logContainer.style.color = '#00ff00';
-        logContainer.style.fontFamily = 'monospace';
-        logContainer.style.fontSize = '12px';
-        logContainer.style.padding = '10px';
-        logContainer.style.zIndex = '9999';
-        logContainer.style.whiteSpace = 'pre-wrap';
-        document.body.appendChild(logContainer);
-
-        function logToScreen(message) {
-            const now = new Date();
-            const timestamp = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}`;
-            const logEntry = document.createElement('div');
-            logEntry.textContent = `[${timestamp}] ${message}`;
-            logContainer.appendChild(logEntry);
-            logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to bottom
-        }
-
-        // Override console.log, .warn, .error
-        const originalLog = console.log;
-        const originalWarn = console.warn;
-        const originalError = console.error;
-
-        console.log = function() {
-            const message = Array.from(arguments).map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-            logToScreen(`LOG: ${message}`);
-            originalLog.apply(console, arguments);
-        };
-        console.warn = function() {
-            const message = Array.from(arguments).map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-            logToScreen(`WARN: ${message}`);
-            originalWarn.apply(console, arguments);
-        };
-        console.error = function() {
-            const message = Array.from(arguments).map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-            logToScreen(`ERROR: ${message}`);
-            originalError.apply(console, arguments);
-        };
-
-        // Catch unhandled exceptions
-        window.onerror = function(message, source, lineno, colno, error) {
-            logToScreen(`UNCAUGHT ERROR: ${message} at ${source}:${lineno}:${colno}`);
-            if (error && error.stack) {
-                logToScreen(`STACK: ${error.stack}`);
-            }
-            return false; // Let the default handler run too
-        };
-        
-        window.addEventListener('unhandledrejection', function(event) {
-            logToScreen(`UNHANDLED PROMISE REJECTION: ${event.reason}`);
-        });
-
-        logToScreen("Debugger attached. Ready to capture logs.");
-    </script>
-    <!-- === END: TEMPORARY DEBUGGER SCRIPT === -->
-
 </body>
 </html>
