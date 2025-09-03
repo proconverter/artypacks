@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // This reads the variables directly from your index.html <script> tag.
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
@@ -37,11 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateUIState() {
         const licenseOk = appState.isLicenseValid;
         const filesPresent = appState.filesToUpload.length > 0;
-
         convertButton.disabled = !(licenseOk && filesPresent);
         dropZone.classList.toggle('disabled', !licenseOk);
         dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
-
         if (licenseOk) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else {
@@ -67,10 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
 
+        // MODIFIED EVENT LISTENER
         fileListContainer.addEventListener('click', (event) => {
             if (event.target && event.target.classList.contains('remove-file-btn')) {
                 const idToRemove = event.target.getAttribute('data-id');
-                removeFileById(idToRemove);
+                // Pass the clicked button element itself to the removal function
+                removeFileById(idToRemove, event.target);
             }
         });
 
@@ -99,20 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const signal = validationController.signal;
         const coldStartMessages = ["Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Cross-referencing database...", "Almost there...", "Finalizing verification...", "Unlocking converter...", "Hold tight...", "Confirming details..."];
         let messageIndex = 0;
-
         if (!isPostConversion) {
             licenseStatus.className = 'license-status-message checking';
             const showNextMessage = () => { licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length]; messageIndex++; };
             showNextMessage();
             messageIntervalId = setInterval(showNextMessage, 3000);
         }
-
         for (let attempt = 1; attempt <= 20; attempt++) {
             try {
                 const response = await fetch(VITE_CHECK_API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ licenseKey: key }), signal });
                 clearInterval(messageIntervalId);
                 const result = await response.json();
-
                 if (response.ok && result.isValid) {
                     appState.isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
@@ -145,35 +141,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const processFiles = (files) => {
         let newFiles = Array.from(files)
             .filter(file => file.name.endsWith('.brushset'))
-            .map(file => ({
-                id: `file-${Date.now()}-${Math.random()}`,
-                fileObject: file
-            }));
-
+            .map(file => ({ id: `file-${Date.now()}-${Math.random()}`, fileObject: file }));
         if (newFiles.length === 0 && files.length > 0) {
             alert("Invalid file type. Please upload only .brushset files.");
             return;
         }
-        
         appState.filesToUpload = [...appState.filesToUpload, ...newFiles].slice(0, 3);
-        
         renderFileList();
         updateUIState();
     };
 
-    const removeFileById = (id) => {
+    // NEW AND CORRECTED removeFileById FUNCTION
+    const removeFileById = (id, buttonElement) => {
+        // 1. Update the state
         appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
-        renderFileList();
+        // 2. Remove the specific list item from the DOM directly
+        const listItem = buttonElement.closest('li');
+        if (listItem) {
+            listItem.remove();
+        }
+        // 3. Update the rest of the UI
         updateUIState();
     };
 
     const renderFileList = () => {
         fileListContainer.innerHTML = '';
         if (appState.filesToUpload.length === 0) return;
-
         const list = document.createElement('ul');
         list.className = 'file-list-container';
-        
         appState.filesToUpload.forEach(fileWrapper => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
@@ -188,8 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || appState.filesToUpload.length === 0) return;
-
-        // Lock UI for conversion
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
@@ -197,22 +190,16 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.display = 'block';
         progressFill.style.width = '0%';
         statusMessage.textContent = '';
-
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        appState.filesToUpload.forEach(fileWrapper => {
-            formData.append('files', fileWrapper.fileObject);
-        });
-
+        appState.filesToUpload.forEach(fileWrapper => { formData.append('files', fileWrapper.fileObject); });
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
         xhr.upload.onprogress = (event) => { if (event.lengthComputable) { updateProgress(10 + (event.loaded / event.total) * 80, 'Uploading and converting...'); } };
-
         xhr.onload = async () => {
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // --- SUCCESS PATH ---
                     progressBar.style.display = 'none';
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
@@ -220,19 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
-
                     sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
-                    
                     appState.filesToUpload = [];
                     renderFileList();
-
                     await validateLicenseWithRetries(licenseKey, true);
-
                     updateProgress(100, 'Download success!');
                     newConversionButton.style.display = 'block';
                     convertButton.parentElement.style.display = 'none';
-
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     await validateLicenseWithRetries(licenseKey);
@@ -245,18 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUIState();
             }
         };
-
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
             licenseKeyInput.disabled = false;
             updateUIState();
         };
-
         updateProgress(10, 'Validating and preparing upload...');
         xhr.send(formData);
     };
 
-    // --- HELPER FUNCTIONS ---
     function resetForNewConversion() {
         appStatus.style.display = 'none';
         newConversionButton.style.display = 'none';
@@ -267,13 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateProgress = (percentage, message) => { progressFill.style.width = `${percentage}%`; statusMessage.textContent = message; };
     const showError = (message) => { statusMessage.textContent = `Error: ${message}`; statusMessage.style.color = '#dc2626'; progressBar.style.display = 'none'; };
 
-    // --- HISTORY & ACCORDION ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
-        if (sessionHistory.length === 0) {
-            historySection.style.display = 'none';
-            return;
-        }
+        if (sessionHistory.length === 0) { historySection.style.display = 'none'; return; }
         historySection.style.display = 'block';
         sessionHistory.forEach((item, index) => {
             const listItem = document.createElement('li');
@@ -306,6 +281,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     };
 
-    // --- START THE APP ---
     initializeApp();
 });
