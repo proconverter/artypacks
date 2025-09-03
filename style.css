@@ -98,7 +98,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #0056b3;
 }
 
-/* --- CTA Buttons (MODIFIED) --- */
+/* --- CTA Buttons --- */
 .cta-button {
     display: inline-block; 
     background-color: #007bff; 
@@ -110,16 +110,17 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     transition: transform 0.2s ease, background-color 0.2s ease;
     border: none; 
     cursor: pointer; 
-    /* MODIFICATION: Changed width to auto and added max-width */
     width: auto;
-    max-width: 100%; /* Ensures it doesn't overflow on small screens */
-    min-width: 280px; /* Gives it a nice minimum size */
+    max-width: 100%;
+    min-width: 280px;
 }
 .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
 .cta-button.secondary { background-color: #e5e7eb; color: #374151; }
 .cta-button.secondary:hover { background-color: #d1d5db; }
 .cta-button:disabled {
-    background-color: #e5e7eb; color: #9ca3af; cursor: not-allowed;
+    background-color: #e5e7eb; 
+    color: #9ca3af; 
+    cursor: not-allowed;
 }
 .cta-button:disabled:hover { transform: none; background-color: #e5e7eb; }
 
@@ -183,7 +184,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { max-height: 1200px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
+/* MODIFICATION: Increased max-height to prevent content from being cut off on mobile */
+.accordion-item.open .accordion-answer { 
+    max-height: 2500px; 
+    padding-bottom: 25px; 
+    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
+}
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
@@ -191,6 +197,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; }
 .price-pack h4 { margin-bottom: 5px; }
 .price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; }
+.price-pack-credits {
+    font-size: 14px;
+    font-weight: 600;
+    color: #71717a;
+    margin-bottom: 10px !important;
+}
 .cta-button-small { display: inline-block; text-align: center; padding: 10px 20px; font-size: 16px; }
 
 .single-buy-button {
@@ -409,16 +421,15 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 8px !important; 
 }
 
-/* --- File List Styles (MODIFIED) --- */
+/* --- File List Styles --- */
 #file-list { margin-top: 15px; text-align: left; font-size: 14px; }
 .file-list-container { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-/* MODIFICATION: Added flexbox to align items */
 .file-list-container li { 
     background-color: #f4f4f5; 
     padding: 8px 12px; 
     border-radius: 8px; 
     display: flex; 
-    justify-content: space-between; /* This pushes the button to the right */
+    justify-content: space-between;
     align-items: center; 
 }
 .remove-file-btn { background: none; border: none; font-size: 20px; color: #71717a; cursor: pointer; line-height: 1; padding: 2px 5px; }
@@ -511,6 +522,16 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     h2.section-title { font-size: 28px; }
     .master-card { padding: 40px 20px; }
     body { align-items: flex-start; }
+
+    .cta-button {
+        width: 100%;
+    }
+
+    .cta-button:disabled {
+        background-color: #e5e7eb;
+        color: #9ca3af;
+        border: 1px solid #d1d5db;
+    }
 }
 
 .hidden {
