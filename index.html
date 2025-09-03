@@ -3,54 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Artypacks | Procreate Brush to PNG Converter. On Any Device</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs.">
-    
-    <!-- Hardcoded URLs for Final Diagnostic Test -->
     <script>
         window.env = {
             VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/convert",
             VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/check-license"
         };
     </script>
-    
-    <!-- Favicon and Manifest Links - UPDATED to use the /assets/ folder -->
-    <link rel="icon" href="/assets/favicon.ico" sizes="any">
-    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-    <link rel="manifest" href="/assets/site.webmanifest">
-    
-    <!-- Stylesheets and Fonts -->
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag( ){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-8EZB1B931D');
-    </script>
 </head>
-
 <body>
     <div class="page-wrapper">
         <div class="master-card">
-            <!-- === HERO SECTION === -->
             <header class="hero">
-                <h1>Convert .brushset files to PNGs right in your browser.   
-<span class="h1-subline">Works on PC, Mac, Android, and iOS.</span></h1>
+                <h1>Convert .brushset files to PNGs right in your browser.</h1>
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
-                <p class="get-license-link">Need a license? <a href="https://www.etsy.com/shop/artypacks" target="_blank">Get one here.</a></p>
             </header>
-
-            <!-- === THE CONVERTER APP UI === -->
             <section class="app-section" id="app-tool">
                 <div class="app-container">
-                    <!-- Step 1: License Key -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="license-key">Enter Your License Key</label>
@@ -58,298 +32,33 @@
                             <p id="license-status" class="license-status-message"></p>
                         </div>
                     </div>
-
-                    <!-- Step 2: File Upload -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="file-upload">Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
-                                    <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate files here</strong></p>
-                                    <p class="drop-zone-limits">or click to upload (up to 3 files, 50MB total )</p>
+                                    <p class="drop-zone-limits">or click to upload (up to 3 files )</p>
                                 </div>
                                 <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
                             </div>
-                            <!-- *** THIS IS THE FIX *** -->
-                            <!-- Changed from a <div> to a <ul> and added the class for styling -->
-                            <ul id="file-list" class="file-list-container"></ul>
+                            <ul id="file-list" class="file-list-container hidden"></ul>
                         </div>
                     </div>
-
-                    <!-- Step 3: Convert Button -->
                     <div class="app-step">
                         <div class="step-content">
                             <button id="convert-button" class="cta-button" disabled>Convert Your Brushsets</button>
                             <p class="activation-notice" id="activation-notice">Converter locked – enter license key above.</p>
                         </div>
                     </div>
-
-                    <!-- Progress & Results Area -->
-                    <div class="app-status" id="app-status" style="display: none;">
-                        <div class="progress-bar" id="progress-bar" style="display: none;">
-                            <div class="progress-fill" id="progress-fill"></div>
-                        </div>
-                        <p id="status-message"></p>
-                        <button id="new-conversion-button" class="cta-button secondary" style="display: none;">Start New Conversion</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- === SESSION HISTORY SECTION === -->
-            <section class="history-section" id="history-section" style="display: none;">
-                <h3 class="history-title">Session Download History</h3>
-                <ul class="history-list" id="history-list">
-                    <!-- History items will be injected here by JavaScript -->
-                </ul>
-            </section>
-
-            <hr class="section-divider">
-
-            <!-- === HOW IT WORKS SECTION - UPDATED to use the /assets/ folder === -->
-            <section class="how-it-works">
-                <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
-                <div class="how-it-works-grid">
-                    <div class="feature-item">
-                        <img src="/assets/icon-upload.svg" alt="Upload Icon" class="feature-icon">
-                        <h3>1. Easy Upload</h3>
-                        <p>Enter your license key and select one or more `.brushset` files.</p>
-                    </div>
-                    <div class="feature-item">
-                        <img src="/assets/icon-convert.svg" alt="Convert Icon" class="feature-icon">
-                        <h3>2. Convert Securely</h3>
-                        <p>Our tool securely processes your files, extracting each stamp image.</p>
-                    </div>
-                    <div class="feature-item">
-                        <img src="/assets/icon-download.svg" alt="Download Icon" class="feature-icon">
-                        <h3>3. Download PNGs</h3>
-                        <p>Get a neatly packaged `.zip` file containing all your stamps as PNGs.</p>
-                    </div>
-                </div>
-            </section>
-
-            <hr class="section-divider">
-
-            <!-- === PRICING & FAQ SECTION === -->
-            <section class="info-accordion">
-                <h2 class="section-title">Pricing & FAQ</h2>
-                <!-- Accordion Item: Pricing -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>What are the pricing options?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>We offer simple, one-time credit packs that never expire. No subscriptions, no hidden fees.</p>
-                        <div class="pricing-details">
-                            <div class="price-pack">
-                                <h4>Starter Pack (3 Credits)</h4>
-                                <p>Perfect for small projects.</p>
-                            </div>
-                            <div class="price-pack">
-                                <h4>Premium Pack (6 Credits)</h4>
-                                <p>Best value for most creators.</p>
-                            </div>
-                            <div class="price-pack">
-                                <h4>Studio Pack (10 Credits)</h4>
-                                <p>For power users and professionals.</p>
-                            </div>
-                        </div>
-                        <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small single-buy-button">Buy on Etsy</a>
-                    </div>
-                </div>
-                <!-- Accordion Item: Conversions -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>How do credits work?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Each credit allows you to convert up to 3 .brushset files in a single session (up to 50MB total ). Your credits never expire.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Do I need an iPad or Mac? -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Do I need an iPad or Mac to use this service?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Not at all! Our converter is a web-based tool that works in any modern browser on any device, including Windows, Mac, Android, and iOS. As long as you have the .brushset file, you can upload it and convert it to PNGs right here.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Supported Brushes -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>What brush types are supported?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Our service is designed exclusively for Procreate stamp brushes. Think of it like this: if the brush acts like a rubber stamp, leaving a single, clear image on the canvas, our tool can convert it.
-We do not support dynamic brushes that change with pressure or direction, such as painting, texture, or pattern brushes. Our tool extracts the core stamp image at its native resolution, creating a ready-to-use PNG file. For best results, the original stamp image should be 1024x1024px or larger.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Transparency -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Are the converted PNG files transparent?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Currently, all converted PNGs are exported with a solid white background. This approach guarantees the fastest processing speed and maximum compatibility across all devices. While we work on adding a direct transparency option, the white background can be easily removed in any standard design software.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Find Files on iPad -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>How do I find my `.brushset` files on my iPad?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>That's a great question! On an iPad, you first need to export your brushes from Procreate to the Files app. It's a quick two-step process:</p>
-                        <ol style="text-align: left; max-width: 500px; margin: 15px auto; padding-left: 20px;">
-                            <li><strong>In Procreate:</strong> Open the Brush Library, swipe left on the brush set you want to convert, and tap "Share".</li>
-                            <li><strong>Save to Files:</strong> In the share menu that pops up, choose "Save to Files". We recommend creating a new folder named "Brush Exports" to keep things organized.</li>
-                        </ol>
-                        <p>Once you've done that, you can easily find and select the `.brushset` file from that folder when you use our converter tool.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Upload from any device -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>How do I upload my files?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>On an iPhone or iPad, open the Files app and locate your `.brushset` file. You can then tap the "click to upload" area on our website and select the file directly from the Files app browser that appears.</p>
-                        <p style="margin-top: 15px;">On a Windows PC or Android device, it's even simpler. Just drag and drop the file into the upload box or click the box to open your file browser and select it, just like any other website!</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Large Brush Sets -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>How do I handle very large brush sets (e.g., over 50MB)?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>For the best performance, we recommend splitting very large brush sets into smaller ones inside Procreate before uploading them. This ensures a faster and more reliable conversion. We are working on improving support for larger files in a future update!</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Where do downloads go? (MODIFIED) -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Where do my downloaded files go?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>After conversion, your .zip file is downloaded directly through your browser. The easiest way to find it is using your browser's download manager. Here’s how on each platform:</p>
-                        <h5 style="margin-top:15px; text-align:left; max-width: 500px; margin-left:auto; margin-right:auto;">On a Windows PC or Mac:</h5>
-                        <ol style="text-align: left; max-width: 500px; margin: 10px auto 15px; padding-left: 20px;">
-                            <li><strong>Look for the Download Icon:</strong> After the download starts, a download icon (usually a circle with a downward arrow) will appear in the top-right corner of your browser's toolbar.</li>
-                            <li><strong>Click the Icon:</strong> This will show a list of your recent downloads. Your .zip file will be at the top.</li>
-                            <li><strong>Find the File:</strong> Click the folder icon (on Windows) or magnifying glass icon (on Mac) next to the file name. This will instantly open your Downloads folder and highlight the file for you.</li>
-                        </ol>
-                        <h5 style="margin-top:15px; text-align:left; max-width: 500px; margin-left:auto; margin-right:auto;">On an Android Phone or Tablet:</h5>
-                        <ol style="text-align: left; max-width: 500px; margin: 10px auto 15px; padding-left: 20px;">
-                            <li><strong>Check Your Notifications:</strong> Swipe down from the top of your screen to open the notification shade. You will see a "Download complete" notification from your browser. Tapping it will open the file.</li>
-                            <li><strong>Use Your Browser's Downloads:</strong> If you miss the notification, open your browser (e.g., Chrome), tap the three-dot menu (⋮) in the top-right corner, and select "Downloads". You will see your .zip file there.</li>
-                            <li><strong>Find in Files App:</strong> Your file is saved in the "Files" or "My Files" app, inside the "Downloads" folder. Simply tap the .zip file to extract its contents.</li>
-                        </ol>
-                        <h5 style="margin-top:15px; text-align:left; max-width: 500px; margin-left:auto; margin-right:auto;">On an iPhone or iPad:</h5>
-                        <ol style="text-align: left; max-width: 500px; margin: 10px auto 15px; padding-left: 20px;">
-                            <li><strong>Look for the Download Icon:</strong> A download icon (a circle with a downward arrow) will appear on the left side of the address bar in Safari.</li>
-                            <li><strong>Tap the Icon:</strong> A menu will appear. Tap on "Downloads".</li>
-                            <li><strong>Find in Files App:</strong> Tap the magnifying glass icon next to the .zip file name. This will open the Files app and take you directly to its location (usually the "Downloads" folder).</li>
-                            <li><strong>Unzip the File:</strong> Simply tap the .zip file, and a new folder containing your PNGs will be created automatically.</li>
-                        </ol>
-                    </div>
-                </div>
-                <!-- Accordion Item: Procreate Versions -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Can I convert brushes from older Procreate versions or Dreams?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Our converter is fully compatible with standard .brushset files exported from Procreate 5 and newer. At this time, it does not support brush files from Procreate Dreams or very old, legacy Procreate versions, as their file structures are different.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Failed Conversions -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>What if the conversion fails or the PNGs don't look right?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>If a conversion fails or the quality isn't what you expected, please try these steps first: 1) Ensure the .brushset file is not corrupted and was exported correctly from Procreate. 2) Try uploading a smaller brush set to see if the issue persists. If you still have trouble, please contact our support team, and we'll be happy to help investigate or refund any unused credits for the failed conversion.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Safety -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Is it safe? Do you keep my brushes?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>Your privacy is our top priority. We never store your `.brushset` files. They are processed on our secure servers and are automatically deleted within one hour of conversion.</p>
-                    </div>
-                </div>
-                <!-- Accordion Item: Help -->
-                <div class="accordion-item">
-                    <div class="accordion-question">
-                        <span>Have a question or need help?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="accordion-answer">
-                        <p>We'd love to hear from you! Drop us a message below and we'll get back to you shortly.</p>
-                        <form id="contact-form" class="contact-form" action="https://formspree.io/f/mrbagwvb" method="POST">
-                            <input type="email" name="email" placeholder="Your email" required>
-                            <textarea name="message" placeholder="Your question or message" required></textarea>
-                            <button type="submit">Send Message</button>
-                        </form>
-                        <div id="form-status" style="display: none;">
-                            <span>Thank you! Your message has been sent.</span>
-                        </div>
-                    </div>
                 </div>
             </section>
         </div>
-
-        <!-- === FOOTER SECTION (MODIFIED FOR SINGLE-LINE LAYOUT ) === -->
         <footer class="page-footer">
-            <div class="footer-container">
-                <div class="footer-accordion-item">
-                    <div class="footer-main-line">
-                        <span class="copyright-line">&copy; <span id="current-year">2025</span> Artypacks.app. All Rights Reserved.</span>
-                        <div class="footer-accordion-trigger">
-                            <span>Terms & Privacy</span>
-                            <span class="footer-icon">+</span>
-                        </div>
-                    </div>
-                    <div class="footer-accordion-content">
-                        <h4>Terms & Privacy</h4>
-                        <p><strong>Effective Date: 1 September 2025</strong></p>
-                        <p>We believe in being clear and transparent. Here’s a simple breakdown of our policies.</p>
-                        
-                        <h5>Privacy Policy</h5>
-                        <p>We built this service with your privacy as a top priority.</p>
-                        <p><strong>No Automatic Data Collection:</strong> We do not automatically collect or store any personal information like your name or email address when you use our conversion tool. You do not need an account to use the service.</p>
-                        <p><strong>Contact Form:</strong> If you choose to contact us for support via our contact form, you will be asked to provide an email address. We collect this only to reply to your message. We do not store your email for marketing purposes or share it with third parties.</p>
-                        <p><strong>No File Storage:</strong> Your privacy is paramount. All uploaded files are stored temporarily on an ephemeral filesystem for the sole purpose of conversion. These files are automatically and permanently deleted after a short period of inactivity or when the conversion process ends. We do not keep, store, or back up your files.</p>
-                        <p><strong>Payment & License Keys:</strong> Your purchase is handled entirely through Etsy. We only receive a license key from your purchase to validate your credits and have no access to your payment information.</p>
-                        
-                        <h5>Terms of Service</h5>
-                        <p>By using this service, you agree to the following terms:</p>
-                        <p><strong>Permitted Use & Responsibility:</strong> Our tool is intended to help you use your legally purchased Procreate brushes in other applications. By using our service, you confirm that you either own the intellectual property of the brushes you upload or have a license from the original creator that permits you to extract and use them in this manner. You are solely responsible for ensuring your use of the converted files complies with the original creator's licensing terms. Creating new commercial products (like PNG or ABR packs) for resale from brushes you do not own is typically a violation of copyright and is not a permitted use of our service.</p>
-                        <p><strong>License Key & Credits:</strong> Your purchase on Etsy provides you with a license key that grants you a specific number of conversion credits. Each successful conversion uses one credit.</p>
-                        <p><strong>Failed Conversions:</strong> If a conversion fails due to an error with our service, your credit will not be used. However, we are not responsible for failures caused by corrupted, password-protected, or incorrectly formatted files.</p>
-                        <p><strong>Disclaimer:</strong> This service is provided "as-is." While we strive to provide a reliable tool, we cannot guarantee it will be free of errors.</p>
-                    </div>
-                </div>
-            </div>
+             <p>&copy; <span id="current-year">2025</span> Artypacks.app. All Rights Reserved.</p>
         </footer>
     </div>
-
-    <script src="/main.js"></script>
+    <!-- *** THE CACHE BUSTING FIX *** -->
+    <script src="/main.v2.js"></script>
 </body>
 </html>
