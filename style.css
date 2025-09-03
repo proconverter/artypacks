@@ -100,26 +100,25 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- CTA Buttons --- */
 .cta-button {
-    display: inline-block; 
-    background-color: #007bff; 
-    color: #ffffff;
-    padding: 16px 32px; 
-    border-radius: 12px; 
-    font-size: 18px; 
-    font-weight: 700;
+    display: inline-block; background-color: #007bff; color: #ffffff;
+    padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 700;
     transition: transform 0.2s ease, background-color 0.2s ease;
-    border: none; 
-    cursor: pointer; 
+    border: none; cursor: pointer; 
     width: auto; /* Allow button to size to its content */
-    max-width: 100%; /* Prevent it from overflowing */
+    min-width: 300px; /* Ensure a good minimum size */
 }
 .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
-.cta-button.secondary { background-color: #e5e7eb; color: #374151; }
+.cta-button.secondary { 
+    background-color: #e5e7eb; 
+    color: #374151; 
+    /* --- THIS IS THE FIX --- */
+    /* Force the secondary button to always be full-width */
+    width: 100%; 
+    /* --- END OF FIX --- */
+}
 .cta-button.secondary:hover { background-color: #d1d5db; }
 .cta-button:disabled {
-    background-color: #e5e7eb; 
-    color: #9ca3af; 
-    cursor: not-allowed;
+    background-color: #e5e7eb; color: #9ca3af; cursor: not-allowed;
 }
 .cta-button:disabled:hover { transform: none; background-color: #e5e7eb; }
 
@@ -183,11 +182,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { 
-    max-height: 2500px; 
-    padding-bottom: 25px; 
-    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
-}
+.accordion-item.open .accordion-answer { max-height: 2500px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
@@ -352,7 +347,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     background-color: #18181b; 
     color: #ffffff; 
     transition: background-color 0.2s ease; 
-    width: auto; 
 }
 
 .contact-form button:hover { 
@@ -381,16 +375,15 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 .app-container { display: flex; flex-direction: column; gap: 30px; }
 .app-step { display: flex; align-items: flex-start; gap: 15px; }
-
-/* --- START: THE FINAL CENTERING FIX --- */
 .step-content { 
     width: 100%; 
-    display: flex; /* Use flexbox for alignment */
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
+    /* --- THIS IS THE FIX --- */
+    /* This ensures the button's container is centered */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* --- END OF FIX --- */
 }
-/* --- END: THE FINAL CENTERING FIX --- */
-
 .step-content label { display: block; font-weight: 600; margin-bottom: 12px; font-size: 16px; text-align: center; }
 .step-content input[type="text"] {
     width: 100%;
@@ -409,141 +402,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .license-status-message.valid { 
     color: #16a34a; 
 }
-.license-status-message.invalid { color: #dc2626; }
-.license-status-message a { font-weight: 700; text-decoration: underline; }
-
-/* --- Drop Zone Styles --- */
-.drop-zone { border: 2px dashed #d4d4d8; border-radius: 12px; padding: 40px 30px; text-align: center; transition: border-color 0.3s ease, background-color 0.3s ease; width: 100%; }
-.drop-zone.disabled { cursor: not-allowed; background-color: #f9fafb; opacity: 0.6; }
-.drop-zone:not(.disabled) { cursor: pointer; }
-.drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
-.drop-zone-icon { width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.6; fill: #a1a1aa; }
-
-.drop-zone-prompt p { 
-    margin: 0; 
-    color: #52525b; 
-    max-width: 100%; 
-    font-size: 16px; 
-}
-.drop-zone-prompt p strong { 
-    color: #18181b; 
-    font-weight: 600; 
-}
-.drop-zone-limits { 
-    font-size: 14px !important;
-    color: #a1a1aa; 
-    margin-top: 8px !important; 
-}
-
-/* --- File List Styles --- */
-#file-list { margin-top: 15px; text-align: left; font-size: 14px; width: 100%; }
-.file-list-container { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.file-list-container li { 
-    background-color: #f4f4f5; 
-    padding: 8px 12px; 
-    border-radius: 8px; 
-    display: flex; 
-    justify-content: space-between;
-    align-items: center; 
-}
-.remove-file-btn { background: none; border: none; font-size: 20px; color: #71717a; cursor: pointer; line-height: 1; padding: 2px 5px; }
-.remove-file-btn:hover { color: #18181b; }
-
-/* --- Activation Notice --- */
-.activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
-
-/* --- App Status & Progress --- */
-.app-status { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 20px; width: 100%; }
-.progress-bar { width: 100%; height: 8px; background-color: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-.progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 0.3s ease; }
-#status-message { font-weight: 500; color: #3f3f46; }
-
-/* --- History Section Styles --- */
-.history-section {
-    width: 100%;
-    max-width: 550px;
-    background-color: #f9fafb;
-    border: 1px solid #e5e5e5;
-    border-radius: 16px;
-    padding: 25px 30px;
-    text-align: left;
-}
-.history-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 15px;
-    text-align: center;
-}
-.history-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.history-item {
-    background-color: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-.history-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.history-item-info span {
-    font-weight: 600;
-    font-size: 14px;
-}
-.history-item-info p {
-    font-size: 12px;
-    color: #71717a;
-    max-width: 100%;
-    margin: 0;
-}
-.history-download-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    white-space: nowrap;
-}
-.history-download-btn:hover {
-    background-color: #0056b3;
-}
-
-/* --- Responsive Design --- */
-@media (min-width: 768px) {
-    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 767px) {
-    h1 { font-size: 36px; }
-    .h1-subline { font-size: 24px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
-    body { align-items: flex-start; }
-
-    .cta-button:disabled {
-        background-color: #e5e7eb;
-        color: #9ca3af;
-        border: 1px solid #d1d5db;
-    }
-}
-
-.hidden {
-    display: none !important;
-}
+.license-status-message.invalid { color: #dc26
