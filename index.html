@@ -3,28 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Artypacks | Procreate Brush to PNG Converter. On Any Device</title>
     <meta name="description" content="The easiest way to convert Procreate .brushset files into ready-to-use PNGs.">
+    
+    <!-- Hardcoded URLs for Final Diagnostic Test -->
     <script>
         window.env = {
             VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/convert",
             VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/check-license"
         };
     </script>
+    
+    <!-- Favicon and Manifest Links - UPDATED to use the /assets/ folder -->
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/site.webmanifest">
+    
+    <!-- Stylesheets and Fonts -->
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag( ){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8EZB1B931D');
+    </script>
 </head>
+
 <body>
     <div class="page-wrapper">
         <div class="master-card">
+            <!-- === HERO SECTION === -->
             <header class="hero">
-                <h1>Convert .brushset files to PNGs right in your browser.</h1>
+                <h1>Convert .brushset files to PNGs right in your browser.   
+<span class="h1-subline">Works on PC, Mac, Android, and iOS.</span></h1>
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
+                <p class="get-license-link">Need a license? <a href="https://www.etsy.com/shop/artypacks" target="_blank">Get one here.</a></p>
             </header>
+
+            <!-- === THE CONVERTER APP UI === -->
             <section class="app-section" id="app-tool">
                 <div class="app-container">
+                    <!-- Step 1: License Key -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="license-key">Enter Your License Key</label>
@@ -32,33 +58,49 @@
                             <p id="license-status" class="license-status-message"></p>
                         </div>
                     </div>
+
+                    <!-- Step 2: File Upload -->
                     <div class="app-step">
                         <div class="step-content">
                             <label for="file-upload">Upload Your .brushset Files</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
+                                    <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate files here</strong></p>
-                                    <p class="drop-zone-limits">or click to upload (up to 3 files )</p>
+                                    <p class="drop-zone-limits">or click to upload (up to 3 files, 50MB total )</p>
                                 </div>
                                 <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
                             </div>
                             <ul id="file-list" class="file-list-container hidden"></ul>
                         </div>
                     </div>
+
+                    <!-- Step 3: Convert Button -->
                     <div class="app-step">
                         <div class="step-content">
                             <button id="convert-button" class="cta-button" disabled>Convert Your Brushsets</button>
                             <p class="activation-notice" id="activation-notice">Converter locked – enter license key above.</p>
                         </div>
                     </div>
+
+                    <!-- Progress & Results Area (This can be integrated with the full conversion logic) -->
+                    <div class="app-status" id="app-status" style="display: none;">
+                        <div class="progress-bar" id="progress-bar" style="display: none;">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <p id="status-message"></p>
+                        <button id="new-conversion-button" class="cta-button secondary" style="display: none;">Start New Conversion</button>
+                    </div>
                 </div>
             </section>
+            <!-- Other sections like History, How-it-works, FAQ etc. would follow here -->
         </div>
         <footer class="page-footer">
-             <p>&copy; <span id="current-year">2025</span> Artypacks.app. All Rights Reserved.</p>
+            <p>&copy; <span id="current-year">2025</span> Artypacks.app. All Rights Reserved.</p>
         </footer>
     </div>
-    <!-- *** THE CACHE BUSTING FIX *** -->
-    <script src="/main.v2.js"></script>
+
+    <!-- The script points to main.js -->
+    <script src="/main.js"></script>
 </body>
 </html>
