@@ -139,8 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processFiles = (files) => {
-        // This is now the ONLY place that resets the button text.
-        resetStatusUI(); 
+        resetStatusUI();
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
         if (newFiles.length === 0 && files.length > 0) { alert("Invalid file type. Please upload only .brushset files."); return; }
         uploadedFiles = [...uploadedFiles, ...newFiles].slice(0, 3);
@@ -183,11 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- THIS IS THE FINAL, CORRECTED FUNCTION ---
     const removeFile = (index) => {
         uploadedFiles.splice(index, 1);
-        // It no longer calls resetStatusUI(). It just clears the status message.
-        statusMessage.textContent = '';
-        appStatus.style.display = 'none';
+        // If the file list is now empty, reset the button text to its default state.
+        if (uploadedFiles.length === 0) {
+            convertButton.textContent = 'Convert Your Brushsets';
+            // Also hide the status message area.
+            appStatus.style.display = 'none';
+            statusMessage.textContent = '';
+        }
         updateFileList();
-        checkLicenseAndToggleUI();
+        checkLicenseAndToggleUI(); // This will correctly disable the button.
     };
 
     // --- CONVERSION PROCESS ---
@@ -195,8 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
 
-        // We only reset the button text here, right before a new conversion.
-        convertButton.textContent = 'Convert Your Brushsets';
+        resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
         convertButton.disabled = true;
@@ -230,8 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isLicenseValid) {
                         updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
                         convertButton.textContent = 'Convert New Files';
+                        // After a successful conversion, the button should remain active
+                        // to invite the user to upload new files for the next conversion.
+                        convertButton.disabled = false; 
                     } else {
                         updateProgress(100, 'Final conversion successful!');
+                        // If there are no credits left, the button will be disabled by checkLicenseAndToggleUI.
                     }
 
                 } else {
@@ -250,34 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- HELPER FUNCTIONS ---
-    const updateProgress = (percentage, message) => { progressFill.style.width = `${percentage}%`; statusMessage.textContent = message; };
-    const showError = (message) => { statusMessage.textContent = `Error: ${message}`; statusMessage.style.color = '#dc2626'; progressBar.style.display = 'none'; };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
-        newConversionButton.style.display = 'none';
-        convertButton.textContent = 'Convert Your Brushsets';
-    };
-
-    // --- HISTORY & ACCORDION ---
-    const updateHistoryList = () => {
-        historyList.innerHTML = '';
-        if (sessionHistory.length === 0) { historySection.style.display = 'none'; return; }
-        historySection.style.display = 'block';
-        sessionHistory.forEach((item, index) => {
-            const listItem = document.createElement('li');
-            listItem.className = 'history-item';
-            listItem.innerHTML = `<div class="history-item-info"><span>Conversion #${sessionHistory.length - index}</span><p>${item.sourceFiles.join(', ')}</p></div>`;
-            historyList.appendChild(listItem);
-        });
-    };
-
-    const setupAccordion = () => { document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => { trigger.addEventListener('click', () => { const item = trigger.closest('.accordion-item, .footer-accordion-item'); if (item) item.classList.toggle('open'); }); }); };
-    const setupContactForm = () => { if (!contactForm) return; contactForm.addEventListener('submit', async (e) => { e.preventDefault(); const formData = new FormData(contactForm); try { const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } }); if (response.ok) { formStatus.style.display = 'flex'; contactForm.reset(); setTimeout(() => { formStatus.style.display = 'none'; }, 5000); } else { throw new Error('Form submission failed.'); } } catch (error) { console.error('Contact form error:', error); alert('Sorry, there was an issue sending your message. Please try again later.'); } }); };
-
-    // --- START THE APP ---
-    initializeApp();
-});
+    const updateProgress = (percentage, message) => { progressFill.style.width = `${percentage}%`; statusMessage.textContent = message;
