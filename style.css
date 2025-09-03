@@ -103,19 +103,11 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     display: inline-block; background-color: #007bff; color: #ffffff;
     padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 700;
     transition: transform 0.2s ease, background-color 0.2s ease;
-    border: none; cursor: pointer; 
-    width: auto; /* Allow button to size to its content */
-    min-width: 300px; /* Ensure a good minimum size */
+    border: none; cursor: pointer;
+    width: 100%;
 }
 .cta-button:hover { transform: scale(1.05); background-color: #0056b3; }
-.cta-button.secondary { 
-    background-color: #e5e7eb; 
-    color: #374151; 
-    /* --- THIS IS THE FIX --- */
-    /* Force the secondary button to always be full-width */
-    width: 100%; 
-    /* --- END OF FIX --- */
-}
+.cta-button.secondary { background-color: #e5e7eb; color: #374151; }
 .cta-button.secondary:hover { background-color: #d1d5db; }
 .cta-button:disabled {
     background-color: #e5e7eb; color: #9ca3af; cursor: not-allowed;
@@ -182,7 +174,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer { max-height: 2500px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
+.accordion-item.open .accordion-answer { max-height: 2000px; padding-bottom: 25px; transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Pricing Accordion --- */
@@ -377,12 +369,9 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .app-step { display: flex; align-items: flex-start; gap: 15px; }
 .step-content { 
     width: 100%; 
-    /* --- THIS IS THE FIX --- */
-    /* This ensures the button's container is centered */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    /* --- END OF FIX --- */
+    align-items: center; /* This will center the button */
 }
 .step-content label { display: block; font-weight: 600; margin-bottom: 12px; font-size: 16px; text-align: center; }
 .step-content input[type="text"] {
@@ -397,9 +386,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 /* --- License Status Message --- */
-.license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
-.license-status-message.checking,
-.license-status-message.valid { 
-    color: #16a34a; 
-}
-.license-status-message.invalid { color: #dc26
+.license-status-message { font-size: 14px; text-align: center; margin-
