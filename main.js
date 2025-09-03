@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- THIS IS THE CORRECTED FUNCTION ---
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (uploadedFiles.length === 0) return;
@@ -156,17 +155,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         uploadedFiles.forEach((file, index) => {
             const listItem = document.createElement('li');
+            const textSpan = document.createElement('span');
+            textSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
             
-            // Build the entire HTML string at once for reliability
-            const itemHTML = `
-                <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                <button class="remove-file-btn" data-index="${index}" title="Remove file">&times;</button>
-            `;
-            listItem.innerHTML = itemHTML;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-file-btn';
+            removeBtn.title = 'Remove file';
+            removeBtn.textContent = '×'; // This now provides the ONLY 'x'
+            removeBtn.setAttribute('data-index', index);
+
+            listItem.appendChild(textSpan);
+            listItem.appendChild(removeBtn);
             list.appendChild(listItem);
         });
 
-        // Add a single event listener to the list for efficiency
         list.addEventListener('click', (e) => {
             if (e.target && e.target.classList.contains('remove-file-btn')) {
                 const indexToRemove = parseInt(e.target.getAttribute('data-index'), 10);
@@ -180,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFile = (index) => {
         resetStatusUI();
         uploadedFiles.splice(index, 1);
-        updateFileList(); // Re-render the list
+        updateFileList();
         checkLicenseAndToggleUI();
     };
 
