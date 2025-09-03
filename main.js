@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
-    const fileList = document.getElementById('file-list');
+    const fileListContainer = document.getElementById('file-list'); // Changed to fileListContainer
     const appStatus = document.getElementById('app-status');
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
@@ -22,18 +22,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
 
-    // --- STATE MANAGEMENT ---
-    let uploadedFiles = [];
-    let sessionHistory = [];
-    let isLicenseValid = false;
+    // --- STATE MANAGEMENT (As per Render's recommendation) ---
+    const appState = {
+        isLicenseValid: false,
+        filesToUpload: []
+    };
     let validationController;
     let messageIntervalId;
+
+    // --- CORE UI LOGIC (The new, robust function) ---
+    /**
+     * The single source of truth for all UI updates.
+     * It checks the centralized 'appState' and updates the DOM accordingly.
+     */
+    function updateUIState() {
+        const licenseOk = appState.isLicenseValid;
+        const filesPresent = appState.filesToUpload.length > 0;
+
+        // 1. Update Convert Button State
+        convertButton.disabled = !(licenseOk && filesPresent);
+
+        // 2. Update Drop Zone State
+        dropZone.classList.toggle('disabled', !licenseOk);
+        dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
+
+        // 3. Update Activation Notice Text
+        if (licenseOk) {
+            activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
+        } else {
+            activationNotice.textContent = 'Converter locked – enter license key above.';
+        }
+    }
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
         if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
         setupEventListeners();
-        checkLicenseAndToggleUI();
+        updateUIState(); // Initial UI state on page load
     };
 
     // --- EVENT LISTENERS ---
@@ -45,15 +70,26 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
+        
+        // Event Delegation for Remove Buttons
+        fileListContainer.addEventListener('click', (event) => {
+            if (event.target && event.target.classList.contains('remove-file-btn')) {
+                const indexToRemove = parseInt(event.target.getAttribute('data-index'), 10);
+                removeFile(indexToRemove);
+            }
+        });
+
         setupAccordion();
         setupContactForm();
     };
 
+    // --- STATE-MODIFYING FUNCTIONS ---
+
     const handleLicenseInput = () => {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
-        isLicenseValid = false;
-        checkLicenseAndToggleUI();
+        appState.isLicenseValid = false;
+        updateUIState(); // Update UI immediately
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
             validateLicenseWithRetries(key);
@@ -63,16 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- CREDIT MESSAGES ---
-    const getCreditsMessage = (credits) => {
-        if (credits > 0) {
-            return `You have ${credits} conversion${credits === 1 ? '' : 's'} left.`;
-        } else {
-            return `You have no conversions left.`;
-        }
-    };
-
-    // --- VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -93,28 +119,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok && result.isValid) {
-                    isLicenseValid = true;
+                    appState.isLicenseValid = true; // Update state
                     licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    licenseStatus.innerHTML = `You have ${result.credits} conversion${result.credits === 1 ? '' : 's'} left.`;
                 } else {
-                    isLicenseValid = false;
+                    appState.isLicenseValid = false; // Update state
                     licenseStatus.className = 'license-status-message invalid';
-                    if (result.message && result.message.includes("no conversions left")) {
-                        licenseStatus.innerHTML = getCreditsMessage(0);
-                    } else {
-                        licenseStatus.innerHTML = result.message || 'Invalid license key.';
-                    }
+                    licenseStatus.innerHTML = result.message || 'Invalid license key.';
                 }
-                checkLicenseAndToggleUI();
+                updateUIState(); // ALWAYS call the central UI update function
                 return;
             } catch (error) {
                 if (signal.aborted) { clearInterval(messageIntervalId); return; }
                 if (attempt === 20) {
                     clearInterval(messageIntervalId);
-                    isLicenseValid = false;
+                    appState.isLicenseValid = false; // Update state
                     licenseStatus.className = 'license-status-message invalid';
                     licenseStatus.innerHTML = 'Unable to connect to the validation server. Please try again in a minute.';
-                    checkLicenseAndToggleUI();
+                    updateUIState(); // ALWAYS call the central UI update function
                     return;
                 }
                 await new Promise(resolve => setTimeout(resolve, 2500));
@@ -122,76 +144,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FILE HANDLING & UI ---
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
-
-    const checkLicenseAndToggleUI = () => {
-        dropZone.classList.toggle('disabled', !isLicenseValid);
-        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
-        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
-        if (isLicenseValid) {
-            activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
-        } else {
-            activationNotice.textContent = 'Converter locked – enter license key above.';
-        }
-    };
 
     const processFiles = (files) => {
         resetStatusUI();
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
         if (newFiles.length === 0 && files.length > 0) { alert("Invalid file type. Please upload only .brushset files."); return; }
-        uploadedFiles = [...uploadedFiles, ...newFiles].slice(0, 3);
-        updateFileList();
-        checkLicenseAndToggleUI();
-    };
-
-    const updateFileList = () => {
-        fileList.innerHTML = '';
-        if (uploadedFiles.length === 0) return;
-        const list = document.createElement('ul');
-        list.className = 'file-list-container';
         
-        uploadedFiles.forEach((file, index) => {
-            const listItem = document.createElement('li');
-            const textSpan = document.createElement('span');
-            textSpan.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file-btn';
-            removeBtn.title = 'Remove file';
-            removeBtn.textContent = '×';
-            removeBtn.setAttribute('data-index', index);
-
-            listItem.appendChild(textSpan);
-            listItem.appendChild(removeBtn);
-            list.appendChild(listItem);
-        });
-
-        list.addEventListener('click', (e) => {
-            if (e.target && e.target.classList.contains('remove-file-btn')) {
-                const indexToRemove = parseInt(e.target.getAttribute('data-index'), 10);
-                removeFile(indexToRemove);
-            }
-        });
-
-        fileList.appendChild(list);
+        appState.filesToUpload = [...appState.filesToUpload, ...newFiles].slice(0, 3); // Update state
+        
+        renderFileList();
+        updateUIState(); // ALWAYS call the central UI update function
     };
 
     const removeFile = (index) => {
-        uploadedFiles.splice(index, 1);
-        // If the file list is now empty, reset the button text and hide the status message.
-        if (uploadedFiles.length === 0) {
+        appState.filesToUpload.splice(index, 1); // Update state
+        
+        if (appState.filesToUpload.length === 0) {
             resetStatusUI();
         }
-        updateFileList();
-        checkLicenseAndToggleUI(); // This will correctly disable the button.
+        renderFileList();
+        updateUIState(); // ALWAYS call the central UI update function
     };
 
-    // --- CONVERSION PROCESS ---
+    const renderFileList = () => {
+        fileListContainer.innerHTML = '';
+        if (appState.filesToUpload.length === 0) return;
+        const list = document.createElement('ul');
+        list.className = 'file-list-container';
+        
+        appState.filesToUpload.forEach((file, index) => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                <button class="remove-file-btn" data-index="${index}">×</button>
+            `;
+            list.appendChild(listItem);
+        });
+        fileListContainer.appendChild(list);
+    };
+
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
-        if (!licenseKey || uploadedFiles.length === 0) return;
+        if (!licenseKey || appState.filesToUpload.length === 0) return;
 
         resetStatusUI();
         appStatus.style.display = 'block';
@@ -202,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        uploadedFiles.forEach(file => { formData.append('files', file); });
+        appState.filesToUpload.forEach(file => { formData.append('files', file); });
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
@@ -210,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.onload = async () => {
             licenseKeyInput.disabled = false;
-            dropZone.classList.remove('disabled'); // Re-enable drop zone after conversion attempt
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -221,33 +216,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
-                    sessionHistory.unshift({ sourceFiles: uploadedFiles.map(f => f.name) });
+                    sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(f => f.name) });
                     updateHistoryList();
-                    await validateLicenseWithRetries(licenseKey, true);
                     
-                    // Check if the license is still valid AFTER the conversion
-                    if (isLicenseValid) {
+                    await validateLicenseWithRetries(licenseKey, true); // This will update appState.isLicenseValid and call updateUIState()
+                    
+                    if (appState.isLicenseValid) {
                         updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
                         convertButton.textContent = 'Convert New Files';
-                        // Keep the button enabled to invite the next conversion
-                        convertButton.disabled = false; 
                     } else {
                         updateProgress(100, 'Final conversion successful!');
-                        // The checkLicenseAndToggleUI call will handle disabling the button
-                        checkLicenseAndToggleUI();
                     }
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
-                    await validateLicenseWithRetries(licenseKey);
+                    await validateLicenseWithRetries(licenseKey); // Re-check license on error
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
-                checkLicenseAndToggleUI();
+                updateUIState();
             }
         };
 
-        xhr.onerror = () => { showError('A network error occurred. Please check your connection and try again.'); licenseKeyInput.disabled = false; checkLicenseAndToggleUI(); };
+        xhr.onerror = () => { showError('A network error occurred. Please check your connection and try again.'); licenseKeyInput.disabled = false; updateUIState(); };
         updateProgress(10, 'Validating and preparing upload...');
         xhr.send(formData);
     };
@@ -264,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.textContent = 'Convert Your Brushsets';
     };
 
-    // --- HISTORY & ACCORDION ---
+    // --- HISTORY & ACCORDION (Unchanged) ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionHistory.length === 0) { historySection.style.display = 'none'; return; }
