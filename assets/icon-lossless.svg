@@ -1,0 +1,30 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Define the "cookie cutter" shape -->
+  <defs>
+    <clipPath id="circle-clipper">
+      <!-- The clipping area is the inside of this circle -->
+      <circle cx="50" cy="50" r="47"/>
+    </clipPath>
+  </defs>
+
+  <!-- Group for all visible elements -->
+  <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    
+    <!-- 1. Draw the main outer circle -->
+    <circle cx="50" cy="50" r="47"/>
+    
+    <!-- 2. Draw the four inner circles, but apply the clipPath to them -->
+    <g clip-path="url(#circle-clipper)">
+      <!-- These circles create the inner arcs. They are clipped by the circle above. -->
+      <!-- Top Arc Circle -->
+      <circle cx="50" cy="16.77" r="33.23"/>
+      <!-- Bottom Arc Circle -->
+      <circle cx="50" cy="83.23" r="33.23"/>
+      <!-- Left Arc Circle -->
+      <circle cx="16.77" cy="50" r="33.23"/>
+      <!-- Right Arc Circle -->
+      <circle cx="83.23" cy="50" r="33.23"/>
+    </g>
+  </g>
+</svg>
