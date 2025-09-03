@@ -19,18 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
         filesToUpload: []
     };
 
-    // --- THE ONE FUNCTION TO RULE THEM ALL ---
-    function refreshUI() {
-        // 1. Update Button State
-        const licenseOk = appState.isLicenseValid;
-        const filesPresent = appState.filesToUpload.length > 0;
-        convertButton.disabled = !(licenseOk && filesPresent);
+    // --- CORE UI LOGIC ---
+    function updateUIState() {
+        // *** THIS IS THE REAL FIX ***
+        // The button's state now ONLY depends on whether the license is valid.
+        // It no longer cares if files are present or not.
+        convertButton.disabled = !appState.isLicenseValid;
 
-        // 2. Update Drop Zone State
-        dropZone.classList.toggle('disabled', !licenseOk);
-        dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
+        // The rest of the UI updates remain the same
+        dropZone.classList.toggle('disabled', !appState.isLicenseValid);
+        dropZone.title = appState.isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         
-        // 3. Update File List DOM
+        // Update File List DOM
         fileList.innerHTML = '';
         if (appState.filesToUpload.length > 0) {
             fileList.classList.remove('hidden');
@@ -46,11 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.classList.add('hidden');
         }
         
-        // 4. Update Activation Notice
-        if (!licenseOk) {
+        if (!appState.isLicenseValid) {
             activationNotice.textContent = 'Converter locked – enter license key above.';
         } else {
-            activationNotice.textContent = 'This tool extracts stamp images (min 1024px).';
+            // Show a helpful message if the license is valid but there are no files to convert.
+            if (appState.filesToUpload.length === 0) {
+                 activationNotice.textContent = 'Ready to convert. Please add one or more .brushset files.';
+            } else {
+                 activationNotice.textContent = `Ready to convert ${appState.filesToUpload.length} file(s).`;
+            }
         }
     }
 
@@ -67,15 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const updatedFiles = [...appState.filesToUpload, ...newFiles];
         appState.filesToUpload = updatedFiles.slice(0, 3);
-        refreshUI();
+        updateUIState();
     }
 
     function removeFile(fileId) {
         appState.filesToUpload = appState.filesToUpload.filter(f => f.id !== fileId);
-        refreshUI();
+        updateUIState();
     }
 
-    // RESTORED: Full license validation logic
     async function validateLicense(key) {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
@@ -109,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.innerHTML = 'Could not connect to validation server.';
         }
         
-        refreshUI();
+        updateUIState();
     }
 
     // --- EVENT LISTENERS ---
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 appState.isLicenseValid = false;
                 licenseStatus.innerHTML = '';
-                refreshUI();
+                updateUIState();
             }
         });
 
@@ -143,17 +146,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Simplified accordion setup
+        // Simplified accordion and other setups
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                const item = trigger.closest('.accordion-item, .footer-accordion-item');
+                const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line');
                 if (item) item.classList.toggle('open');
             });
+        });
+        
+        // Prevent actual conversion for safety, can be removed when ready
+        convertButton.addEventListener('click', (e) => {
+            if (appState.filesToUpload.length === 0) {
+                e.preventDefault();
+                alert('Please add one or more .brushset files to convert.');
+            }
+            // If files are present, the click will proceed as normal (or to your full conversion handler)
         });
     }
 
     // --- INITIALIZATION ---
     if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
     setupEventListeners();
-    refreshUI();
+    updateUIState();
 });
