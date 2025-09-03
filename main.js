@@ -43,10 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.classList.remove('hidden');
             appState.filesToUpload.forEach(fileWrapper => {
                 const listItem = document.createElement('li');
+                // --- MODIFICATION: Added file size back in ---
+                const fileSize = (fileWrapper.fileObject.size / 1024 / 1024).toFixed(2);
                 listItem.innerHTML = `
-                    <span>${fileWrapper.fileObject.name}</span>
+                    <span>${fileWrapper.fileObject.name} (${fileSize} MB)</span>
                     <button class="remove-file-btn" data-id="${fileWrapper.id}">×</button>
                 `;
+                // --- END MODIFICATION ---
                 fileList.appendChild(listItem);
             });
         } else {
@@ -159,12 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversion);
         newConversionButton.addEventListener('click', resetForNewConversion);
         
-        // --- ACCORDION LOGIC (CORRECTED) ---
-        // This is the corrected section. It uses the same reliable logic as before.
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                // The .closest() method is the key to making this work for both
-                // the main FAQ and the special footer structure.
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
