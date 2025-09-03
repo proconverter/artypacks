@@ -1,13 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    // CRITICAL FIX: Replace the placeholder with your actual Render backend URL.
-    const BACKEND_URL = "https://artypacks-converter-backend-SANDBOX.onrender.com"; // <-- PASTE YOUR RENDER BACKEND URL HERE
-    const VITE_CONVERT_API_ENDPOINT = `${BACKEND_URL}/convert`;
-    const VITE_CHECK_API_ENDPOINT = `${BACKEND_URL}/check-license`;
+    // THIS IS NOW CORRECT. It reads the variables directly from your index.html
+    const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
+    const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'  );
+    const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -23,12 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
+    // This button was in your HTML but never used. We will use it now.
+    const newConversionButton = document.getElementById('new-conversion-button');
 
     // --- STATE MANAGEMENT ---
     const appState = {
         isLicenseValid: false,
-        filesToUpload: [], // Stores objects like { id, fileObject }
-        isBusy: false        // Prevents interaction during critical state transitions
+        filesToUpload: []
     };
     let validationController;
     let messageIntervalId;
@@ -36,26 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CORE UI LOGIC ---
     function updateUIState() {
-        // If the app is busy, disable interaction controls until it's done.
-        if (appState.isBusy) {
-            convertButton.disabled = true;
-            licenseKeyInput.disabled = true;
-            dropZone.classList.add('disabled');
-            fileListContainer.querySelectorAll('.remove-file-btn').forEach(btn => btn.style.pointerEvents = 'none');
-            return; // Stop further UI updates until not busy
-        }
-
-        // Restore interactive state
-        licenseKeyInput.disabled = false;
-        fileListContainer.querySelectorAll('.remove-file-btn').forEach(btn => btn.style.pointerEvents = 'auto');
-
         const licenseOk = appState.isLicenseValid;
         const filesPresent = appState.filesToUpload.length > 0;
-        
+
+        // Main convert button is only enabled when license is valid and files are present.
         convertButton.disabled = !(licenseOk && filesPresent);
+
+        // Drop zone is only enabled when license is valid.
         dropZone.classList.toggle('disabled', !licenseOk);
         dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
-        
+
         if (licenseOk) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else {
@@ -79,9 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
-        
+        // Add listener for the new conversion button
+        newConversionButton.addEventListener('click', resetForNewConversion);
+
         fileListContainer.addEventListener('click', (event) => {
-            if (appState.isBusy) return; // Prevent removal while busy
             if (event.target && event.target.classList.contains('remove-file-btn')) {
                 const idToRemove = event.target.getAttribute('data-id');
                 removeFileById(idToRemove);
@@ -157,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const processFiles = (files) => {
-        resetStatusUI();
         let newFiles = Array.from(files)
             .filter(file => file.name.endsWith('.brushset'))
             .map(file => ({
@@ -178,11 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeFileById = (id) => {
         appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
-        
-        if (appState.filesToUpload.length === 0) {
-            resetStatusUI();
-        }
-
         renderFileList();
         updateUIState();
     };
@@ -209,12 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || appState.filesToUpload.length === 0) return;
 
-        // --- START of job: Lock the UI ---
-        appState.isBusy = true;
-        resetStatusUI();
-        updateUIState(); // Immediately disable UI based on isBusy flag
+        // Lock UI for conversion
+        convertButton.disabled = true;
+        licenseKeyInput.disabled = true;
+        dropZone.classList.add('disabled');
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
@@ -230,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // --- Correct order of operations ---
+                    // --- SUCCESS PATH ---
                     progressBar.style.display = 'none';
                     const tempLink = document.createElement('a');
                     tempLink.href = result.downloadUrl;
@@ -241,35 +228,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
-
+                    
+                    // Clear the old files from state and UI
                     appState.filesToUpload = [];
                     renderFileList();
 
                     await validateLicenseWithRetries(licenseKey, true);
 
-                    if (appState.isLicenseValid) {
-                        updateProgress(100, 'Download success! Ready for new conversion.');
-                    } else {
-                        updateProgress(100, 'Final conversion successful! Your license is now depleted.');
-                    }
-                    convertButton.textContent = 'Convert Your Brushsets';
+                    updateProgress(100, 'Download success!');
+                    // Show the "Start New Conversion" button
+                    newConversionButton.style.display = 'block';
+                    // Hide the original convert button's parent
+                    convertButton.parentElement.style.display = 'none';
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     await validateLicenseWithRetries(licenseKey);
+                    // On error, re-enable inputs
+                    licenseKeyInput.disabled = false;
+                    updateUIState();
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
-            } finally {
-                // --- END of job: Unlock the UI ---
-                appState.isBusy = false;
+                licenseKeyInput.disabled = false;
                 updateUIState();
             }
         };
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
-            appState.isBusy = false;
+            licenseKeyInput.disabled = false;
             updateUIState();
         };
 
@@ -278,16 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- HELPER FUNCTIONS ---
+    function resetForNewConversion() {
+        appStatus.style.display = 'none';
+        newConversionButton.style.display = 'none';
+        convertButton.parentElement.style.display = 'block';
+        updateUIState();
+    }
+
     const updateProgress = (percentage, message) => { progressFill.style.width = `${percentage}%`; statusMessage.textContent = message; };
     const showError = (message) => { statusMessage.textContent = `Error: ${message}`; statusMessage.style.color = '#dc2626'; progressBar.style.display = 'none'; };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
-        convertButton.textContent = 'Convert Your Brushsets';
-    };
 
     // --- HISTORY & ACCORDION ---
     const updateHistoryList = () => {
@@ -305,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const setupAccordion = () => { document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => { trigger.addEventListener('click', () => { const item = trigger.closest('.accordion-item, .footer-accordion-item'); if (item) item.classList.toggle('open'); }); }); };
+    const setupAccordion = () => { document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => { trigger.addEventListener('click', () => { const item = trigger.closest('.accordion-item, .footer-accordion-item, .footer-main-line'); if (item) item.classList.toggle('open'); }); }); };
     
     const setupContactForm = () => { 
         if (!contactForm) return; 
