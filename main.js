@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'     );
+    const licenseKeyInput = document.getElementById('license-key'      );
     const licenseStatus = document.getElementById('license-status');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -65,24 +65,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- TIERED & RANDOMIZED CREDIT MESSAGES ---
+    // --- TIERED & RANDOMIZED CREDIT MESSAGES (MODIFIED) ---
     const getCreditsMessage = (credits) => {
         let messages = [];
-        if (credits >= 11) {
-            messages = [ `You’re all set—${credits} conversions ready for you!`, `Nice! You’ve got ${credits} conversions waiting.`, `${credits} conversions available. Dive in!` ];
-        } else if (credits >= 6) {
-            messages = [ `Still going strong—${credits} conversions remain.`, `Looking good! ${credits} conversions left to use.`, `You’ve got ${credits} conversions remaining—keep creating.` ];
-        } else if (credits >= 2) {
-            messages = [ `Heads up—you’ve got ${credits} conversions left.`, `You've got ${credits} conversions to use.`, `Make them count—only ${credits} left.` ];
-        } else if (credits === 1) {
-            messages = [ `Last one! You have 1 conversion left—make it your best.`, `Almost out—just 1 conversion remains.`, `Final call: 1 conversion left.` ];
-        } else {
+        
+        if (credits >= 7) { // Studio Tier (7-10)
+            messages = [ `You’re all set with [X] conversions. Ready when you are!`, `Looking great! You have [X] conversions available.`, `Plenty of credits left! You have [X] conversions remaining.` ];
+        } else if (credits >= 4) { // Premium Tier (4-6)
+            messages = [ `Still going strong—[X] conversions remain.`, `You've got [X] conversions left to use. Keep up the great work!`, `You have [X] conversions remaining. Keep creating!` ];
+        } else if (credits >= 2) { // Starter/Low Tier (2-3)
+            messages = [ `Heads up—you’ve got [X] conversions left. Time to make them count!`, `Getting low. You have [X] conversions to use.`, `You have [X] conversions left. Planning your next credit pack yet?` ];
+        } else if (credits === 1) { // Final Credit
+            messages = [ `Last one! You have <strong>1</strong> conversion left—make it your best.`, `This is it! Just <strong>1</strong> conversion remains.`, `Final call: <strong>1</strong> conversion left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more here!</a>` ];
+        } else { // No Credits
             messages = [ `You’ve used all your conversions. <a href="${ETSY_STORE_LINK}" target="_blank">Pick up a new pack here.</a>`, `Out of conversions? <a href="${ETSY_STORE_LINK}" target="_blank">Add more credits in just a click.</a>`, `No conversions left. <a href="${ETSY_STORE_LINK}" target="_blank">Get more credits to unlock new ones.</a>` ];
         }
-        return messages[Math.floor(Math.random() * messages.length)];
+        
+        let message = messages[Math.floor(Math.random() * messages.length)];
+        // Use innerHTML, so we can use <strong> tags for emphasis
+        return message.replace(/\[X\]/g, `<strong>${credits}</strong>`);
     };
 
-    // --- VALIDATION LOGIC (UNCHANGED) ---
+    // --- VALIDATION LOGIC ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -117,11 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok && result.isValid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    if (isPostConversion) {
-                        licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    } else {
-                        licenseStatus.innerHTML = `Welcome aboard. You’ve got ${result.credits} conversions remaining. Let’s upload your files below.`;
-                    }
+                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
@@ -152,16 +152,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FILE HANDLING & UI (UNCHANGED) ---
+    // --- FILE HANDLING & UI ---
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        dropZone.classList.toggle('disabled', !isLicenseValid);
-        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
-        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0);
-        if (isLicenseValid) {
+        const hasCredits = isLicenseValid && (!licenseStatus.innerHTML.includes('0') || licenseStatus.innerHTML.includes('left'));
+        const canUpload = hasCredits && isLicenseValid;
+
+        dropZone.classList.toggle('disabled', !canUpload);
+        dropZone.title = canUpload ? '' : 'Please enter a valid license key with credits to upload files.';
+        convertButton.disabled = !(canUpload && uploadedFiles.length > 0);
+        
+        if (canUpload) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
+        } else if (isLicenseValid && !hasCredits) {
+            activationNotice.textContent = 'Converter locked – no credits remaining.';
         } else {
             activationNotice.textContent = 'Converter locked – enter license key above.';
         }
@@ -202,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- CONVERSION PROCESS (UNCHANGED) ---
+    // --- CONVERSION PROCESS ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
@@ -275,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
     
-    // --- RESET FUNCTION (UNCHANGED) ---
+    // --- RESET FUNCTION ---
     const resetForNewConversion = () => {
         uploadedFiles = [];
         updateFileList();
@@ -284,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // --- HISTORY "RECEIPT" FUNCTIONS (UNCHANGED) ---
+    // --- HISTORY "RECEIPT" FUNCTIONS ---
     const updateHistoryList = () => {
         historyList.innerHTML = '';
         if (sessionHistory.length === 0) {
@@ -299,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'history-item-info';
             const titleSpan = document.createElement('span');
-            titleSpan.textContent = `Conversion #${sessionHistory.length - index}`;
+            titleSpan.textContent = `Conversion #${session.length - index}`;
             const filesP = document.createElement('p');
             filesP.textContent = item.sourceFiles.join(', ');
             infoDiv.appendChild(titleSpan);
@@ -309,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- HELPER FUNCTIONS (UNCHANGED) ---
+    // --- HELPER FUNCTIONS ---
     const updateProgress = (percentage, message) => {
         progressFill.style.width = `${percentage}%`;
         statusMessage.textContent = message;
@@ -319,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = `Error: ${message}`;
         statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
+        newConversionButton.style.display = 'block'; // Allow user to start over
     };
 
     const resetStatusUI = () => {
@@ -329,11 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
         newConversionButton.style.display = 'none';
     };
 
-    // --- ACCORDION & CONTACT FORM (MODIFIED) ---
+    // --- ACCORDION & CONTACT FORM ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                // MODIFIED: Use .closest() to find the correct parent item reliably
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
                 if (item) {
                     item.classList.toggle('open');
