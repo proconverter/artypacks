@@ -30,7 +30,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(     ){dataLayer.push(arguments);}
+      function gtag( ){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-8EZB1B931D');
     </script>
@@ -67,11 +67,13 @@
                                 <div class="drop-zone-prompt">
                                     <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate files here</strong></p>
-                                    <p class="drop-zone-limits">or click to upload (up to 3 files, 50MB total     )</p>
+                                    <p class="drop-zone-limits">or click to upload (up to 3 files, 50MB total )</p>
                                 </div>
                                 <input type="file" id="file-input" multiple accept=".brushset" style="display: none;">
                             </div>
-                            <div id="file-list"></div>
+                            <!-- *** THIS IS THE FIX *** -->
+                            <!-- Changed from a <div> to a <ul> and added the class for styling -->
+                            <ul id="file-list" class="file-list-container"></ul>
                         </div>
                     </div>
 
@@ -163,7 +165,7 @@
                         <span class="icon">+</span>
                     </div>
                     <div class="accordion-answer">
-                        <p>Each credit allows you to convert up to 3 .brushset files in a single session (up to 50MB total   ). Your credits never expire.</p>
+                        <p>Each credit allows you to convert up to 3 .brushset files in a single session (up to 50MB total ). Your credits never expire.</p>
                     </div>
                 </div>
                 <!-- Accordion Item: Do I need an iPad or Mac? -->
@@ -226,7 +228,7 @@ We do not support dynamic brushes that change with pressure or direction, such a
                 <!-- Accordion Item: Large Brush Sets -->
                 <div class="accordion-item">
                     <div class="accordion-question">
-                        <span>How do I handle very large brush sets (e.g., over 50MB  )?</span>
+                        <span>How do I handle very large brush sets (e.g., over 50MB)?</span>
                         <span class="icon">+</span>
                     </div>
                     <div class="accordion-answer">
@@ -313,7 +315,7 @@ We do not support dynamic brushes that change with pressure or direction, such a
             </section>
         </div>
 
-        <!-- === FOOTER SECTION (MODIFIED FOR SINGLE-LINE LAYOUT    ) === -->
+        <!-- === FOOTER SECTION (MODIFIED FOR SINGLE-LINE LAYOUT ) === -->
         <footer class="page-footer">
             <div class="footer-container">
                 <div class="footer-accordion-item">
