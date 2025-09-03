@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
-    const fileListContainer = document.getElementById('file-list'); // Changed to fileListContainer
+    const fileListContainer = document.getElementById('file-list');
     const appStatus = document.getElementById('app-status');
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
@@ -22,31 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
 
-    // --- STATE MANAGEMENT (As per Render's recommendation) ---
+    // --- STATE MANAGEMENT ---
     const appState = {
         isLicenseValid: false,
-        filesToUpload: []
+        filesToUpload: [] // Will now store objects like { id, fileObject }
     };
     let validationController;
     let messageIntervalId;
 
-    // --- CORE UI LOGIC (The new, robust function) ---
-    /**
-     * The single source of truth for all UI updates.
-     * It checks the centralized 'appState' and updates the DOM accordingly.
-     */
+    // --- CORE UI LOGIC ---
     function updateUIState() {
         const licenseOk = appState.isLicenseValid;
         const filesPresent = appState.filesToUpload.length > 0;
-
-        // 1. Update Convert Button State
         convertButton.disabled = !(licenseOk && filesPresent);
-
-        // 2. Update Drop Zone State
         dropZone.classList.toggle('disabled', !licenseOk);
         dropZone.title = licenseOk ? '' : 'Please enter a valid license key to upload files.';
-
-        // 3. Update Activation Notice Text
         if (licenseOk) {
             activationNotice.textContent = 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.';
         } else {
@@ -58,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = () => {
         if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
         setupEventListeners();
-        updateUIState(); // Initial UI state on page load
+        updateUIState();
     };
 
     // --- EVENT LISTENERS ---
@@ -71,11 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
         
-        // Event Delegation for Remove Buttons
+        // Event Delegation for Remove Buttons (using data-id)
         fileListContainer.addEventListener('click', (event) => {
             if (event.target && event.target.classList.contains('remove-file-btn')) {
-                const indexToRemove = parseInt(event.target.getAttribute('data-index'), 10);
-                removeFile(indexToRemove);
+                const idToRemove = event.target.getAttribute('data-id');
+                removeFileById(idToRemove);
             }
         });
 
@@ -89,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
         appState.isLicenseValid = false;
-        updateUIState(); // Update UI immediately
+        updateUIState();
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
             validateLicenseWithRetries(key);
@@ -119,24 +109,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok && result.isValid) {
-                    appState.isLicenseValid = true; // Update state
+                    appState.isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
                     licenseStatus.innerHTML = `You have ${result.credits} conversion${result.credits === 1 ? '' : 's'} left.`;
                 } else {
-                    appState.isLicenseValid = false; // Update state
+                    appState.isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
                     licenseStatus.innerHTML = result.message || 'Invalid license key.';
                 }
-                updateUIState(); // ALWAYS call the central UI update function
+                updateUIState();
                 return;
             } catch (error) {
                 if (signal.aborted) { clearInterval(messageIntervalId); return; }
                 if (attempt === 20) {
                     clearInterval(messageIntervalId);
-                    appState.isLicenseValid = false; // Update state
+                    appState.isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
                     licenseStatus.innerHTML = 'Unable to connect to the validation server. Please try again in a minute.';
-                    updateUIState(); // ALWAYS call the central UI update function
+                    updateUIState();
                     return;
                 }
                 await new Promise(resolve => setTimeout(resolve, 2500));
@@ -147,38 +137,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
+    // MODIFIED to add unique IDs
     const processFiles = (files) => {
         resetStatusUI();
-        let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
-        if (newFiles.length === 0 && files.length > 0) { alert("Invalid file type. Please upload only .brushset files."); return; }
+        let newFiles = Array.from(files)
+            .filter(file => file.name.endsWith('.brushset'))
+            .map(file => ({
+                id: `file-${Date.now()}-${Math.random()}`,
+                fileObject: file
+            }));
+
+        if (newFiles.length === 0 && files.length > 0) {
+            alert("Invalid file type. Please upload only .brushset files.");
+            return;
+        }
         
-        appState.filesToUpload = [...appState.filesToUpload, ...newFiles].slice(0, 3); // Update state
+        appState.filesToUpload = [...appState.filesToUpload, ...newFiles].slice(0, 3);
         
         renderFileList();
-        updateUIState(); // ALWAYS call the central UI update function
+        updateUIState();
     };
 
-    const removeFile = (index) => {
-        appState.filesToUpload.splice(index, 1); // Update state
+    // NEW function that replaces the old removeFile(index)
+    const removeFileById = (id) => {
+        // Use filter() for a safe, immutable update
+        appState.filesToUpload = appState.filesToUpload.filter(fileWrapper => fileWrapper.id !== id);
         
         if (appState.filesToUpload.length === 0) {
             resetStatusUI();
         }
+
         renderFileList();
-        updateUIState(); // ALWAYS call the central UI update function
+        updateUIState();
     };
 
+    // MODIFIED to use the unique ID
     const renderFileList = () => {
         fileListContainer.innerHTML = '';
         if (appState.filesToUpload.length === 0) return;
+
         const list = document.createElement('ul');
         list.className = 'file-list-container';
         
-        appState.filesToUpload.forEach((file, index) => {
+        appState.filesToUpload.forEach(fileWrapper => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
-                <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                <button class="remove-file-btn" data-index="${index}">×</button>
+                <span>${fileWrapper.fileObject.name} (${(fileWrapper.fileObject.size / 1024 / 1024).toFixed(2)} MB)</span>
+                <button class="remove-file-btn" data-id="${fileWrapper.id}">×</button>
             `;
             list.appendChild(listItem);
         });
@@ -198,7 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        appState.filesToUpload.forEach(file => { formData.append('files', file); });
+        appState.filesToUpload.forEach(fileWrapper => {
+            formData.append('files', fileWrapper.fileObject);
+        });
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
@@ -216,10 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(tempLink);
                     tempLink.click();
                     document.body.removeChild(tempLink);
-                    sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(f => f.name) });
+                    sessionHistory.unshift({ sourceFiles: appState.filesToUpload.map(fw => fw.fileObject.name) });
                     updateHistoryList();
                     
-                    await validateLicenseWithRetries(licenseKey, true); // This will update appState.isLicenseValid and call updateUIState()
+                    await validateLicenseWithRetries(licenseKey, true);
                     
                     if (appState.isLicenseValid) {
                         updateProgress(100, 'Download success! Please remove the old files before starting a new conversion.');
@@ -230,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else {
                     showError(result.message || 'An unknown error occurred.');
-                    await validateLicenseWithRetries(licenseKey); // Re-check license on error
+                    await validateLicenseWithRetries(licenseKey);
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
