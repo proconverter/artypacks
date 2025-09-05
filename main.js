@@ -190,87 +190,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFile = () => {
         uploadedFile = null;
         fileInput.value = '';
-        updateFileList();
-        checkLicenseAndToggleUI();
+        resetUIForNewUpload();
     };
 
-    const handleConversion = () => {
+    // --- CONVERSION PROCESS (REBUILT FOR STATELESS OPERATION) ---
+    const handleConversion = async () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || !uploadedFile) return;
 
+        // 1. Setup UI for processing state
         const originalFileForHistory = uploadedFile;
         resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
+        updateProgress(50, 'Uploading and converting...'); // Simplified progress
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
 
+        // 2. Prepare form data
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        // --- THIS IS THE CORRECTED LINE ---
         formData.append('file', uploadedFile);
-        // --- END OF CORRECTION ---
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
+        try {
+            // 3. Send file and license key in a single request
+            const response = await fetch(VITE_CONVERT_API_ENDPOINT, {
+                method: 'POST',
+                body: formData,
+            });
 
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const uploadProgress = 10 + (event.loaded / event.total) * 80;
-                updateProgress(uploadProgress, 'Uploading and converting...');
-            }
-        };
+            const result = await response.json();
 
-        xhr.onload = async () => {
-            try {
-                const result = JSON.parse(xhr.responseText);
+            if (response.ok) {
+                // 4. Handle success
+                updateProgress(100, 'Conversion successful! Download will begin shortly.');
+                convertStep.style.display = 'none';
+                progressBar.style.display = 'none';
+                isFileConverted = true;
+                updateFileList();
 
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    updateProgress(100, 'Conversion successful! Download will begin shortly.');
-                    
-                    convertStep.style.display = 'none';
-                    progressBar.style.display = 'none';
-                    isFileConverted = true;
-                    updateFileList(); 
+                setTimeout(() => {
+                    const tempLink = document.createElement('a');
+                    tempLink.href = result.downloadUrl;
+                    tempLink.setAttribute('download', '');
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                }, 1000);
 
-                    setTimeout(() => {
-                        const tempLink = document.createElement('a');
-                        tempLink.href = result.downloadUrl;
-                        tempLink.setAttribute('download', '');
-                        document.body.appendChild(tempLink);
-                        tempLink.click();
-                        document.body.removeChild(tempLink);
-                    }, 1000);
+                sessionHistory.unshift({ sourceFile: originalFileForHistory.name });
+                updateHistoryList();
+                await validateLicenseWithRetries(licenseKey, true);
 
-                    sessionHistory.unshift({ sourceFile: originalFileForHistory.name });
-                    updateHistoryList();
-                    
-                    await validateLicenseWithRetries(licenseKey, true);
-
-                } else {
-                    licenseKeyInput.disabled = false;
-                    await validateLicenseWithRetries(licenseKey);
-                    showError(result.message || 'An unknown error occurred.');
-                    if (!licenseKeyInput.disabled) {
-                        checkLicenseAndToggleUI();
-                    }
-                }
-            } catch (e) {
-                showError('An unexpected server response was received.');
+            } else {
+                // 5. Handle server-side errors (e.g., no credits, invalid key)
+                showError(result.message || 'An unknown error occurred.');
                 licenseKeyInput.disabled = false;
                 checkLicenseAndToggleUI();
+                await validateLicenseWithRetries(licenseKey); // Re-check credits to show correct status
             }
-        };
-
-        xhr.onerror = () => {
+        } catch (error) {
+            // 6. Handle network errors
+            console.error('Conversion failed:', error);
             showError('A network error occurred. Please check your connection and try again.');
             licenseKeyInput.disabled = false;
             checkLicenseAndToggleUI();
-        };
-
-        updateProgress(10, 'Validating and preparing upload...');
-        xhr.send(formData);
+        }
     };
 
     const updateHistoryList = () => {
