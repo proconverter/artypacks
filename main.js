@@ -131,20 +131,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        dropZone.classList.toggle('disabled', !isLicenseValid);
-        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
+        // --- THIS IS THE NEW UPLOAD FLOW LOGIC ---
+        const isDropZoneDisabled = !isLicenseValid || uploadedFile !== null;
+        dropZone.classList.toggle('disabled', isDropZoneDisabled);
+        dropZone.title = !isLicenseValid ? 'Please enter a valid license key to upload files.' : (uploadedFile !== null ? 'Remove the current file to upload a new one.' : '');
+        // --- END OF NEW LOGIC ---
+
         convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
         activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
     };
 
     const processFiles = (files) => {
-        // --- THIS IS THE NEW LOGIC ---
-        if (isFileConverted) {
-            alert("Please refresh the page to start a new conversion.");
-            return;
-        }
-        // --- END OF NEW LOGIC ---
-
         const file = Array.from(files).find(f => f.name.endsWith('.brushset'));
         if (!file && files.length > 0) {
             alert("Invalid file type. Please upload a single .brushset file.");
@@ -178,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isFileConverted) {
             listItem.classList.add('converted');
             const checkmark = document.createElement('span');
-            checkmark.innerHTML = ' ✔'; // Using a simple checkmark character
+            checkmark.innerHTML = ' ✔';
             checkmark.style.color = '#16a34a';
             listItem.firstChild.appendChild(checkmark);
         } else {
@@ -194,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeFile = () => {
         uploadedFile = null;
-        fileInput.value = ''; // Clear the file input
+        fileInput.value = '';
         updateFileList();
         checkLicenseAndToggleUI();
     };
@@ -213,7 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
+        // --- THIS IS THE CRITICAL BUG FIX ---
         formData.append('file', uploadedFile);
+        // --- END OF BUG FIX ---
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
