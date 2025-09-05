@@ -138,6 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processFiles = (files) => {
+        // --- THIS IS THE NEW LOGIC ---
+        if (isFileConverted) {
+            alert("Please refresh the page to start a new conversion.");
+            return;
+        }
+        // --- END OF NEW LOGIC ---
+
         const file = Array.from(files).find(f => f.name.endsWith('.brushset'));
         if (!file && files.length > 0) {
             alert("Invalid file type. Please upload a single .brushset file.");
@@ -171,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isFileConverted) {
             listItem.classList.add('converted');
             const checkmark = document.createElement('span');
-            checkmark.innerHTML = ' &#10004;';
+            checkmark.innerHTML = ' ✔'; // Using a simple checkmark character
             checkmark.style.color = '#16a34a';
             listItem.firstChild.appendChild(checkmark);
         } else {
@@ -225,13 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     updateProgress(100, 'Conversion successful! Download will begin shortly.');
                     
-                    // Hide the convert button section for a clean success state
                     convertStep.style.display = 'none';
                     progressBar.style.display = 'none';
                     isFileConverted = true;
-                    updateFileList(); // Re-render the file list to show the "converted" state
+                    updateFileList(); 
 
-                    // Decouple UI update from download trigger
                     setTimeout(() => {
                         const tempLink = document.createElement('a');
                         tempLink.href = result.downloadUrl;
@@ -239,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.body.appendChild(tempLink);
                         tempLink.click();
                         document.body.removeChild(tempLink);
-                    }, 1000); // 1-second delay
+                    }, 1000);
 
                     sessionHistory.unshift({ sourceFile: originalFileForHistory.name });
                     updateHistoryList();
