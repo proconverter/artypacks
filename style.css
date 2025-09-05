@@ -125,7 +125,7 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Accordion Styles --- */
 .info-accordion { 
     max-width: 100%; 
-    text-align: left; /* Changed to left for better list alignment */
+    text-align: center;
 }
 
 .accordion-item { 
@@ -163,70 +163,26 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #52525b; 
     font-size: 16px; 
     line-height: 1.6; 
-    padding: 0 20px; /* Added horizontal padding */
+    text-align: center;
+    padding-top: 10px;
 }
 
 .accordion-answer p {
+    margin-left: auto;
+    margin-right: auto;
     max-width: 100%; 
-    margin-bottom: 10px;
 }
 
-.accordion-answer h3 {
-    margin-top: 10px;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-/* FIX #1: Truncation Fix */
+/* *** CHANGE #1: Updated max-height for accordion content *** */
 .accordion-item.open .accordion-answer { 
-    max-height: 100vh; /* Use a dynamic value to prevent clipping */
+    max-height: 300vh; /* Use a very large dynamic value to prevent clipping */
     padding-bottom: 25px; 
     transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
 }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
-/* FIX #3: Indentation Fix for FAQ Lists */
-.accordion-answer ol {
-    list-style: none;
-    counter-reset: faq-counter;
-    padding-left: 0;
-    margin-bottom: 20px;
-}
-
-.accordion-answer li {
-    font-weight: 600;
-    font-size: 16px;
-    color: #374151;
-    margin-top: 20px;
-    counter-increment: faq-counter;
-    padding-left: 25px; /* Creates space for the number */
-    position: relative;
-}
-
-.accordion-answer li::before {
-    content: counter(faq-counter) ".";
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-weight: 600;
-    color: #374151;
-}
-
-.accordion-answer li p,
-.accordion-answer li ul {
-    font-weight: 400;
-    font-size: 16px;
-    color: #52525b;
-    margin-top: 5px;
-}
-
-.accordion-answer li ul {
-    list-style-type: disc;
-    padding-left: 20px; /* Indent for nested bullet points */
-}
-
 /* --- Pricing Accordion --- */
-.pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; text-align: center; }
+.pricing-details { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
 .price-pack { border: 1px solid #e5e5e5; padding: 15px; border-radius: 12px; }
 .price-pack h4 { margin-bottom: 5px; }
 .price-pack p { font-size: 14px; color: #52525b; margin-bottom: 0; max-width: 100%; }
@@ -351,7 +307,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     flex-direction: column; 
     gap: 15px; 
     margin-top: 10px; 
-    text-align: center;
 }
 
 .contact-form input, 
@@ -437,160 +392,4 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- License Status Message --- */
 .license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
 .license-status-message.checking,
-.license-status-message.valid { 
-    color: #16a34a; 
-}
-.license-status-message.invalid { color: #dc2626; }
-.license-status-message a { font-weight: 700; text-decoration: underline; }
-
-/* --- Drop Zone Styles --- */
-.drop-zone { border: 2px dashed #d4d4d8; border-radius: 12px; padding: 40px 30px; text-align: center; transition: border-color 0.3s ease, background-color 0.3s ease; }
-.drop-zone.disabled { cursor: not-allowed; background-color: #f9fafb; opacity: 0.6; }
-.drop-zone:not(.disabled) { cursor: pointer; }
-.drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
-
-/* FIX #2: Drop Zone Icon Fix */
-.drop-zone-icon { 
-    width: 48px; /* Reset to original intended size */
-    height: 48px; 
-    margin-bottom: 12px; 
-    opacity: 0.5; 
-    fill: #71717a; 
-}
-
-.drop-zone-prompt p { 
-    margin: 0; 
-    color: #52525b; 
-    max-width: 100%; 
-    font-size: 16px; 
-}
-.drop-zone-prompt p strong { 
-    color: #18181b; 
-    font-weight: 600; 
-}
-.drop-zone-limits { 
-    font-size: 14px !important;
-    color: #a1a1aa; 
-    margin-top: 8px !important; 
-}
-
-/* --- File List Styles --- */
-#file-list { margin-top: 15px; text-align: left; font-size: 14px; }
-.file-list-container { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.file-list-container li { 
-    background-color: #f4f4f5; 
-    padding: 8px 12px; 
-    border-radius: 8px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-.remove-file-btn { 
-    background: none; 
-    border: none; 
-    font-size: 20px; 
-    color: #71717a; 
-    cursor: pointer; 
-    line-height: 1; 
-    padding: 2px 5px; 
-}
-.remove-file-btn:hover { color: #18181b; }
-
-/* --- Activation Notice --- */
-.activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
-
-/* --- App Status & Progress --- */
-.app-status { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 20px; }
-.progress-bar { width: 100%; height: 8px; background-color: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-.progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 0.3s ease; }
-#status-message { font-weight: 500; color: #3f3f46; }
-
-/* --- History Section Styles --- */
-.history-section {
-    width: 100%;
-    max-width: 550px;
-    background-color: #f9fafb;
-    border: 1px solid #e5e5e5;
-    border-radius: 16px;
-    padding: 25px 30px;
-    text-align: left;
-}
-.history-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 15px;
-    text-align: center;
-}
-.history-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.history-item {
-    background-color: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-.history-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.history-item-info span {
-    font-weight: 600;
-    font-size: 14px;
-}
-.history-item-info p {
-    font-size: 12px;
-    color: #71717a;
-    max-width: 100%;
-    margin: 0;
-}
-.history-download-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    white-space: nowrap;
-}
-.history-download-btn:hover {
-    background-color: #0056b3;
-}
-
-/* --- Responsive Design --- */
-@media (min-width: 768px) {
-    .how-it-works-grid { grid-template-columns: repeat(3, 1fr); }
-    .pricing-details { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 767px) {
-    h1 { font-size: 36px; }
-    .h1-subline { font-size: 24px; }
-    h2.section-title { font-size: 28px; }
-    .master-card { padding: 40px 20px; }
-    body { align-items: flex-start; }
-
-    .cta-button:disabled {
-        background-color: #e5e7eb;
-        color: #9ca3af;
-        border: 1px solid #d1d5db;
-    }
-}
-
-.hidden {
-    display: none !important;
-}
+.license
