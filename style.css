@@ -173,8 +173,9 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 100%; 
 }
 
+/* FIX #1: Truncation Fix */
 .accordion-item.open .accordion-answer { 
-    max-height: 100vh; /* Use viewport height as a dynamic, large value */
+    max-height: 3000px; /* Generous height to prevent content clipping */
     padding-bottom: 25px; 
     transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
 }
