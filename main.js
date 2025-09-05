@@ -131,11 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        // --- THIS IS THE NEW UPLOAD FLOW LOGIC ---
         const isDropZoneDisabled = !isLicenseValid || uploadedFile !== null;
         dropZone.classList.toggle('disabled', isDropZoneDisabled);
         dropZone.title = !isLicenseValid ? 'Please enter a valid license key to upload files.' : (uploadedFile !== null ? 'Remove the current file to upload a new one.' : '');
-        // --- END OF NEW LOGIC ---
 
         convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
         activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
@@ -210,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        // --- THIS IS THE CRITICAL BUG FIX ---
+        // --- THIS IS THE CORRECTED LINE ---
         formData.append('file', uploadedFile);
-        // --- END OF BUG FIX ---
+        // --- END OF CORRECTION ---
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
