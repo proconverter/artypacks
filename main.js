@@ -162,22 +162,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processFiles = (files) => {
-        // --- THIS IS THE MODIFIED LOGIC ---
+        // --- THIS IS THE CORRECTED LOGIC ---
+
+        // 1. Check if a file is already uploaded.
+        if (uploadedFiles.length > 0) {
+            alert("Please remove the current file before uploading a new one.");
+            return;
+        }
+
+        // 2. Check if the user is trying to upload more than one file.
         if (files.length > 1) {
             alert("Please upload only one .brushset file at a time.");
-            return; // Stop processing if more than one file is dropped
+            return;
         }
-        
+
+        // 3. Filter for valid .brushset files from the single attempted upload.
         let newFiles = Array.from(files).filter(file => file.name.endsWith('.brushset'));
-        
+
+        // 4. Check if the single file is of the correct type.
         if (newFiles.length === 0 && files.length > 0) {
             alert("Invalid file type. Please upload only .brushset files.");
             return;
         }
 
-        // Replace the current file list with the new single file, or clear it.
-        uploadedFiles = newFiles; 
-        // --- END OF MODIFIED LOGIC ---
+        // 5. If all checks pass, add the single file to the list.
+        uploadedFiles = newFiles;
+        // --- END OF CORRECTED LOGIC ---
 
         updateFileList();
         checkLicenseAndToggleUI();
