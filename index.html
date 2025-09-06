@@ -94,24 +94,17 @@
                 </div>
             </section>
 
-            <!-- *** NEW DOWNLOAD VIEW (HIDDEN BY DEFAULT) *** -->
+            <!-- === DOWNLOAD VIEW (HIDDEN BY DEFAULT) === -->
             <section id="download-view" class="hidden">
                 <div class="download-container">
-                    <img src="/assets/icon-success.svg" alt="Success Checkmark" class="download-success-icon">
+                    <img src="/assets/icon-success.svg?v=1.1" alt="Success Checkmark" class="download-success-icon">
                     <h2>Conversion Successful!</h2>
                     <p>Your file is ready to be downloaded.</p>
+                    <p class="download-expiration-notice">(This download link will expire in 60 minutes. Please save your file promptly.)</p>
                     <p id="download-filename" class="download-filename-display"></p>
                     <button id="download-file-button" class="cta-button">Download File</button>
                     <button id="convert-another-button" class="cta-button secondary">Convert Another File</button>
                 </div>
-            </section>
-
-            <!-- === SESSION HISTORY SECTION === -->
-            <section class="history-section" id="history-section" style="display: none;">
-                <h3 class="history-title">Recent Downloads</h3>
-                <ul class="history-list" id="history-list">
-                    <!-- History items will be injected here by JavaScript -->
-                </ul>
             </section>
 
             <hr class="section-divider">
