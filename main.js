@@ -2,13 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
-    const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-SANDBOX.onrender.com/recover-link"; // Replace with your actual recover endpoint
+    const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-SANDBOX.onrender.com/recover-link";
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    const getLicenseCTA = document.getElementById('get-license-cta');
+    // *** THIS IS THE FIX ***
+    const getLicenseCTA = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -64,7 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
             historySection.style.display = 'none';
-            getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
+            if (getLicenseCTA) {
+                getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
+            }
         }
     };
 
@@ -108,15 +111,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
                     licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    getLicenseCTA.innerHTML = `This license is valid. <a href="${ETSY_STORE_LINK}" target="_blank">Get another one here.</a>`;
+                    if (getLicenseCTA) {
+                        getLicenseCTA.innerHTML = `This license is valid. <a href="${ETSY_STORE_LINK}" target="_blank">Get another one here.</a>`;
+                    }
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
                     licenseStatus.innerHTML = result.message || 'Invalid license key.';
-                    if (result.message && result.message.toLowerCase().includes("credits")) {
-                        getLicenseCTA.innerHTML = `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
-                    } else {
-                        getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
+                    if (getLicenseCTA) {
+                        if (result.message && result.message.toLowerCase().includes("credits")) {
+                            getLicenseCTA.innerHTML = `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
+                        } else {
+                            getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
+                        }
                     }
                 }
                 checkLicenseAndToggleUI();
@@ -164,11 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const checkLicenseAndToggleUI = () => {
         const hasValidFile = uploadedFile && !isFileConverted;
-        
-        // *** THIS IS THE FINAL FIX ***
         const isDropZoneLocked = !isLicenseValid || (uploadedFile !== null);
         dropZone.classList.toggle('disabled', isDropZoneLocked);
-        
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         convertButton.disabled = !(isLicenseValid && hasValidFile);
         activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
@@ -201,7 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
         isFileConverted = false;
         resetStatusUI();
         updateFileList();
-        checkLicenseAndToggleUI();
+        const key = licenseKeyInput.value.trim();
+        if (key) {
+            validateLicenseWithRetries(key);
+        } else {
+            checkLicenseAndToggleUI();
+        }
     };
 
     const handleConversion = () => {
@@ -342,5 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // --- START THE APP ---
     initializeApp();
 });
+// --- END OF FILE ---
