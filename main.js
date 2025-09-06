@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
-    const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-SANDBOX.onrender.com/recover-link";
+    const VITE_RECOVER_API_ENDPOINT = window.env.VITE_RECOVER_API_ENDPOINT; // <-- THIS WAS MISSING
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    const getLicenseCTA = document.querySelector('.get-license-link');
+    const getLicenseCTA = document.querySelector('.get-license-link'); // Correct selector
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = () => {
         if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
         setupEventListeners();
-        checkLicenseAndToggleUI();
     };
 
     // --- EVENT LISTENERS ---
@@ -59,29 +58,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
             validateLicenseWithRetries(key);
-            fetchHistory(key);
         } else {
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
-            historySection.style.display = 'none';
-            if (getLicenseCTA) {
-                getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
-            }
+            if (getLicenseCTA) getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
         }
     };
 
     const getCreditsMessage = (credits) => {
         if (credits > 0) {
-            return `<strong>Credit is valid.</strong> You're ready to convert!`;
+            return `Credit is valid. You're ready to convert!`;
         } else {
-            return `<strong>This license has 0 credits left.</strong>`;
+            return `This license has no credits left.`;
         }
     };
 
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
-        const coldStartMessages = ["Initializing...", "Waking servers...", "Authenticating..."];
+
+        const coldStartMessages = ["Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment..."];
         let messageIndex = 0;
 
         if (!isPostConversion) {
@@ -106,24 +102,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(messageIntervalId);
                 const result = await response.json();
 
-                if (response.ok && result.is_valid) {
+                if (response.ok && result.isValid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
-                    if (getLicenseCTA) {
-                        getLicenseCTA.innerHTML = `This license is valid. <a href="${ETSY_STORE_LINK}" target="_blank">Get another one here.</a>`;
+                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    if (getLicenseCTA) getLicenseCTA.innerHTML = `This license has ${result.credits} credit${result.credits === 1 ? '' : 's'} remaining.`;
+                    if (result.credits <= 0) {
+                        isLicenseValid = false;
+                        licenseStatus.className = 'license-status-message invalid';
+                        if (getLicenseCTA) getLicenseCTA.innerHTML = `Your license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
                     }
+                    // *** THIS IS THE FIX FOR THE MISSING HISTORY ***
+                    fetchHistory(key);
                 } else {
                     isLicenseValid = false;
                     licenseStatus.className = 'license-status-message invalid';
                     licenseStatus.innerHTML = result.message || 'Invalid license key.';
-                    if (getLicenseCTA) {
-                        if (result.message && result.message.toLowerCase().includes("credits")) {
-                            getLicenseCTA.innerHTML = `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
-                        } else {
-                            getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
-                        }
-                    }
+                    if (getLicenseCTA) getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
                 }
                 checkLicenseAndToggleUI();
                 return;
@@ -146,9 +141,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
+    const handleFileSelect = (e) => processFiles(e.target.files);
+
+    const checkLicenseAndToggleUI = () => {
+        const canUpload = isLicenseValid && !uploadedFile;
+        dropZone.classList.toggle('disabled', !canUpload);
+        dropZone.title = canUpload ? '' : 'Please enter a valid license key to upload a file.';
+        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
+        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
+    };
+
     const processFiles = (files) => {
         if (uploadedFile) {
-            alert("A file is already loaded. Please remove the existing file to upload a new one.");
+            alert("A file has already been uploaded. Please remove it before adding a new one.");
             return;
         }
         if (files.length > 1) {
@@ -165,18 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
-    const handleFileSelect = (e) => { processFiles(e.target.files); fileInput.value = ''; };
-
-    const checkLicenseAndToggleUI = () => {
-        const hasValidFile = uploadedFile && !isFileConverted;
-        const isDropZoneLocked = !isLicenseValid || (uploadedFile !== null);
-        dropZone.classList.toggle('disabled', isDropZoneLocked);
-        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
-        convertButton.disabled = !(isLicenseValid && hasValidFile);
-        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
-    };
-
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (!uploadedFile) {
@@ -185,11 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         fileList.classList.remove('hidden');
         const listItem = document.createElement('li');
+        if (isFileConverted) {
+            listItem.classList.add('converted');
+        }
         const fileSize = (uploadedFile.size / 1024 / 1024).toFixed(2);
-        let checkmark = isFileConverted ? '<span class="checkmark">✓</span>' : '';
-        listItem.innerHTML = `<span>${uploadedFile.name} (${fileSize} MB)</span>${checkmark}`;
-        if (isFileConverted) listItem.classList.add('converted');
-
+        listItem.innerHTML = `<span>${isFileConverted ? '✓ ' : ''}${uploadedFile.name} (${fileSize} MB)</span>`;
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-file-btn';
         removeBtn.innerHTML = '&times;';
@@ -204,12 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isFileConverted = false;
         resetStatusUI();
         updateFileList();
-        const key = licenseKeyInput.value.trim();
-        if (key) {
-            validateLicenseWithRetries(key);
-        } else {
-            checkLicenseAndToggleUI();
-        }
+        checkLicenseAndToggleUI();
     };
 
     const handleConversion = () => {
@@ -226,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
         formData.append('file', uploadedFile);
-        formData.append('originalFilename', uploadedFile.name);
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
@@ -241,24 +229,24 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.onload = async () => {
             try {
                 const result = JSON.parse(xhr.responseText);
+
                 if (xhr.status >= 200 && xhr.status < 300) {
+                    const downloadFilename = `ArtyPacks_${uploadedFile.name.replace(/\.brushset$/, '')}.zip`;
+                    statusMessage.innerHTML = `Conversion Successful! <a href="${result.downloadUrl}" download="${downloadFilename}">Click Here to Download.</a><p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
                     progressBar.style.display = 'none';
-                    const suggestedFilename = uploadedFile.name.replace('.brushset', '.zip');
-                    // *** THIS IS THE FIX FOR THE DIALOG BOX ***
-                    statusMessage.innerHTML = `<strong>Conversion Successful!</strong> <a href="${result.downloadUrl}" download="${suggestedFilename}" class="download-link">Click Here to Download.</a><p class="post-conversion-note">To convert another file, remove the completed one above.</p>`;
                     isFileConverted = true;
                     updateFileList();
-                    fetchHistory(licenseKey);
-                    validateLicenseWithRetries(licenseKey, true);
+                    await validateLicenseWithRetries(licenseKey, true);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     licenseKeyInput.disabled = false;
+                    checkLicenseAndToggleUI();
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
                 licenseKeyInput.disabled = false;
+                checkLicenseAndToggleUI();
             }
-            checkLicenseAndToggleUI();
         };
 
         xhr.onerror = () => {
@@ -271,11 +259,48 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
 
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.innerHTML = '';
-        statusMessage.style.color = '';
+    async function fetchHistory(licenseKey) {
+        try {
+            const response = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey })
+            });
+            if (!response.ok) return;
+            const history = await response.json();
+            updateHistoryList(history);
+        } catch (error) {
+            console.error("Failed to fetch history:", error);
+        }
+    }
+
+    const updateHistoryList = (history) => {
+        historyList.innerHTML = '';
+        if (!history || history.length === 0) {
+            historySection.style.display = 'none';
+            return;
+        }
+        historySection.style.display = 'block';
+        history.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.className = 'history-item';
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'history-item-info';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = item.original_filename;
+            const dateP = document.createElement('p');
+            dateP.textContent = `Converted on: ${new Date(item.created_at).toLocaleString()}`;
+            infoDiv.appendChild(titleSpan);
+            infoDiv.appendChild(dateP);
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = item.download_url;
+            downloadBtn.className = 'history-download-btn';
+            downloadBtn.textContent = 'Download';
+            downloadBtn.setAttribute('download', `ArtyPacks_${item.original_filename.replace(/\.brushset$/, '')}.zip`); // <-- FIX FOR DIALOG BOX
+            listItem.appendChild(infoDiv);
+            listItem.appendChild(downloadBtn);
+            historyList.appendChild(listItem);
+        });
     };
 
     const updateProgress = (percentage, message) => {
@@ -284,56 +309,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showError = (message) => {
-        statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc2626';
+        let errorMsg = message;
+        if (typeof message === 'object') {
+            errorMsg = JSON.stringify(message);
+        }
+        statusMessage.innerHTML = `<span style="color: #dc2626;">Error: ${errorMsg}</span>`;
         progressBar.style.display = 'none';
     };
 
-    async function fetchHistory(licenseKey) {
-        try {
-            const response = await fetch(VITE_RECOVER_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey })
-            });
-            const historyData = await response.json();
-            updateHistoryList(historyData);
-        } catch (error) {
-            console.error("Failed to fetch history:", error);
-            historySection.style.display = 'none';
-        }
-    }
-
-    const updateHistoryList = (historyData) => {
-        historyList.innerHTML = '';
-        if (!historyData || historyData.length === 0) {
-            historySection.style.display = 'none';
-            return;
-        }
-        historySection.style.display = 'block';
-        historyData.forEach(item => {
-            const listItem = document.createElement('li');
-            listItem.className = 'history-item';
-            const date = new Date(item.created_at);
-            const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-            const suggestedFilename = item.original_filename.replace('.brushset', '.zip');
-            // *** THIS IS THE FIX FOR THE DIALOG BOX ***
-            listItem.innerHTML = `
-                <div class="history-item-info">
-                    <span>${item.original_filename}</span>
-                    <p>Converted on: ${formattedDate}</p>
-                </div>
-                <a href="${item.download_url}" class="history-download-btn" download="${suggestedFilename}">Download</a>
-            `;
-            historyList.appendChild(listItem);
-        });
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
     };
 
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
-                if (item) item.classList.toggle('open');
+                if (item) {
+                    item.classList.toggle('open');
+                }
             });
         });
     };
