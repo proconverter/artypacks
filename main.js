@@ -2,14 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = window.env.VITE_CONVERT_API_ENDPOINT;
     const VITE_CHECK_API_ENDPOINT = window.env.VITE_CHECK_API_ENDPOINT;
-    const VITE_RECOVER_API_ENDPOINT = window.env.VITE_RECOVER_API_ENDPOINT;
+    const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-SANDBOX.onrender.com/recover-link"; // Replace with your actual recover endpoint
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    const licenseCtaText = document.getElementById('license-cta-text');
-    const licenseCtaContainer = document.getElementById('license-cta-container');
+    const getLicenseCTA = document.getElementById('get-license-cta');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
     const statusMessage = document.getElementById('status-message');
-    const nextStepNotice = document.getElementById('next-step-notice');
     const historySection = document.getElementById('history-section');
     const historyList = document.getElementById('history-list');
     const contactForm = document.getElementById('contact-form');
@@ -28,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE MANAGEMENT ---
     let uploadedFile = null;
-    let isLicenseValid = false;
     let isFileConverted = false;
+    let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
 
@@ -61,32 +59,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
             validateLicenseWithRetries(key);
+            fetchHistory(key);
         } else {
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
-            licenseCtaText.textContent = 'Need a conversion credit?';
-            licenseCtaContainer.style.display = 'block';
             historySection.style.display = 'none';
+            getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
         }
     };
 
-    // --- NEW CREDIT MESSAGING (SIMPLIFIED) ---
     const getCreditsMessage = (credits) => {
         if (credits > 0) {
             return `<strong>Credit is valid.</strong> You're ready to convert!`;
         } else {
-            return `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank"><strong>Get a new conversion credit.</strong></a>`;
+            return `<strong>This license has 0 credits left.</strong>`;
         }
     };
 
-    // --- VALIDATION & RECOVERY LOGIC (UPDATED) ---
     async function validateLicenseWithRetries(key, isPostConversion = false) {
         validationController = new AbortController();
         const signal = validationController.signal;
-
-        const coldStartMessages = [
-            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
-        ];
+        const coldStartMessages = ["Initializing...", "Waking servers...", "Authenticating..."];
         let messageIndex = 0;
 
         if (!isPostConversion) {
@@ -99,80 +92,57 @@ document.addEventListener('DOMContentLoaded', () => {
             messageIntervalId = setInterval(showNextMessage, 3000);
         }
 
-        try {
-            const response = await fetch(VITE_CHECK_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey: key }),
-                signal
-            });
+        for (let attempt = 1; attempt <= 20; attempt++) {
+            try {
+                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ licenseKey: key }),
+                    signal
+                });
 
-            clearInterval(messageIntervalId);
-            const result = await response.json();
+                clearInterval(messageIntervalId);
+                const result = await response.json();
 
-            if (response.ok && result.isValid) {
-                isLicenseValid = true;
-                licenseStatus.className = 'license-status-message valid';
-                licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                if (result.credits > 0) {
-                    licenseCtaContainer.style.display = 'none'; // Hide CTA if credit is valid
+                if (response.ok && result.isValid) {
+                    isLicenseValid = true;
+                    licenseStatus.className = 'license-status-message valid';
+                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    getLicenseCTA.innerHTML = `This license is valid. <a href="${ETSY_STORE_LINK}" target="_blank">Get another one here.</a>`;
                 } else {
-                    licenseCtaText.textContent = 'That license has been used. Need another?';
-                    licenseCtaContainer.style.display = 'block';
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.innerHTML = result.message || 'Invalid license key.';
+                    if (result.message && result.message.toLowerCase().includes("credits")) {
+                        getLicenseCTA.innerHTML = `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
+                    } else {
+                        getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
+                    }
                 }
-                fetchHistory(key); // Fetch history for valid keys
-            } else {
-                isLicenseValid = false;
-                licenseStatus.className = 'license-status-message invalid';
-                licenseStatus.innerHTML = result.message || 'Invalid license key.';
-                licenseCtaText.textContent = "That license wasn't found. Need one?";
-                licenseCtaContainer.style.display = 'block';
-                historySection.style.display = 'none';
-            }
-            checkLicenseAndToggleUI();
+                checkLicenseAndToggleUI();
+                return;
 
-        } catch (error) {
-            if (signal.aborted) return;
-            clearInterval(messageIntervalId);
-            isLicenseValid = false;
-            licenseStatus.className = 'license-status-message invalid';
-            licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
-            checkLicenseAndToggleUI();
+            } catch (error) {
+                if (signal.aborted) {
+                    clearInterval(messageIntervalId);
+                    return;
+                }
+                if (attempt === 20) {
+                    clearInterval(messageIntervalId);
+                    isLicenseValid = false;
+                    licenseStatus.className = 'license-status-message invalid';
+                    licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
+                    checkLicenseAndToggleUI();
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 2500));
+            }
         }
     }
-
-    // --- NEW: FETCH DOWNLOAD HISTORY ---
-    async function fetchHistory(licenseKey) {
-        try {
-            const response = await fetch(VITE_RECOVER_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey })
-            });
-            if (response.ok) {
-                const historyData = await response.json();
-                updateHistoryList(historyData);
-            }
-        } catch (error) {
-            console.error("Could not fetch history:", error);
-        }
-    }
-
-    // --- FILE HANDLING & UI (UPDATED FOR SINGLE FILE) ---
-    const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
-    const handleFileSelect = (e) => processFiles(e.target.files);
-
-    const checkLicenseAndToggleUI = () => {
-        const isReadyToUpload = isLicenseValid && !uploadedFile;
-        dropZone.classList.toggle('disabled', !isReadyToUpload);
-        dropZone.title = isReadyToUpload ? '' : 'Please enter a valid license key to upload a file.';
-        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
-        activationNotice.style.display = uploadedFile ? 'none' : 'block';
-    };
 
     const processFiles = (files) => {
         if (uploadedFile) {
-            alert("You can only process one file at a time. Please remove the current file to upload another.");
+            alert("A file is already loaded. Please remove the existing file to upload a new one.");
             return;
         }
         if (files.length > 1) {
@@ -189,6 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
+    const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
+    const handleFileSelect = (e) => { processFiles(e.target.files); fileInput.value = ''; };
+
+    const checkLicenseAndToggleUI = () => {
+        const hasValidFile = uploadedFile && !isFileConverted;
+        dropZone.classList.toggle('disabled', !isLicenseValid || uploadedFile);
+        dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
+        convertButton.disabled = !(isLicenseValid && hasValidFile);
+        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
+    };
+
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (!uploadedFile) {
@@ -198,21 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
         fileList.classList.remove('hidden');
         const listItem = document.createElement('li');
         const fileSize = (uploadedFile.size / 1024 / 1024).toFixed(2);
-        
-        let content = `<span>${uploadedFile.name} (${fileSize} MB)</span>`;
-        
-        if (isFileConverted) {
-            listItem.classList.add('converted');
-            content += `<span class="checkmark">&#10003;</span>`;
-        }
+        let checkmark = isFileConverted ? '<span class="checkmark">✓</span>' : '';
+        listItem.innerHTML = `<span>${uploadedFile.name} (${fileSize} MB)</span>${checkmark}`;
+        if (isFileConverted) listItem.classList.add('converted');
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-file-btn';
         removeBtn.innerHTML = '&times;';
         removeBtn.title = 'Remove file';
         removeBtn.onclick = () => removeFile();
-        
-        listItem.innerHTML = content;
         listItem.appendChild(removeBtn);
         fileList.appendChild(listItem);
     };
@@ -223,11 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resetStatusUI();
         updateFileList();
         checkLicenseAndToggleUI();
-        const key = licenseKeyInput.value.trim();
-        if (key) validateLicenseWithRetries(key); // Re-validate to reset UI state
     };
 
-    // --- CONVERSION PROCESS (UPDATED) ---
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || !uploadedFile) return;
@@ -237,7 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.display = 'block';
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
-        
+        dropZone.classList.add('disabled');
+
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
         formData.append('file', uploadedFile);
@@ -254,36 +227,68 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         xhr.onload = async () => {
-            licenseKeyInput.disabled = false;
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    updateProgress(100, '');
                     progressBar.style.display = 'none';
-                    statusMessage.innerHTML = `<a href="${result.downloadUrl}" download><strong>Conversion Successful! Click Here to Download.</strong></a>`;
-                    nextStepNotice.textContent = "To convert another file, remove the completed one above.";
+                    statusMessage.innerHTML = `<strong>Conversion Successful!</strong> <a href="${result.downloadUrl}" target="_blank" class="download-link">Click Here to Download.</a><p class="post-conversion-note">To convert another file, remove the completed one above.</p>`;
                     isFileConverted = true;
                     updateFileList();
-                    fetchHistory(licenseKey); // Refresh history
+                    fetchHistory(licenseKey);
+                    
+                    // *** THIS IS THE FINAL FIX ***
+                    // Re-validate the license to show the new "0 credits" status.
+                    validateLicenseWithRetries(licenseKey, true);
+
                 } else {
                     showError(result.message || 'An unknown error occurred.');
+                    licenseKeyInput.disabled = false;
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
+                licenseKeyInput.disabled = false;
             }
-            validateLicenseWithRetries(licenseKey, true); // Re-validate to get latest credit count
+            checkLicenseAndToggleUI();
         };
 
         xhr.onerror = () => {
-            licenseKeyInput.disabled = false;
             showError('A network error occurred. Please check your connection and try again.');
+            licenseKeyInput.disabled = false;
+            checkLicenseAndToggleUI();
         };
 
         updateProgress(10, 'Validating and preparing upload...');
         xhr.send(formData);
     };
-    
-    // --- HISTORY & HELPER FUNCTIONS (UPDATED) ---
+
+    const resetStatusUI = () => {
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.innerHTML = '';
+        statusMessage.style.color = '';
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
+        progressBar.style.display = 'none';
+    };
+
+    async function fetchHistory(licenseKey) {
+        try {
+            const response = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey })
+            });
+            const historyData = await response.json();
+            updateHistoryList(historyData);
+        } catch (error) {
+            console.error("Failed to fetch history:", error);
+            historySection.style.display = 'none';
+        }
+    }
+
     const updateHistoryList = (historyData) => {
         historyList.innerHTML = '';
         if (!historyData || historyData.length === 0) {
@@ -294,55 +299,24 @@ document.addEventListener('DOMContentLoaded', () => {
         historyData.forEach(item => {
             const listItem = document.createElement('li');
             listItem.className = 'history-item';
-            
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'history-item-info';
-            const titleSpan = document.createElement('span');
-            titleSpan.textContent = item.original_filename;
-            const dateP = document.createElement('p');
-            dateP.textContent = `Converted on: ${new Date(item.created_at).toLocaleString()}`;
-            infoDiv.appendChild(titleSpan);
-            infoDiv.appendChild(dateP);
-
-            const downloadLink = document.createElement('a');
-            downloadLink.href = item.download_url;
-            downloadLink.className = 'history-download-btn';
-            downloadLink.textContent = 'Download';
-            downloadLink.setAttribute('download', '');
-
-            listItem.appendChild(infoDiv);
-            listItem.appendChild(downloadLink);
+            const date = new Date(item.created_at);
+            const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            listItem.innerHTML = `
+                <div class="history-item-info">
+                    <span>${item.original_filename}</span>
+                    <p>Converted on: ${formattedDate}</p>
+                </div>
+                <a href="${item.download_url}" class="history-download-btn" target="_blank">Download</a>
+            `;
             historyList.appendChild(listItem);
         });
     };
 
-    const updateProgress = (percentage, message) => {
-        progressFill.style.width = `${percentage}%`;
-        statusMessage.textContent = message;
-    };
-
-    const showError = (message) => {
-        statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc2626';
-        progressBar.style.display = 'none';
-    };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
-        nextStepNotice.textContent = '';
-    };
-
-    // --- ACCORDION & CONTACT FORM (UNCHANGED) ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
-                if (item) {
-                    item.classList.toggle('open');
-                }
+                if (item) item.classList.toggle('open');
             });
         });
     };
