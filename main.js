@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    // *** THIS IS THE FIX ***
     const getLicenseCTA = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
@@ -107,10 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(messageIntervalId);
                 const result = await response.json();
 
-                if (response.ok && result.isValid) {
+                if (response.ok && result.is_valid) {
                     isLicenseValid = true;
                     licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
+                    licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
                     if (getLicenseCTA) {
                         getLicenseCTA.innerHTML = `This license is valid. <a href="${ETSY_STORE_LINK}" target="_blank">Get another one here.</a>`;
                     }
@@ -235,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 const uploadProgress = 10 + (event.loaded / event.total) * 80;
+                // *** THIS IS THE FIX FOR THE TYPO ***
                 updateProgress(uploadProgress, 'Uploading and converting...');
             }
         };
@@ -275,6 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
         progressFill.style.width = '0%';
         statusMessage.innerHTML = '';
         statusMessage.style.color = '';
+    };
+
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
     };
 
     const showError = (message) => {
@@ -351,7 +356,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- START THE APP ---
     initializeApp();
 });
-// --- END OF FILE ---
