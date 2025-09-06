@@ -164,7 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const checkLicenseAndToggleUI = () => {
         const hasValidFile = uploadedFile && !isFileConverted;
-        dropZone.classList.toggle('disabled', !isLicenseValid || uploadedFile);
+        
+        // *** THIS IS THE FINAL FIX ***
+        const isDropZoneLocked = !isLicenseValid || (uploadedFile !== null);
+        dropZone.classList.toggle('disabled', isDropZoneLocked);
+        
         dropZone.title = isLicenseValid ? '' : 'Please enter a valid license key to upload files.';
         convertButton.disabled = !(isLicenseValid && hasValidFile);
         activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
@@ -235,11 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     isFileConverted = true;
                     updateFileList();
                     fetchHistory(licenseKey);
-                    
-                    // *** THIS IS THE FINAL FIX ***
-                    // Re-validate the license to show the new "0 credits" status.
                     validateLicenseWithRetries(licenseKey, true);
-
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     licenseKeyInput.disabled = false;
