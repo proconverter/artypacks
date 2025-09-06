@@ -23,29 +23,29 @@ html::before {
 
 body {
     font-family: 'Inter', sans-serif; color: #18181b; line-height: 1.6;
-    display: flex;
-    justify-content: center;
+    display: flex; 
+    justify-content: center; 
     align-items: center;
     padding: 40px 20px;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
 }
 
-.page-wrapper {
-    width: 100%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
+.page-wrapper { 
+    width: 100%; 
+    max-width: 800px; 
+    display: flex; 
+    flex-direction: column; 
     gap: 0;
     align-items: center;
 }
 
 /* --- Typography --- */
-h1 {
-    font-size: 48px;
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -1.5px;
+h1 { 
+    font-size: 48px; 
+    font-weight: 800; 
+    line-height: 1.2; 
+    letter-spacing: -1.5px; 
 }
 
 .h1-subline {
@@ -65,12 +65,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 /* --- Master Card Styling --- */
 .master-card {
     background-color: #f4f4f4;
-    padding: 50px 40px;
+    padding: 50px 40px; 
     border-radius: 24px 24px 0 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    text-align: center; 
     gap: 30px;
     border: 12px solid #ffffff;
     border-bottom: none;
@@ -123,14 +123,14 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .feature-item p { font-size: 16px; color: #52525b; max-width: 100%; }
 
 /* --- Accordion Styles --- */
-.info-accordion {
-    max-width: 100%;
+.info-accordion { 
+    max-width: 100%; 
     text-align: center;
 }
 
-.accordion-item {
-    width: 100%;
-    border-bottom: 2px solid #d4d4d8;
+.accordion-item { 
+    width: 100%; 
+    border-bottom: 2px solid #d4d4d8; 
 }
 
 .accordion-question {
@@ -156,13 +156,13 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     transition: transform 0.3s ease;
 }
 
-.accordion-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out;
-    color: #52525b;
-    font-size: 16px;
-    line-height: 1.6;
+.accordion-answer { 
+    max-height: 0; 
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding-bottom 0.4s ease-out; 
+    color: #52525b; 
+    font-size: 16px; 
+    line-height: 1.6; 
     text-align: center;
     padding-top: 10px;
 }
@@ -170,18 +170,18 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .accordion-answer p {
     margin-left: auto;
     margin-right: auto;
-    max-width: 100%;
+    max-width: 100%; 
 }
 
-.accordion-item.open .accordion-answer {
+.accordion-item.open .accordion-answer { 
     max-height: 3000px;
-    padding-bottom: 25px;
-    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in;
+    padding-bottom: 25px; 
+    transition: max-height 0.5s ease-in, padding-bottom 0.5s ease-in; 
 }
 .accordion-item.open .accordion-question .icon { transform: rotate(45deg); }
 
 /* --- Page Footer --- */
-.page-footer {
+.page-footer { 
     background-color: #ffffff;
     padding: 20px 25px;
     border-radius: 0 0 24px 24px;
@@ -277,14 +277,14 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 
 /* --- Contact Form Styles --- */
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 10px;
+.contact-form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    margin-top: 10px; 
 }
 
-.contact-form input,
+.contact-form input, 
 .contact-form textarea {
     width: 100%;
     padding: 12px;
@@ -302,52 +302,52 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     border-color: #007bff;
 }
 
-.contact-form textarea {
-    min-height: 120px;
-    resize: vertical;
+.contact-form textarea { 
+    min-height: 120px; 
+    resize: vertical; 
 }
 
-.contact-form button {
+.contact-form button { 
     align-self: center;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    background-color: #18181b;
-    color: #ffffff;
-    transition: background-color 0.2s ease;
+    padding: 12px 24px; 
+    font-size: 16px; 
+    font-weight: 700; 
+    border-radius: 8px; 
+    border: none; 
+    cursor: pointer; 
+    background-color: #18181b; 
+    color: #ffffff; 
+    transition: background-color 0.2s ease; 
 }
 
-.contact-form button:hover {
-    background-color: #3f3f46;
+.contact-form button:hover { 
+    background-color: #3f3f46; 
 }
 
-#form-status {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #f0fdf4;
-    color: #166534;
-    border-radius: 8px;
-    margin-top: 15px;
+#form-status { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px; 
+    background-color: #f0fdf4; 
+    color: #166534; 
+    border-radius: 8px; 
+    margin-top: 15px; 
 }
 
 /* --- App Section Styles --- */
-.app-section {
+.app-section { 
     background-color: #ffffff;
-    border-radius: 16px;
-    padding: 30px;
-    width: 100%;
-    max-width: 550px;
+    border-radius: 16px; 
+    padding: 30px; 
+    width: 100%; 
+    max-width: 550px; 
     border: 2px solid #d4d4d8;
 }
 .app-container { display: flex; flex-direction: column; gap: 30px; }
 .app-step { display: flex; align-items: flex-start; gap: 15px; }
-.step-content {
-    width: 100%;
+.step-content { 
+    width: 100%; 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -365,12 +365,13 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 /* --- License Status Message --- */
-.license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; font-weight: 500; }
-.license-status-message.checking { color: #52525b; }
-.license-status-message.valid { color: #16a34a; }
+.license-status-message { font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px; }
+.license-status-message.checking,
+.license-status-message.valid { 
+    color: #16a34a; 
+}
 .license-status-message.invalid { color: #dc2626; }
 .license-status-message a { font-weight: 700; text-decoration: underline; }
-.license-status-message strong { font-weight: 700; }
 
 /* --- Drop Zone Styles --- */
 .drop-zone { border: 2px dashed #d4d4d8; border-radius: 12px; padding: 40px 30px; text-align: center; transition: border-color 0.3s ease, background-color 0.3s ease; }
@@ -378,89 +379,67 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 .drop-zone:not(.disabled) { cursor: pointer; }
 .drop-zone:not(.disabled):hover, .drop-zone:not(.disabled).dragover { border-color: #007bff; background-color: #f8f9fa; }
 
-.drop-zone-icon {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 12px;
-    opacity: 0.6;
-    fill: #a1a1aa;
+.drop-zone-icon { 
+    width: 32px; 
+    height: 32px; 
+    margin-bottom: 12px; 
+    opacity: 0.6; 
+    fill: #a1a1aa; 
 }
 
-.drop-zone-prompt p {
-    margin: 0;
-    color: #52525b;
-    max-width: 100%;
-    font-size: 16px;
+.drop-zone-prompt p { 
+    margin: 0; 
+    color: #52525b; 
+    max-width: 100%; 
+    font-size: 16px; 
 }
-.drop-zone-prompt p strong {
-    color: #18181b;
-    font-weight: 600;
+.drop-zone-prompt p strong { 
+    color: #18181b; 
+    font-weight: 600; 
 }
-.drop-zone-limits {
+.drop-zone-limits { 
     font-size: 14px !important;
-    color: #a1a1aa;
-    margin-top: 8px !important;
+    color: #a1a1aa; 
+    margin-top: 8px !important; 
 }
 
 /* --- File List Styles --- */
 .file-list-container { list-style: none; padding: 0; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
-.file-list-container li {
-    background-color: #f4f4f5;
-    padding: 8px 12px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
+.file-list-container li { 
+    background-color: #f4f4f5; 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    transition: background-color 0.3s ease;
 }
 .file-list-container li.converted {
-    background-color: #dcfce7; /* Green background for converted files */
-    border: 1px solid #86efac;
-    color: #14532d;
+    background-color: #dcfce7; /* A light green to indicate success */
+    color: #166534;
+    font-weight: 600;
 }
-.checkmark {
-    font-weight: bold;
-    color: #16a34a;
-    margin-left: 8px;
-}
-.remove-file-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    color: #71717a;
-    cursor: pointer;
-    line-height: 1;
-    padding: 2px 5px;
+.remove-file-btn { 
+    background: none; 
+    border: none; 
+    font-size: 20px; 
+    color: #71717a; 
+    cursor: pointer; 
+    line-height: 1; 
+    padding: 2px 5px; 
 }
 .remove-file-btn:hover { color: #18181b; }
 
 /* --- Activation Notice --- */
 .activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
+.post-conversion-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
 
 /* --- App Status & Progress --- */
-.app-status { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 15px; }
-
-/* *** THIS IS THE FIX *** */
-.progress-bar {
-    width: 100%;
-    height: 12px; /* Made slightly taller for better visibility */
-    background-color: #e9ecef; /* A lighter grey for the background track */
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 10px;
-    border: 1px solid #dee2e6; /* Added a subtle border */
-}
-.progress-fill {
-    width: 0%;
-    height: 100%;
-    background-color: #007bff; /* The blue moving bar */
-    transition: width 0.4s ease; /* Slightly smoother transition */
-    display: block; /* Ensures it is always visible */
-}
-
+.app-status { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 20px; }
+.progress-bar { width: 100%; height: 8px; background-color: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+.progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 0.3s ease; }
 #status-message { font-weight: 500; color: #3f3f46; }
-.download-link { text-decoration: underline; }
-.post-conversion-note { font-size: 14px; color: #71717a; margin-top: 8px; }
+#status-message a { text-decoration: underline; }
 
 /* --- History Section Styles --- */
 .history-section {
@@ -501,10 +480,14 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     display: flex;
     flex-direction: column;
     gap: 5px;
+    overflow: hidden;
 }
 .history-item-info span {
     font-weight: 600;
     font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .history-item-info p {
     font-size: 12px;
@@ -523,67 +506,10 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     cursor: pointer;
     text-decoration: none;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 .history-download-btn:hover {
     background-color: #0056b3;
-}
-
-/* --- FAQ Accordion Content Styles --- */
-.accordion-answer {
-    text-align: left;
-}
-.accordion-answer h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #18181b;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 8px;
-    margin-top: 20px;
-    margin-bottom: 15px;
-}
-.accordion-answer h3:first-child {
-    margin-top: 0;
-}
-.accordion-answer ol {
-    list-style: none;
-    counter-reset: faq-counter;
-    padding-left: 0;
-}
-.accordion-answer li {
-    font-weight: 600;
-    font-size: 16px;
-    color: #374151;
-    margin-top: 20px;
-    counter-increment: faq-counter;
-    padding-left: 25px;
-    position: relative;
-}
-.accordion-answer li::before {
-    content: counter(faq-counter) ".";
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-weight: 600;
-    color: #374151;
-}
-.accordion-answer li p {
-    font-weight: 400;
-    font-size: 15px;
-    color: #52525b;
-    max-width: 100%;
-    margin-top: 5px;
-    padding-left: 25px;
-}
-.accordion-answer li ul {
-    list-style-type: disc;
-    margin-top: 10px;
-    padding-left: 45px;
-}
-.accordion-answer li ul li {
-    font-weight: 400;
-    font-size: 15px;
-    color: #52525b;
-    margin-top: 5px;
 }
 
 /* --- Responsive Design --- */
@@ -607,4 +533,133 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 .hidden {
     display: none !important;
+}
+
+/* =============================================== */
+/* FAQ Accordion Content Styles                    */
+/* =============================================== */
+
+.accordion-answer {
+    text-align: left;
+}
+
+.accordion-answer h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #18181b;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.accordion-answer h3:first-child {
+    margin-top: 0;
+}
+
+.accordion-answer ol {
+    list-style: none;
+    counter-reset: faq-counter;
+    padding-left: 0;
+}
+
+.accordion-answer li {
+    font-weight: 600;
+    font-size: 16px;
+    color: #374151;
+    margin-top: 20px;
+    counter-increment: faq-counter;
+    padding-left: 25px;
+    position: relative;
+}
+
+.accordion-answer li::before {
+    content: counter(faq-counter) ".";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 600;
+    color: #374151;
+}
+
+
+.accordion-answer li p {
+    font-weight: 400;
+    font-size: 15px;
+    color: #52525b;
+    max-width: 100%;
+    margin-top: 5px;
+    padding-left: 25px;
+}
+
+.accordion-answer li ul {
+    list-style-type: disc;
+    margin-top: 10px;
+    padding-left: 45px;
+}
+
+.accordion-answer li ul li {
+    font-weight: 400;
+    font-size: 15px;
+    color: #52525b;
+    margin-top: 5px;
+}
+
+/* =============================================== */
+/* NEW DOWNLOAD VIEW STYLES                        */
+/* =============================================== */
+
+#download-view {
+    width: 100%;
+    max-width: 550px;
+    text-align: center;
+}
+
+.download-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 2px solid #d4d4d8;
+}
+
+.download-success-icon {
+    width: 64px;
+    height: 64px;
+}
+
+.download-container h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #18181b;
+}
+
+.download-container p {
+    font-size: 16px;
+    color: #52525b;
+    max-width: 100%;
+}
+
+.download-filename-display {
+    font-weight: 600;
+    font-size: 18px;
+    color: #3f3f46;
+    background-color: #f4f4f5;
+    padding: 10px 20px;
+    border-radius: 8px;
+    word-break: break-all;
+}
+
+#download-file-button {
+    width: 100%;
+    max-width: 300px;
+}
+
+#convert-another-button {
+    width: 100%;
+    max-width: 300px;
+    margin-top: -10px; /* Reduce space between buttons */
 }
