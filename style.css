@@ -55,7 +55,7 @@ h1 {
     letter-spacing: -0.5px;
 }
 
-h2.section-title { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
+h2 { font-size: 36px; font-weight: 800; line-height: 1.2; letter-spacing: -1px; text-align: center; }
 h3 { font-size: 18px; font-weight: 700; }
 h4 { font-size: 16px; font-weight: 700; }
 h5 { font-size: 15px; font-weight: 700; }
@@ -404,7 +404,8 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 /* --- File List Styles --- */
-.file-list-container { list-style: none; padding: 0; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+#file-list { margin-top: 15px; text-align: left; font-size: 14px; }
+.file-list-container { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .file-list-container li { 
     background-color: #f4f4f5; 
     padding: 8px 12px; 
@@ -412,12 +413,6 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    transition: background-color 0.3s ease;
-}
-.file-list-container li.converted {
-    background-color: #dcfce7; /* A light green to indicate success */
-    color: #166534;
-    font-weight: 600;
 }
 .remove-file-btn { 
     background: none; 
@@ -432,85 +427,12 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 /* --- Activation Notice --- */
 .activation-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
-.post-conversion-notice { font-size: 14px; color: #71717a; text-align: center; margin-top: 15px; max-width: 100%; }
 
 /* --- App Status & Progress --- */
 .app-status { margin-top: 20px; text-align: center; display: flex; flex-direction: column; gap: 20px; }
 .progress-bar { width: 100%; height: 8px; background-color: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
 .progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 0.3s ease; }
 #status-message { font-weight: 500; color: #3f3f46; }
-#status-message a { text-decoration: underline; }
-
-/* --- History Section Styles --- */
-.history-section {
-    width: 100%;
-    max-width: 550px;
-    background-color: #f9fafb;
-    border: 1px solid #e5e5e5;
-    border-radius: 16px;
-    padding: 25px 30px;
-    text-align: left;
-}
-.history-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 15px;
-    text-align: center;
-}
-.history-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.history-item {
-    background-color: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-.history-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    overflow: hidden;
-}
-.history-item-info span {
-    font-weight: 600;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.history-item-info p {
-    font-size: 12px;
-    color: #71717a;
-    max-width: 100%;
-    margin: 0;
-}
-.history-download-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.history-download-btn:hover {
-    background-color: #0056b3;
-}
 
 /* --- Responsive Design --- */
 @media (min-width: 768px) {
@@ -606,24 +528,24 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 }
 
 /* =============================================== */
-/* NEW DOWNLOAD VIEW STYLES                        */
+/* Download View Styles                            */
 /* =============================================== */
 
 #download-view {
     width: 100%;
     max-width: 550px;
-    text-align: center;
+    background-color: #ffffff;
+    border: 2px solid #d4d4d8;
+    border-radius: 16px;
+    padding: 40px 30px;
 }
 
 .download-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: 20px;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 16px;
-    border: 2px solid #d4d4d8;
 }
 
 .download-success-icon {
@@ -633,20 +555,25 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
 
 .download-container h2 {
     font-size: 28px;
-    font-weight: 800;
-    color: #18181b;
+    margin-top: 0;
 }
 
 .download-container p {
     font-size: 16px;
     color: #52525b;
     max-width: 100%;
+    margin: 0;
+}
+
+.download-expiration-notice {
+    font-size: 14px !important;
+    color: #71717a !important;
+    margin-top: -10px !important;
 }
 
 .download-filename-display {
-    font-weight: 600;
-    font-size: 18px;
-    color: #3f3f46;
+    font-family: monospace;
+    font-size: 14px !important;
     background-color: #f4f4f5;
     padding: 10px 20px;
     border-radius: 8px;
