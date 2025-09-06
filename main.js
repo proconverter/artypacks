@@ -269,11 +269,27 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
 
-    const forceDownload = (url, filename) => {
+    // *** THIS IS THE NEW, MOST ROBUST DOWNLOAD FUNCTION ***
+    const forceDownload = async (url, filename) => {
         statusMessage.textContent = 'Preparing download...';
-        fetch(url)
-            .then(response => response.blob())
-            .then(blob => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+
+            // Modern method: File System Access API
+            if (window.showSaveFilePicker) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: 'ZIP file',
+                        accept: { 'application/zip': ['.zip'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            } else {
+                // Fallback method for older browsers
                 const blobUrl = URL.createObjectURL(blob);
                 const tempLink = document.createElement('a');
                 tempLink.href = blobUrl;
@@ -281,12 +297,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.appendChild(tempLink);
                 tempLink.click();
                 document.body.removeChild(tempLink);
-                URL.revokeObjectURL(blobUrl); // Clean up the blob URL
+                URL.revokeObjectURL(blobUrl);
+            }
 
-                // Restore the original success message
+            // Restore the original success message
+            const restoredLink = document.createElement('a');
+            restoredLink.href = '#';
+            restoredLink.textContent = 'Click Here to Download Again.';
+            restoredLink.onclick = (e) => {
+                e.preventDefault();
+                forceDownload(url, filename);
+            };
+            statusMessage.innerHTML = `Conversion Successful! `;
+            statusMessage.appendChild(restoredLink);
+            statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
+
+        } catch (error) {
+            // Handle user cancelling the save dialog, or other errors
+            if (error.name === 'AbortError') {
+                // User cancelled the save. Restore the link.
                 const restoredLink = document.createElement('a');
                 restoredLink.href = '#';
-                restoredLink.textContent = 'Click Here to Download Again.';
+                restoredLink.textContent = 'Click Here to Download.';
                 restoredLink.onclick = (e) => {
                     e.preventDefault();
                     forceDownload(url, filename);
@@ -294,10 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusMessage.innerHTML = `Conversion Successful! `;
                 statusMessage.appendChild(restoredLink);
                 statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
-            })
-            .catch(() => {
+            } else {
                 showError('Failed to download the file.');
-            });
+            }
+        }
     };
 
     async function fetchHistory(licenseKey) {
@@ -339,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.textContent = 'Download';
             const downloadFilename = `ArtyPacks_${item.original_filename.replace(/\.brushset$/, '')}.zip`;
             downloadBtn.onclick = (e) => {
-                // *** THIS IS THE FIX FOR THE HISTORY BUTTON ***
                 e.preventDefault();
                 forceDownload(item.download_url, downloadFilename);
             };
