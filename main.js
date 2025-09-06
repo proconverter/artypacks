@@ -231,17 +231,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const downloadFilename = `ArtyPacks_${uploadedFile.name.replace(/\.brushset$/, '')}.zip`;
-                    // *** THIS IS THE FIX FOR THE DIALOG BOX ***
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = '#';
-                    downloadLink.textContent = 'Click Here to Download.';
-                    downloadLink.onclick = (e) => {
+                    const successLink = document.createElement('a');
+                    successLink.href = '#';
+                    successLink.textContent = 'Click Here to Download.';
+                    successLink.onclick = (e) => {
                         e.preventDefault();
                         forceDownload(result.downloadUrl, downloadFilename);
                     };
                     
                     statusMessage.innerHTML = `Conversion Successful! `;
-                    statusMessage.appendChild(downloadLink);
+                    statusMessage.appendChild(successLink);
                     statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
                     
                     progressBar.style.display = 'none';
@@ -270,28 +269,30 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
 
-    // *** THIS IS THE NEW HELPER FUNCTION FOR FORCING DOWNLOADS ***
     const forceDownload = (url, filename) => {
-        statusMessage.textContent = 'Preparing download...'; // Give user feedback
+        statusMessage.textContent = 'Preparing download...';
         fetch(url)
             .then(response => response.blob())
             .then(blob => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const blobUrl = URL.createObjectURL(blob);
+                const tempLink = document.createElement('a');
+                tempLink.href = blobUrl;
+                tempLink.download = filename;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                URL.revokeObjectURL(blobUrl); // Clean up the blob URL
+
                 // Restore the original success message
-                const downloadLink = document.createElement('a');
-                downloadLink.href = '#';
-                downloadLink.textContent = 'Click Here to Download Again.';
-                downloadLink.onclick = (e) => {
+                const restoredLink = document.createElement('a');
+                restoredLink.href = '#';
+                restoredLink.textContent = 'Click Here to Download Again.';
+                restoredLink.onclick = (e) => {
                     e.preventDefault();
                     forceDownload(url, filename);
                 };
                 statusMessage.innerHTML = `Conversion Successful! `;
-                statusMessage.appendChild(downloadLink);
+                statusMessage.appendChild(restoredLink);
                 statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
             })
             .catch(() => {
@@ -333,11 +334,12 @@ document.addEventListener('DOMContentLoaded', () => {
             infoDiv.appendChild(titleSpan);
             infoDiv.appendChild(dateP);
             const downloadBtn = document.createElement('a');
-            downloadBtn.href = '#'; // Changed to # to prevent navigation
+            downloadBtn.href = '#';
             downloadBtn.className = 'history-download-btn';
             downloadBtn.textContent = 'Download';
             const downloadFilename = `ArtyPacks_${item.original_filename.replace(/\.brushset$/, '')}.zip`;
-            downloadBtn.onclick = (e) => { // Added onclick handler
+            downloadBtn.onclick = (e) => {
+                // *** THIS IS THE FIX FOR THE HISTORY BUTTON ***
                 e.preventDefault();
                 forceDownload(item.download_url, downloadFilename);
             };
