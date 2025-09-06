@@ -234,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 const uploadProgress = 10 + (event.loaded / event.total) * 80;
-                // *** THIS IS THE FIX FOR THE TYPO ***
                 updateProgress(uploadProgress, 'Uploading and converting...');
             }
         };
@@ -248,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     isFileConverted = true;
                     updateFileList();
                     fetchHistory(licenseKey);
+                    // *** THIS IS THE FIX FOR THE STALE MESSAGE ***
                     validateLicenseWithRetries(licenseKey, true);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
