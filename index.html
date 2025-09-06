@@ -11,7 +11,9 @@
     <script>
         window.env = {
             VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/convert",
-            VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/check-license"
+            VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/check-license",
+            // IMPORTANT: Add the new recovery endpoint URL here
+            VITE_RECOVER_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/recover-link"
         };
     </script>
     
@@ -30,7 +32,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(          ){dataLayer.push(arguments);}
+      function gtag(           ){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-8EZB1B931D');
     </script>
@@ -44,7 +46,15 @@
                 <h1>Convert .brushset files to PNGs right in your browser.   
 <span class="h1-subline">Works on PC, Mac, Android, and iOS.</span></h1>
                 <p class="tagline">Stop screenshotting. Start creating. Our tool turns .brushset files into ready-to-use PNGs in seconds.</p>
-                <p class="get-license-link">Need a license? <a href="https://www.etsy.com/shop/artypacks" target="_blank">Get one here.</a></p>
+                
+                <!-- *** THIS IS THE FIX *** -->
+                <!-- Replaced the old static link with the new dynamic container -->
+                <p id="license-cta-container" class="get-license-link">
+                    <span id="license-cta-text">Need a conversion credit?</span> 
+                    <a href="https://www.etsy.com/shop/artypacks" target="_blank">Get one here.</a>
+                </p>
+                <!-- *** END OF FIX *** -->
+
             </header>
 
             <!-- === THE CONVERTER APP UI === -->
@@ -67,7 +77,7 @@
                                 <div class="drop-zone-prompt">
                                     <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate file here</strong></p>
-                                    <p class="drop-zone-limits">or click to upload (1 Credit = 1 File, 50MB Max )</p>
+                                    <p class="drop-zone-limits">or click to upload (1 Credit = 1 File, 50MB Max  )</p>
                                 </div>
                                 <input type="file" id="file-input" accept=".brushset" style="display: none;">
                             </div>
@@ -89,13 +99,15 @@
                             <div class="progress-fill" id="progress-fill"></div>
                         </div>
                         <p id="status-message"></p>
+                        <!-- This new element is for the "remove file to continue" message -->
+                        <p id="next-step-notice"></p> 
                     </div>
                 </div>
             </section>
 
             <!-- === SESSION HISTORY SECTION === -->
             <section class="history-section" id="history-section" style="display: none;">
-                <h3 class="history-title">Session Download History</h3>
+                <h3 class="history-title">Recent Downloads (Last 48 Hours)</h3>
                 <ul class="history-list" id="history-list">
                     <!-- History items will be injected here by JavaScript -->
                 </ul>
@@ -139,74 +151,13 @@
                     </div>
                     <div class="accordion-answer">
                         <h3>Pricing & Credits</h3>
-                        <ol>
-                            <!-- *** CORRECTED FAQ ITEM #1 *** -->
-                            <li>
-                                How does the pricing work?
-                                <p>Our pricing is simple and transparent. We sell single-use licenses on a pay-as-you-go basis. There are no subscriptions or hidden fees.</p>
-                            </li>
-                            <!-- *** CORRECTED FAQ ITEM #2 *** -->
-                            <li>
-                                What is a “credit”?
-                                <p>It’s simple: <strong>1 Credit lets you convert 1 Procreate `.brushset` file.</strong> Each `.brushset` file can be up to 50MB.</p>
-                            </li>
-                            <li>
-                                Do my credits expire?
-                                <p>Never. Your credits are yours until you use them.</p>
-                            </li>
-                            <li>
-                                Do you offer custom or bulk credit packs?
-                                <p>Yes. If you are a power user or a studio that needs a large number of conversions, please use the contact form below to inquire about a Bespoke Pack.</p>
-                            </li>
-                        </ol>
+                        <p>Our pricing is simple and transparent. We sell single-use licenses on a pay-as-you-go basis. There are no subscriptions or hidden fees. It’s simple: <strong>1 Credit lets you convert 1 Procreate `.brushset` file.</strong></p>
 
                         <h3>Technical Questions</h3>
-                        <ol>
-                            <li>
-                                What brush types are supported?
-                                <p>Our service is designed exclusively for <strong>Procreate stamp brushes.</strong> It is not designed for dynamic painting, texture, or pattern brushes. Our tool extracts the core stamp image at its native resolution. For best results, the original stamp image should be 1024x1024px or larger.</p>
-                            </li>
-                            <li>
-                                What is the maximum file size?
-                                <p>Each `.brushset` file can be up to <strong>50MB</strong>. For sets larger than this, we recommend splitting them into smaller sets within Procreate before uploading to ensure a fast and reliable conversion.</p>
-                            </li>
-                            <li>
-                                Are the converted PNG files transparent?
-                                <p>Currently, all converted PNGs are exported with a solid white background to ensure maximum compatibility and processing speed. The white background can be easily removed in any standard design software.</p>
-                            </li>
-                            <li>
-                                Do I need an iPad or Mac to use this service?
-                                <p>Not at all! Our converter is a web-based tool that works in any modern browser on any device, including Windows, Mac, Android, and iOS.</p>
-                            </li>
-                        </ol>
-
-                        <h3>File & Download Questions</h3>
-                        <ol>
-                            <li>
-                                How do I find my `.brushset` files on my iPad?
-                                <p>You first need to export your brushes from Procreate to the Files app.</p>
-                                <ul>
-                                    <li><strong>In Procreate:</strong> Open the Brush Library, swipe left on the brush set, and tap “Share”.</li>
-                                    <li><strong>Save to Files:</strong> In the share menu, choose “Save to Files”. We recommend creating a folder named “Brush Exports” to keep things organized.</li>
-                                </ul>
-                            </li>
-                            <li>
-                                Where do my downloaded files go?
-                                <p>After conversion, your `.zip` file is downloaded directly through your browser. You can find it in your browser’s “Downloads” list or in your computer’s “Downloads” folder. On mobile, check your “Files” app.</p>
-                            </li>
-                            <li>
-                                Can I convert brushes from Procreate Dreams?
-                                <p>Our converter is compatible with standard `.brushset` files from Procreate 5 and newer. At this time, it does not support files from Procreate Dreams or very old, legacy Procreate versions due to different file structures.</p>
-                            </li>
-                        </ol>
-
+                        <p>Our service is designed exclusively for <strong>Procreate stamp brushes.</strong> It is not designed for dynamic painting, texture, or pattern brushes. Each `.brushset` file can be up to <strong>50MB</strong>. All converted PNGs are exported with a solid white background to ensure maximum compatibility. Our converter is a web-based tool that works in any modern browser on any device.</p>
+                        
                         <h3>Trust & Safety</h3>
-                        <ol>
-                            <li>
-                                Is it safe? Do you keep my brushes?
-                                <p>Your privacy and intellectual property are our top priorities. We do not keep your files. When you upload a `.brushset` file, it is handled in a secure, temporary space for processing and then automatically cleared once the conversion is complete. Files exist only as long as needed for the task and are never stored.</p>
-                            </li>
-                        </ol>
+                        <p>Your privacy and intellectual property are our top priorities. We do not keep your files. When you upload a `.brushset` file, it is handled in a secure, temporary space for processing. Once the conversion is complete, the file is available for you to download for 48 hours for recovery purposes, after which it is automatically and permanently deleted from our servers.</p>
                     </div>
                 </div>
 
@@ -248,23 +199,21 @@
                         <p>We believe in being clear and transparent. Here’s a simple breakdown of our policies.</p>
                         
                         <h5>Privacy Policy</h5>
-                        <p>We built this service with your privacy as a top priority.</p>
                         <ul>
-                            <li><strong>Data Collection:</strong> We do not automatically collect personal information when you use our conversion tool. If you use our contact form, we collect your email address only to reply to your message. We do not use it for marketing or share it with third parties.</li>
-                            <li><strong>File Handling & Storage:</strong> Your privacy is paramount. All uploaded `.brushset` files are processed in a secure, temporary environment. They are automatically and permanently deleted from our servers as soon as the conversion process is complete. We do not keep, store, access, or back up your files.</li>
-                            <li><strong>Payment Information:</strong> All payments are processed securely through our Merchant of Record (e.g., Etsy ). We do not have access to, nor do we store, your credit card details or personal payment information.</li>
-                            <li><strong>Analytics:</strong> We may collect anonymous, non-personal usage data (such as browser type or conversion success/fail rates) to help us improve our service. This data is aggregated and cannot be used to identify you.</li>
+                            <li><strong>Data Collection:</strong> We do not automatically collect personal information. If you use our contact form, we collect your email address only to reply to your message.</li>
+                            <li><strong>File Handling & Storage:</strong> Your privacy is paramount. Uploaded `.brushset` files are processed in a secure, temporary environment and deleted immediately after conversion. The resulting `.zip` file is stored for a 48-hour recovery period and then permanently deleted. We do not keep, store, access, or back up your files beyond this window.</li>
+                            <li><strong>Payment Information:</strong> All payments are processed securely through our Merchant of Record (e.g., Etsy ). We do not have access to your payment information.</li>
+                            <li><strong>Analytics:</strong> We may collect anonymous, non-personal usage data to help us improve our service.</li>
                         </ul>
                         
                         <h5>Terms of Service</h5>
-                        <p>By using this service (“the Service”), you agree to the following terms:</p>
                         <ol>
-                            <li><strong>Permitted Use & Responsibility:</strong> The Service is a tool to help you extract stamp images from `.brushset` files that you have the legal right to use. By uploading a file, you confirm that you either own the intellectual property of the brushes or have a license from the original creator that permits this type of modification and use.</li>
-                            <li><strong>Prohibited Use:</strong> You may not use the Service to infringe on the intellectual property rights of others. Creating commercial products (like new PNG packs for resale) from brushes you do not own is a violation of copyright and these terms. You are solely responsible for ensuring your use of the converted files complies with the original creator’s licensing terms.</li>
-                            <li><strong>License Key & Credits:</strong> Your purchase grants you a license key with a specific number of conversion credits. As per our current model, one (1) credit is consumed for each one (1) `.brushset` file successfully converted.</li>
-                            <li><strong>Disclaimer of Warranties:</strong> The Service is provided “as-is.” While we strive to provide a reliable and accurate tool, we make no warranties regarding its uninterrupted availability or freedom from errors. We are not responsible for failures caused by corrupted, password-protected, or incorrectly formatted user files.</li>
-                            <li><strong>Limitation of Liability:</strong> To the maximum extent permitted by law, ArtyPacks shall not be liable for any indirect, incidental, or consequential damages, including but not to loss of data, loss of profits, or business interruption, arising out of the use or inability to use the Service.</li>
-                            <li><strong>Governing Law:</strong> These terms shall be governed by and construed in accordance with the laws of the United Kingdom, without regard to its conflict of law provisions.</li>
+                            <li><strong>Permitted Use:</strong> The Service is a tool to help you extract stamp images from `.brushset` files that you have the legal right to use.</li>
+                            <li><strong>Prohibited Use:</strong> You may not use the Service to infringe on the intellectual property rights of others.</li>
+                            <li><strong>License Key & Credits:</strong> Your purchase grants you a license key with one (1) conversion credit.</li>
+                            <li><strong>Disclaimer of Warranties:</strong> The Service is provided “as-is.” We are not responsible for failures caused by corrupted or incorrectly formatted user files.</li>
+                            <li><strong>Limitation of Liability:</strong> ArtyPacks shall not be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Service.</li>
+                            <li><strong>Governing Law:</strong> These terms shall be governed by the laws of the United Kingdom.</li>
                         </ol>
                     </div>
                 </div>
