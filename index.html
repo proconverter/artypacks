@@ -15,7 +15,7 @@
         };
     </script>
     
-    <!-- Favicon and Manifest Links - UPDATED to use the /assets/ folder -->
+    <!-- Favicon and Manifest Links -->
     <link rel="icon" href="/assets/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
     <link rel="manifest" href="/assets/site.webmanifest">
@@ -30,7 +30,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8EZB1B931D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(         ){dataLayer.push(arguments);}
+      function gtag(          ){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-8EZB1B931D');
     </script>
@@ -67,8 +67,7 @@
                                 <div class="drop-zone-prompt">
                                     <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
                                     <p><strong>Drag & drop your Procreate file here</strong></p>
-                                    <!-- === CHANGE #1: Updated file upload limits text === -->
-                                    <p class="drop-zone-limits">or click to upload (1 Credit = 1 File, 50MB Max  )</p>
+                                    <p class="drop-zone-limits">or click to upload (1 Credit = 1 File, 50MB Max )</p>
                                 </div>
                                 <input type="file" id="file-input" accept=".brushset" style="display: none;">
                             </div>
@@ -90,7 +89,6 @@
                             <div class="progress-fill" id="progress-fill"></div>
                         </div>
                         <p id="status-message"></p>
-                        <!-- The "Start New Conversion" button has been removed from here -->
                     </div>
                 </div>
             </section>
@@ -105,14 +103,13 @@
 
             <hr class="section-divider">
 
-            <!-- === HOW IT WORKS SECTION - UPDATED to use the /assets/ folder === -->
+            <!-- === HOW IT WORKS SECTION === -->
             <section class="how-it-works">
                 <h2 class="section-title">From Brushset to PNG in 3 Simple Steps</h2>
                 <div class="how-it-works-grid">
                     <div class="feature-item">
                         <img src="/assets/icon-upload.svg" alt="Upload Icon" class="feature-icon">
                         <h3>1. Easy Upload</h3>
-                        <!-- === CHANGE #2: Updated "How it Works" text === -->
                         <p>Enter your license key and select your single `.brushset` file.</p>
                     </div>
                     <div class="feature-item">
@@ -130,8 +127,7 @@
 
             <hr class="section-divider">
 
-            <!-- === PRICING & FAQ SECTION === -->
-            <!-- === CHANGE #3: Replaced entire FAQ section with new, structured content === -->
+            <!-- === ADDITIONAL INFO SECTION === -->
             <section class="info-accordion">
                 <h2 class="section-title">Additional Info</h2>
                 
@@ -144,12 +140,13 @@
                     <div class="accordion-answer">
                         <h3>Pricing & Credits</h3>
                         <ol>
+                            <!-- *** CORRECTED FAQ ITEM #1 *** -->
                             <li>
-    How does the pricing work?
-    <p>Our pricing is simple and transparent: <strong>you buy one license to convert one file.</strong></p>
-    <p>Each license gives you one (1) credit, which allows you to convert one (1) Procreate `.brushset` file. Your license never expires. There are no subscriptions or hidden fees.</p>
-    <a href="https://www.etsy.com/shop/artypacks" target="_blank" class="cta-button cta-button-small single-buy-button">Buy a License on Etsy</a>
-</li>
+                                How does the pricing work?
+                                <p>Our pricing is simple and transparent: <strong>you buy one license to convert one file.</strong> Each license gives you one (1) credit, which allows you to convert one (1) Procreate `.brushset` file. Your license never expires. There are no subscriptions or hidden fees.</p>
+                            </li>
+                            <!-- *** CORRECTED FAQ ITEM #2 *** -->
+                            <li>
                                 What is a “credit”?
                                 <p>It’s simple: <strong>1 Credit lets you convert 1 Procreate `.brushset` file.</strong> Each `.brushset` file can be up to 50MB.</p>
                             </li>
@@ -245,7 +242,6 @@
                             <span class="footer-icon">+</span>
                         </div>
                     </div>
-                    <!-- === CHANGE #4: Replaced entire Terms & Privacy section with new content === -->
                     <div class="footer-accordion-content">
                         <h4>Terms of Service & Privacy Policy</h4>
                         <p><strong>Effective Date: [Date of Implementation]</strong></p>
@@ -256,7 +252,7 @@
                         <ul>
                             <li><strong>Data Collection:</strong> We do not automatically collect personal information when you use our conversion tool. If you use our contact form, we collect your email address only to reply to your message. We do not use it for marketing or share it with third parties.</li>
                             <li><strong>File Handling & Storage:</strong> Your privacy is paramount. All uploaded `.brushset` files are processed in a secure, temporary environment. They are automatically and permanently deleted from our servers as soon as the conversion process is complete. We do not keep, store, access, or back up your files.</li>
-                            <li><strong>Payment Information:</strong> All payments are processed securely through our Merchant of Record (e.g., Etsy  ). We do not have access to, nor do we store, your credit card details or personal payment information.</li>
+                            <li><strong>Payment Information:</strong> All payments are processed securely through our Merchant of Record (e.g., Etsy ). We do not have access to, nor do we store, your credit card details or personal payment information.</li>
                             <li><strong>Analytics:</strong> We may collect anonymous, non-personal usage data (such as browser type or conversion success/fail rates) to help us improve our service. This data is aggregated and cannot be used to identify you.</li>
                         </ul>
                         
