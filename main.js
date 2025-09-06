@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    const getLicenseCTA = document.querySelector('.get-license-link');
+    const getLicenseLinkContainer = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -18,30 +18,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const progressFill = document.getElementById('progress-fill');
     const statusMessage = document.getElementById('status-message');
-    const historySection = document.getElementById('history-section');
-    const historyList = document.getElementById('history-list');
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
-    
-    // New Download View Selectors
-    const appToolView = document.getElementById('app-tool');
+    const appTool = document.getElementById('app-tool');
     const downloadView = document.getElementById('download-view');
     const downloadFilename = document.getElementById('download-filename');
     const downloadFileButton = document.getElementById('download-file-button');
     const convertAnotherButton = document.getElementById('convert-another-button');
-
 
     // --- STATE MANAGEMENT ---
     let uploadedFile = null;
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
+    let isFileConverted = false;
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
         if (currentYearSpan) currentYearSpan.textContent = new Date().getFullYear();
         setupEventListeners();
+        checkLicenseAndToggleUI();
     };
 
     // --- EVENT LISTENERS ---
@@ -69,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             licenseStatus.innerHTML = '';
             licenseStatus.className = 'license-status-message';
-            if (getLicenseCTA) getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
         }
     };
 
@@ -77,74 +73,74 @@ document.addEventListener('DOMContentLoaded', () => {
         if (credits > 0) {
             return `Credit is valid. You're ready to convert!`;
         } else {
-            return `This license has no credits left.`;
+            return `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to convert another file.</a>`;
         }
     };
 
-    async function validateLicenseWithRetries(key, isPostConversion = false) {
+    async function validateLicenseWithRetries(key) {
         validationController = new AbortController();
         const signal = validationController.signal;
 
-        const coldStartMessages = ["Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment..."];
+        const coldStartMessages = [
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
+        ];
         let messageIndex = 0;
 
-        if (!isPostConversion) {
-            licenseStatus.className = 'license-status-message checking';
-            const showNextMessage = () => {
-                licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
-                messageIndex++;
-            };
-            showNextMessage();
-            messageIntervalId = setInterval(showNextMessage, 3000);
-        }
+        licenseStatus.className = 'license-status-message checking';
+        const showNextMessage = () => {
+            licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
+            messageIndex++;
+        };
+        showNextMessage();
+        messageIntervalId = setInterval(showNextMessage, 3000);
 
-        for (let attempt = 1; attempt <= 20; attempt++) {
-            try {
-                const response = await fetch(VITE_CHECK_API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ licenseKey: key }),
-                    signal
-                });
+        try {
+            const response = await fetch(VITE_CHECK_API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ licenseKey: key }),
+                signal
+            });
 
-                clearInterval(messageIntervalId);
-                const result = await response.json();
+            clearInterval(messageIntervalId);
+            const result = await response.json();
 
-                if (response.ok && result.isValid) {
-                    isLicenseValid = true;
-                    licenseStatus.className = 'license-status-message valid';
-                    licenseStatus.innerHTML = getCreditsMessage(result.credits);
-                    if (getLicenseCTA) getLicenseCTA.innerHTML = `This license has ${result.credits} credit${result.credits === 1 ? '' : 's'} remaining.`;
-                    if (result.credits <= 0) {
-                        isLicenseValid = false;
-                        licenseStatus.className = 'license-status-message invalid';
-                        if (getLicenseCTA) getLicenseCTA.innerHTML = `Your license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to continue.</a>`;
+            if (response.ok && result.isValid) {
+                isLicenseValid = true;
+                licenseStatus.className = 'license-status-message valid';
+                licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
+
+                // *** MAGIC LINK RECOVERY LOGIC ***
+                if (result.sessions_remaining <= 0) {
+                    try {
+                        const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ licenseKey: key })
+                        });
+                        if (recoveryResponse.ok) {
+                            const recoveryData = await recoveryResponse.json();
+                            showDownloadView(recoveryData.download_url, recoveryData.original_filename);
+                            return; // Stop further execution
+                        }
+                    } catch (e) {
+                        // Fail silently, just show the normal UI
+                        console.error("Recovery check failed:", e);
                     }
-                    fetchHistory(key);
-                } else {
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.innerHTML = result.message || 'Invalid license key.';
-                    if (getLicenseCTA) getLicenseCTA.innerHTML = `Need a license? <a href="${ETSY_STORE_LINK}" target="_blank">Get one here.</a>`;
                 }
-                checkLicenseAndToggleUI();
-                return;
-
-            } catch (error) {
-                if (signal.aborted) {
-                    clearInterval(messageIntervalId);
-                    return;
-                }
-                if (attempt === 20) {
-                    clearInterval(messageIntervalId);
-                    isLicenseValid = false;
-                    licenseStatus.className = 'license-status-message invalid';
-                    licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
-                    checkLicenseAndToggleUI();
-                    return;
-                }
-                await new Promise(resolve => setTimeout(resolve, 2500));
+            } else {
+                isLicenseValid = false;
+                licenseStatus.className = 'license-status-message invalid';
+                licenseStatus.innerHTML = result.message || 'Invalid license key.';
             }
+        } catch (error) {
+            if (signal.aborted) return;
+            clearInterval(messageIntervalId);
+            isLicenseValid = false;
+            licenseStatus.className = 'license-status-message invalid';
+            licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
+        } finally {
+            checkLicenseAndToggleUI();
         }
     }
 
@@ -152,29 +148,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        const canUpload = isLicenseValid && !uploadedFile;
-        dropZone.classList.toggle('disabled', !canUpload);
-        dropZone.title = canUpload ? '' : 'Please enter a valid license key to upload a file.';
-        convertButton.disabled = !(isLicenseValid && uploadedFile);
-        activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
+        const isDropZoneLocked = !isLicenseValid || !!uploadedFile;
+        dropZone.classList.toggle('disabled', isDropZoneLocked);
+        dropZone.title = isLicenseValid ? (uploadedFile ? 'A file is already uploaded. Remove it to add another.' : '') : 'Please enter a valid license key to upload files.';
+        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
+        
+        if (isLicenseValid && licenseStatus.textContent.includes("has been used")) {
+            getLicenseLinkContainer.classList.add('hidden');
+        } else {
+            getLicenseLinkContainer.classList.remove('hidden');
+        }
     };
 
     const processFiles = (files) => {
         if (uploadedFile) {
-            alert("A file has already been uploaded. Please remove it before adding a new one.");
+            alert("A file has already been uploaded. Please remove the current file before adding a new one.");
             return;
         }
         if (files.length > 1) {
             alert("Please upload only one .brushset file at a time.");
             return;
         }
-        const file = Array.from(files).find(f => f.name.endsWith('.brushset'));
-        if (!file) {
-            if (files.length > 0) alert("Invalid file type. Please upload only .brushset files.");
-            return;
+        const file = files[0];
+        if (file && file.name.endsWith('.brushset')) {
+            uploadedFile = file;
+            updateFileList();
+        } else if (file) {
+            alert("Invalid file type. Please upload only .brushset files.");
         }
-        uploadedFile = file;
-        updateFileList();
         checkLicenseAndToggleUI();
     };
 
@@ -199,8 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeFile = () => {
         uploadedFile = null;
-        resetStatusUI();
+        isFileConverted = false;
+        fileInput.value = '';
         updateFileList();
+        resetStatusUI();
         checkLicenseAndToggleUI();
     };
 
@@ -232,10 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.onload = async () => {
             try {
                 const result = JSON.parse(xhr.responseText);
-
                 if (xhr.status >= 200 && xhr.status < 300) {
+                    isFileConverted = true;
+                    await validateLicenseWithRetries(licenseKey);
                     showDownloadView(result.downloadUrl, uploadedFile.name);
-                    await validateLicenseWithRetries(licenseKey, true);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     licenseKeyInput.disabled = false;
@@ -258,98 +261,26 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
 
-    const showDownloadView = (downloadUrl, originalFilename) => {
-        const downloadFilename = `ArtyPacks_${originalFilename.replace(/\.brushset$/, '')}.zip`;
-
-        // Hide the main app and show the download view
-        appToolView.classList.add('hidden');
+    const showDownloadView = (url, filename) => {
+        appTool.classList.add('hidden');
         downloadView.classList.remove('hidden');
-
-        // Populate the download view
-        downloadFilename.textContent = downloadFilename;
+        downloadFilename.textContent = filename;
         
-        // Set up the download button
+        // Use a closure to capture the correct URL
         downloadFileButton.onclick = () => {
-            forceDownload(downloadUrl, downloadFilename);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename.replace('.brushset', '.zip');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
     };
 
     const resetApp = () => {
-        // Hide the download view and show the main app
         downloadView.classList.add('hidden');
-        appToolView.classList.remove('hidden');
-
-        // Reset all state
-        uploadedFile = null;
-        resetStatusUI();
-        updateFileList();
-        checkLicenseAndToggleUI();
-        licenseKeyInput.disabled = false;
-    };
-
-    const forceDownload = async (url, filename) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const tempLink = document.createElement('a');
-            tempLink.href = blobUrl;
-            tempLink.download = filename;
-            document.body.appendChild(tempLink);
-            tempLink.click();
-            document.body.removeChild(tempLink);
-            URL.revokeObjectURL(blobUrl);
-        } catch (error) {
-            alert('Failed to download the file. Please try again.');
-        }
-    };
-
-    async function fetchHistory(licenseKey) {
-        try {
-            const response = await fetch(VITE_RECOVER_API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ licenseKey })
-            });
-            if (!response.ok) return;
-            const history = await response.json();
-            updateHistoryList(history);
-        } catch (error) {
-            console.error("Failed to fetch history:", error);
-        }
-    }
-
-    const updateHistoryList = (history) => {
-        historyList.innerHTML = '';
-        if (!history || history.length === 0) {
-            historySection.style.display = 'none';
-            return;
-        }
-        historySection.style.display = 'block';
-        history.forEach(item => {
-            const listItem = document.createElement('li');
-            listItem.className = 'history-item';
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'history-item-info';
-            const titleSpan = document.createElement('span');
-            titleSpan.textContent = item.original_filename;
-            const dateP = document.createElement('p');
-            dateP.textContent = `Converted on: ${new Date(item.created_at).toLocaleString()}`;
-            infoDiv.appendChild(titleSpan);
-            infoDiv.appendChild(dateP);
-            const downloadBtn = document.createElement('a');
-            downloadBtn.href = '#';
-            downloadBtn.className = 'history-download-btn';
-            downloadBtn.textContent = 'Download';
-            const downloadFilename = `ArtyPacks_${item.original_filename.replace(/\.brushset$/, '')}.zip`;
-            downloadBtn.onclick = (e) => {
-                e.preventDefault();
-                forceDownload(item.download_url, downloadFilename);
-            };
-            listItem.appendChild(infoDiv);
-            listItem.appendChild(downloadBtn);
-            historyList.appendChild(listItem);
-        });
+        appTool.classList.remove('hidden');
+        removeFile();
     };
 
     const updateProgress = (percentage, message) => {
@@ -358,11 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showError = (message) => {
-        let errorMsg = message;
-        if (typeof message === 'object') {
-            errorMsg = JSON.stringify(message);
-        }
-        statusMessage.innerHTML = `<span style="color: #dc2626;">Error: ${errorMsg}</span>`;
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
         progressBar.style.display = 'none';
     };
 
@@ -377,9 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.closest('.accordion-item, .footer-accordion-item');
-                if (item) {
-                    item.classList.toggle('open');
-                }
+                if (item) item.classList.toggle('open');
             });
         });
     };
