@@ -23,10 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
     const currentYearSpan = document.getElementById('current-year');
+    
+    // New Download View Selectors
+    const appToolView = document.getElementById('app-tool');
+    const downloadView = document.getElementById('download-view');
+    const downloadFilename = document.getElementById('download-filename');
+    const downloadFileButton = document.getElementById('download-file-button');
+    const convertAnotherButton = document.getElementById('convert-another-button');
+
 
     // --- STATE MANAGEMENT ---
     let uploadedFile = null;
-    let isFileConverted = false;
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
@@ -46,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         convertButton.addEventListener('click', handleConversion);
+        convertAnotherButton.addEventListener('click', resetApp);
         setupAccordion();
         setupContactForm();
     };
@@ -147,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canUpload = isLicenseValid && !uploadedFile;
         dropZone.classList.toggle('disabled', !canUpload);
         dropZone.title = canUpload ? '' : 'Please enter a valid license key to upload a file.';
-        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
+        convertButton.disabled = !(isLicenseValid && uploadedFile);
         activationNotice.textContent = isLicenseValid ? 'This tool extracts stamp images (min 1024px). It does not convert complex brush textures.' : 'Converter locked – enter license key above.';
     };
 
@@ -178,11 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         fileList.classList.remove('hidden');
         const listItem = document.createElement('li');
-        if (isFileConverted) {
-            listItem.classList.add('converted');
-        }
         const fileSize = (uploadedFile.size / 1024 / 1024).toFixed(2);
-        listItem.innerHTML = `<span>${isFileConverted ? '✓ ' : ''}${uploadedFile.name} (${fileSize} MB)</span>`;
+        listItem.innerHTML = `<span>${uploadedFile.name} (${fileSize} MB)</span>`;
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-file-btn';
         removeBtn.innerHTML = '&times;';
@@ -194,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeFile = () => {
         uploadedFile = null;
-        isFileConverted = false;
         resetStatusUI();
         updateFileList();
         checkLicenseAndToggleUI();
@@ -230,22 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = JSON.parse(xhr.responseText);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    const downloadFilename = `ArtyPacks_${uploadedFile.name.replace(/\.brushset$/, '')}.zip`;
-                    const successLink = document.createElement('a');
-                    successLink.href = '#';
-                    successLink.textContent = 'Click Here to Download.';
-                    successLink.onclick = (e) => {
-                        e.preventDefault();
-                        forceDownload(result.downloadUrl, downloadFilename);
-                    };
-                    
-                    statusMessage.innerHTML = `Conversion Successful! `;
-                    statusMessage.appendChild(successLink);
-                    statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
-                    
-                    progressBar.style.display = 'none';
-                    isFileConverted = true;
-                    updateFileList();
+                    showDownloadView(result.downloadUrl, uploadedFile.name);
                     await validateLicenseWithRetries(licenseKey, true);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
@@ -269,66 +258,49 @@ document.addEventListener('DOMContentLoaded', () => {
         xhr.send(formData);
     };
 
-    // *** THIS IS THE NEW, MOST ROBUST DOWNLOAD FUNCTION ***
+    const showDownloadView = (downloadUrl, originalFilename) => {
+        const downloadFilename = `ArtyPacks_${originalFilename.replace(/\.brushset$/, '')}.zip`;
+
+        // Hide the main app and show the download view
+        appToolView.classList.add('hidden');
+        downloadView.classList.remove('hidden');
+
+        // Populate the download view
+        downloadFilename.textContent = downloadFilename;
+        
+        // Set up the download button
+        downloadFileButton.onclick = () => {
+            forceDownload(downloadUrl, downloadFilename);
+        };
+    };
+
+    const resetApp = () => {
+        // Hide the download view and show the main app
+        downloadView.classList.add('hidden');
+        appToolView.classList.remove('hidden');
+
+        // Reset all state
+        uploadedFile = null;
+        resetStatusUI();
+        updateFileList();
+        checkLicenseAndToggleUI();
+        licenseKeyInput.disabled = false;
+    };
+
     const forceDownload = async (url, filename) => {
-        statusMessage.textContent = 'Preparing download...';
         try {
             const response = await fetch(url);
             const blob = await response.blob();
-
-            // Modern method: File System Access API
-            if (window.showSaveFilePicker) {
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: filename,
-                    types: [{
-                        description: 'ZIP file',
-                        accept: { 'application/zip': ['.zip'] },
-                    }],
-                });
-                const writable = await handle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-            } else {
-                // Fallback method for older browsers
-                const blobUrl = URL.createObjectURL(blob);
-                const tempLink = document.createElement('a');
-                tempLink.href = blobUrl;
-                tempLink.download = filename;
-                document.body.appendChild(tempLink);
-                tempLink.click();
-                document.body.removeChild(tempLink);
-                URL.revokeObjectURL(blobUrl);
-            }
-
-            // Restore the original success message
-            const restoredLink = document.createElement('a');
-            restoredLink.href = '#';
-            restoredLink.textContent = 'Click Here to Download Again.';
-            restoredLink.onclick = (e) => {
-                e.preventDefault();
-                forceDownload(url, filename);
-            };
-            statusMessage.innerHTML = `Conversion Successful! `;
-            statusMessage.appendChild(restoredLink);
-            statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
-
+            const blobUrl = URL.createObjectURL(blob);
+            const tempLink = document.createElement('a');
+            tempLink.href = blobUrl;
+            tempLink.download = filename;
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+            URL.revokeObjectURL(blobUrl);
         } catch (error) {
-            // Handle user cancelling the save dialog, or other errors
-            if (error.name === 'AbortError') {
-                // User cancelled the save. Restore the link.
-                const restoredLink = document.createElement('a');
-                restoredLink.href = '#';
-                restoredLink.textContent = 'Click Here to Download.';
-                restoredLink.onclick = (e) => {
-                    e.preventDefault();
-                    forceDownload(url, filename);
-                };
-                statusMessage.innerHTML = `Conversion Successful! `;
-                statusMessage.appendChild(restoredLink);
-                statusMessage.innerHTML += `<p class="post-conversion-notice">To convert another file, remove the completed one above.</p>`;
-            } else {
-                showError('Failed to download the file.');
-            }
+            alert('Failed to download the file. Please try again.');
         }
     };
 
