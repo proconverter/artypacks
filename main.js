@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // *** THIS IS THE FIX ***
     const getCreditsMessage = (credits) => {
         if (credits > 0) {
             return `Credit is valid. You're ready to convert!`;
@@ -110,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseStatus.className = 'license-status-message valid';
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
-                // *** MAGIC LINK RECOVERY LOGIC ***
                 if (result.sessions_remaining <= 0) {
                     try {
                         const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
@@ -121,10 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (recoveryResponse.ok) {
                             const recoveryData = await recoveryResponse.json();
                             showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                            return; // Stop further execution
+                            return;
                         }
                     } catch (e) {
-                        // Fail silently, just show the normal UI
                         console.error("Recovery check failed:", e);
                     }
                 }
@@ -266,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadView.classList.remove('hidden');
         downloadFilename.textContent = filename;
         
-        // Use a closure to capture the correct URL
         downloadFileButton.onclick = () => {
             const link = document.createElement('a');
             link.href = url;
