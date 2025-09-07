@@ -30,6 +30,11 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     // --- STATE MANAGEMENT ---
     let uploadedFile = null;
     let isLicenseValid = false;
+    // ==================================================================
+    // THIS IS THE FIRST PART OF THE FIX
+    // ==================================================================
+    // We need to track credits on the frontend now.
+    let creditsRemaining = 0;
     let validationController;
     let messageIntervalId;
     let isFileConverted = false;
@@ -59,6 +64,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
         isLicenseValid = false;
+        creditsRemaining = 0; // Reset credits on new input
         checkLicenseAndToggleUI();
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
@@ -107,10 +113,15 @@ document.addEventListener('DOMContentLoaded', ( ) => {
 
             if (response.ok && result.isValid) {
                 isLicenseValid = true;
+                // ==================================================================
+                // THIS IS THE SECOND PART OF THE FIX
+                // ==================================================================
+                // Store the number of credits from the server response.
+                creditsRemaining = result.sessions_remaining;
                 licenseStatus.className = 'license-status-message valid';
-                licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
+                licenseStatus.innerHTML = getCreditsMessage(creditsRemaining);
 
-                if (result.sessions_remaining <= 0) {
+                if (creditsRemaining <= 0) {
                     try {
                         const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
                             method: 'POST',
@@ -129,6 +140,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 }
             } else {
                 isLicenseValid = false;
+                creditsRemaining = 0;
                 licenseStatus.className = 'license-status-message invalid';
                 licenseStatus.innerHTML = result.message || 'Invalid license key.';
             }
@@ -136,6 +148,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
             if (signal.aborted) return;
             clearInterval(messageIntervalId);
             isLicenseValid = false;
+            creditsRemaining = 0;
             licenseStatus.className = 'license-status-message invalid';
             licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
         } finally {
@@ -146,12 +159,17 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
+    // ==================================================================
+    // THIS FUNCTION CONTAINS THE FINAL, SMARTER UI LOCK LOGIC
+    // ==================================================================
     const checkLicenseAndToggleUI = () => {
-        const isDropZoneLocked = !isLicenseValid || !!uploadedFile;
+        // The drop zone is locked if the license isn't valid, OR if credits are zero, OR if a file is already uploaded.
+        const isDropZoneLocked = !isLicenseValid || creditsRemaining <= 0 || !!uploadedFile;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         dropZone.title = isLicenseValid ? (uploadedFile ? 'A file is already uploaded. Remove it to add another.' : '') : 'Please enter a valid license key to upload files.';
         
-        const canConvert = isLicenseValid && uploadedFile && !isFileConverted;
+        // You can convert if the license is valid, AND you have credits, AND a file is uploaded, AND it hasn't been converted yet.
+        const canConvert = isLicenseValid && creditsRemaining > 0 && uploadedFile && !isFileConverted;
         convertButton.disabled = !canConvert;
         
         activationNotice.style.display = canConvert ? 'none' : 'block';
