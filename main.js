@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
-    const getLicenseLinkContainer = document.querySelector('.get-license-link'); // Added for this fix
+    const getLicenseLinkContainer = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
     const activationNotice = document.getElementById('activation-notice');
     const dropZone = document.getElementById('drop-zone');
@@ -141,8 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
-        // *** THIS IS THE FIX ***
-        // Hide the general "Get a license" link if the user already knows they need one.
         if (isLicenseValid && currentUserState.credits <= 0) {
             getLicenseLinkContainer.classList.add('hidden');
         } else {
