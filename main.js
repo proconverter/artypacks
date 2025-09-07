@@ -119,7 +119,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                         });
                         if (recoveryResponse.ok) {
                             const recoveryData = await recoveryResponse.json();
-                            // *** THIS IS THE FIX ***
                             showDownloadView(recoveryData.download_url, recoveryData.original_filename);
                             return;
                         }
@@ -237,7 +236,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     isFileConverted = true;
                     await validateLicenseWithRetries(licenseKey);
-                    // *** THIS IS THE CHANGE ***
                     showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
@@ -266,9 +264,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         downloadView.classList.remove('hidden');
         downloadFilename.textContent = filename;
         
-        // *** THIS IS THE CHANGE ***
         downloadFileButton.onclick = () => {
-            // Ensure filename is a string before calling .replace
             if (typeof filename !== 'string') {
                 console.error("Download error: filename is not a string.", filename);
                 alert("Could not create a download filename due to an error.");
@@ -278,7 +274,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
             const link = document.createElement('a');
             link.href = url;
 
-            // Create the new, branded filename
             const baseName = filename.replace('.brushset', '');
             link.download = `ArtyPacks.app_${baseName}.zip`; 
 
