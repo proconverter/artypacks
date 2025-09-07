@@ -179,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // *** THIS IS THE FIX: Smarter validation that checks total files ***
     const processFiles = (files) => {
         dropZoneError.style.display = 'none';
         dropZoneError.textContent = '';
@@ -294,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // *** THIS IS THE FIX: Removed the stray period ***
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
             licenseKeyInput.disabled = false;
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('Form submission failed.');
                 }
-            } catch (error)_
+            } catch (error) {
                 console.error('Contact form error:', error);
                 alert('Sorry, there was an issue sending your message. Please try again later.');
             }
