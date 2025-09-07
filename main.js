@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const VITE_CHECK_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/check-license";
     const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/recover-link";
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
+    const MAX_MULTI_UPLOAD = 10;
 
     // --- DOM ELEMENT SELECTORS ---
     const licenseKeyInput = document.getElementById('license-key' );
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUploadLabel = document.getElementById('file-upload-label');
 
     // --- STATE MANAGEMENT ---
-    let uploadedFile = null;
+    let uploadedFiles = []; // Changed to an array for multi-file support
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
-        convertButton.addEventListener('click', handleConversion);
+        convertButton.addEventListener('click', handleConversion); // This will need to be updated for multi-file
         convertAnotherButton.addEventListener('click', resetApp);
         setupAccordion();
         setupContactForm();
@@ -80,28 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getCreditsMessage = (credits) => {
         if (credits > 0) {
-            return `Credit is valid. You're ready to convert!`;
+            return `License is valid. You're ready to convert!`;
         } else {
-            return `This license has been used. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to convert another file.</a>`;
+            return `This license has no credits left. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to convert another file.</a>`;
         }
     };
 
     async function validateLicenseWithRetries(key) {
         validationController = new AbortController();
         const signal = validationController.signal;
-
-        const coldStartMessages = [
-            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
-        ];
-        let messageIndex = 0;
-
         licenseStatus.className = 'license-status-message checking';
-        const showNextMessage = () => {
-            licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
-            messageIndex++;
-        };
-        showNextMessage();
-        messageIntervalId = setInterval(showNextMessage, 3000);
+        licenseStatus.textContent = 'Validating...';
 
         try {
             const response = await fetch(VITE_CHECK_API_ENDPOINT, {
@@ -110,8 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ licenseKey: key }),
                 signal
             });
-
-            clearInterval(messageIntervalId);
             const result = await response.json();
 
             if (response.ok && result.isValid) {
@@ -122,19 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
                 if (result.sessions_remaining <= 0) {
-                    try {
-                        const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ licenseKey: key })
-                        });
-                        if (recoveryResponse.ok) {
-                            const recoveryData = await recoveryResponse.json();
-                            showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                            return;
-                        }
-                    } catch (e) {
-                        console.error("Recovery check failed:", e);
+                    // Magic Link Recovery
+                    const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ licenseKey: key })
+                    });
+                    if (recoveryResponse.ok) {
+                        const recoveryData = await recoveryResponse.json();
+                        showDownloadView(recoveryData.download_url, recoveryData.original_filename);
+                        return;
                     }
                 }
             } else {
@@ -144,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             if (signal.aborted) return;
-            clearInterval(messageIntervalId);
             isLicenseValid = false;
             licenseStatus.className = 'license-status-message invalid';
             licenseStatus.textContent = 'A server error occurred while validating the license.';
@@ -157,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        const isDropZoneLocked = !isLicenseValid || !!uploadedFile || currentUserState.credits <= 0;
+        const isDropZoneLocked = !isLicenseValid || uploadedFiles.length > 0 || currentUserState.credits <= 0;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
         if (!isLicenseValid) {
@@ -168,21 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZone.title = 'This license has no credits remaining.';
             activationNotice.style.display = 'block';
             activationNotice.textContent = 'No credits remaining on this license.';
-        } else if (uploadedFile) {
-            dropZone.title = 'A file is already uploaded. Remove it to add another.';
+        } else if (uploadedFiles.length > 0) {
+            dropZone.title = 'Files are in the queue. Remove them to add more.';
             activationNotice.style.display = 'none';
         } else {
             dropZone.title = '';
             activationNotice.style.display = 'none';
         }
 
-        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
-        
-        if (isLicenseValid && licenseStatus.textContent.includes("has been used")) {
-            getLicenseLinkContainer.classList.add('hidden');
-        } else {
-            getLicenseLinkContainer.classList.remove('hidden');
-        }
+        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0 && !isFileConverted);
         
         if (currentUserState.type === 'single_credit') {
             fileInput.removeAttribute('multiple');
@@ -190,8 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
             fileUploadLabel.textContent = 'Upload Your .brushset File';
         } else if (currentUserState.type === 'multi_credit') {
-            fileInput.setAttribute('multiple', '');
-            dropZoneText.innerHTML = '<strong>Drop up to 10 .brushset files here</strong>';
+            fileInput.setAttribute('multiple', 'true');
+            dropZoneText.innerHTML = `<strong>Drop up to ${MAX_MULTI_UPLOAD} .brushset files here</strong>`;
             dropZoneLimits.textContent = `or click to upload (You have ${currentUserState.credits} credits remaining)`;
             fileUploadLabel.textContent = 'Upload Your .brushset Files';
         }
@@ -201,48 +179,62 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZoneError.style.display = 'none';
         dropZoneError.textContent = '';
 
+        // --- v2.0 Logic ---
         if (currentUserState.type === 'single_credit' && files.length > 1) {
             dropZoneError.textContent = 'Error: Please upload only one file at a time with a single-credit license.';
             dropZoneError.style.display = 'block';
             return;
         }
+        if (currentUserState.type === 'multi_credit') {
+            if (files.length > MAX_MULTI_UPLOAD) {
+                dropZoneError.textContent = `Error: You can convert a maximum of ${MAX_MULTI_UPLOAD} files at a time.`;
+                dropZoneError.style.display = 'block';
+                return;
+            }
+            if (files.length > currentUserState.credits) {
+                dropZoneError.textContent = `Error: You have selected ${files.length} files but only have ${currentUserState.credits} credits remaining.`;
+                dropZoneError.style.display = 'block';
+                return;
+            }
+        }
+        // --- End v2.0 Logic ---
 
-        if (uploadedFile) {
-            alert("A file has already been uploaded. Please remove the current file before adding a new one.");
-            return;
+        for (const file of files) {
+            if (file.name.endsWith('.brushset')) {
+                uploadedFiles.push(file);
+            } else {
+                alert(`Invalid file type: ${file.name}. Only .brushset files are allowed.`);
+            }
         }
         
-        const file = files[0];
-        if (file && file.name.endsWith('.brushset')) {
-            uploadedFile = file;
-            updateFileList();
-        } else if (file) {
-            alert("Invalid file type. Please upload only .brushset files.");
-        }
+        updateFileList();
         checkLicenseAndToggleUI();
     };
 
     const updateFileList = () => {
         fileList.innerHTML = '';
-        if (!uploadedFile) {
+        if (uploadedFiles.length === 0) {
             fileList.classList.add('hidden');
             return;
         }
         fileList.classList.remove('hidden');
-        const listItem = document.createElement('li');
-        const fileSize = (uploadedFile.size / 1024 / 1024).toFixed(2);
-        listItem.innerHTML = `<span>${uploadedFile.name} (${fileSize} MB)</span>`;
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-file-btn';
-        removeBtn.innerHTML = '&times;';
-        removeBtn.title = 'Remove file';
-        removeBtn.onclick = () => removeFile();
-        listItem.appendChild(removeBtn);
-        fileList.appendChild(listItem);
+        
+        uploadedFiles.forEach((file, index) => {
+            const listItem = document.createElement('li');
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            listItem.innerHTML = `<span>${file.name} (${fileSize} MB)</span>`;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-file-btn';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove file';
+            removeBtn.onclick = () => removeFile(index);
+            listItem.appendChild(removeBtn);
+            fileList.appendChild(listItem);
+        });
     };
 
-    const removeFile = () => {
-        uploadedFile = null;
+    const removeFile = (indexToRemove) => {
+        uploadedFiles.splice(indexToRemove, 1);
         isFileConverted = false;
         fileInput.value = '';
         updateFileList();
@@ -250,9 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
+    // NOTE: This function will need significant changes for multi-file conversion.
+    // For now, it will only convert the FIRST file in the array.
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
-        if (!licenseKey || !uploadedFile) return;
+        if (!licenseKey || uploadedFiles.length === 0) return;
+
+        const fileToConvert = uploadedFiles[0]; // Temporary: only convert the first file
 
         resetStatusUI();
         appStatus.style.display = 'block';
@@ -264,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
-        formData.append('file', uploadedFile);
+        formData.append('file', fileToConvert);
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
@@ -280,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    isFileConverted = true;
+                    isFileConverted = true; // This state needs rethinking for multi-file
                     await validateLicenseWithRetries(licenseKey);
                     showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
@@ -329,7 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadView.classList.add('hidden');
         appTool.classList.remove('hidden');
         licenseKeyInput.disabled = false;
-        removeFile();
+        uploadedFiles = []; // Clear the array
+        removeFile(0); // Call removeFile to update UI
     };
 
     const updateProgress = (percentage, message) => {
