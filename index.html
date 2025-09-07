@@ -10,9 +10,9 @@
     <!-- Hardcoded URLs for Final Diagnostic Test -->
     <script>
         window.env = {
-            VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/api/convert",
-            VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/api/check-license",
-            VITE_RECOVER_API_ENDPOINT: "https://artypacks-converter-backend-SANDBOX.onrender.com/api/recover-link"
+            VITE_CONVERT_API_ENDPOINT: "https://artypacks-converter-backend-sandbox.onrender.com/api/convert",
+            VITE_CHECK_API_ENDPOINT: "https://artypacks-converter-backend-sandbox.onrender.com/api/check-license",
+            VITE_RECOVER_API_ENDPOINT: "https://artypacks-converter-backend-sandbox.onrender.com/api/recover-link"
         };
     </script>
     
@@ -63,17 +63,15 @@
                     <!-- Step 2: File Upload -->
                     <div class="app-step">
                         <div class="step-content">
-                            <label for="file-upload">Upload Your .brushset File(s )</label>
+                            <label for="file-upload" id="file-upload-label">Upload Your .brushset File(s )</label>
                             <div class="drop-zone" id="drop-zone">
                                 <div class="drop-zone-prompt">
                                     <svg class="drop-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v8z"/></svg>
-                                    <!-- The text inside these 'p' tags will be changed by JavaScript -->
                                     <p id="drop-zone-text"><strong>Drag & drop your Procreate file here</strong></p>
                                     <p class="drop-zone-limits" id="drop-zone-limits">or click to upload</p>
                                 </div>
                                 <input type="file" id="file-input" accept=".brushset" style="display: none;">
                             </div>
-                            <!-- This new element will display file-related errors -->
                             <p id="drop-zone-error" class="license-status-message invalid" style="display: none;"></p>
                             <ul id="file-list" class="file-list-container hidden"></ul>
                         </div>
