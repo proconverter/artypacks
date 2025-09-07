@@ -218,7 +218,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
         
-        // Disable inputs during conversion
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
@@ -247,19 +246,19 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                     showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
-                    licenseKeyInput.disabled = false; // Re-enable on error
+                    licenseKeyInput.disabled = false;
                     checkLicenseAndToggleUI();
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
-                licenseKeyInput.disabled = false; // Re-enable on error
+                licenseKeyInput.disabled = false;
                 checkLicenseAndToggleUI();
             }
         };
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
-            licenseKeyInput.disabled = false; // Re-enable on error
+            licenseKeyInput.disabled = false;
             checkLicenseAndToggleUI();
         };
 
@@ -291,17 +290,10 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         };
     };
 
-    // ==================================================================
-    // THIS FUNCTION CONTAINS THE FINAL FIX
-    // ==================================================================
     const resetApp = () => {
         downloadView.classList.add('hidden');
         appTool.classList.remove('hidden');
-        
-        // *** THIS IS THE FIX ***
-        // Re-enable the license key input so the user can edit it.
         licenseKeyInput.disabled = false;
-
         removeFile();
     };
 
@@ -334,7 +326,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
 
     const setupContactForm = () => {
         if (!contactForm) return;
-        contactForm.addEventListener('submit', async (e) => {.
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(contactForm);
             try {
