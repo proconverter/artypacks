@@ -210,9 +210,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         checkLicenseAndToggleUI();
     };
 
-    // ==================================================================
-    // THIS FUNCTION CONTAINS THE DEFINITIVE UI FIX
-    // ==================================================================
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || !uploadedFile) return;
@@ -225,9 +222,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
-        
-        // *** THIS IS THE FIX ***
-        // Explicitly hide the activation notice the moment conversion starts.
         activationNotice.style.display = 'none';
 
         const formData = new FormData();
@@ -252,20 +246,20 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                     await validateLicenseWithRetries(licenseKey);
                     showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
-                    showError(_result.message || 'An unknown error occurred.');
-                    licenseKeyInput.disabled = false;
+                    showError(result.message || 'An unknown error occurred.');
+                    licenseKeyInput.disabled = false; // Re-enable on error
                     checkLicenseAndToggleUI();
                 }
             } catch (e) {
                 showError('An unexpected server response was received.');
-                licenseKeyInput.disabled = false;
+                licenseKeyInput.disabled = false; // Re-enable on error
                 checkLicenseAndToggleUI();
             }
         };
 
         xhr.onerror = () => {
             showError('A network error occurred. Please check your connection and try again.');
-            licenseKeyInput.disabled = false;
+            licenseKeyInput.disabled = false; // Re-enable on error
             checkLicenseAndToggleUI();
         };
 
@@ -297,9 +291,17 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         };
     };
 
+    // ==================================================================
+    // THIS FUNCTION CONTAINS THE FINAL FIX
+    // ==================================================================
     const resetApp = () => {
         downloadView.classList.add('hidden');
         appTool.classList.remove('hidden');
+        
+        // *** THIS IS THE FIX ***
+        // Re-enable the license key input so the user can edit it.
+        licenseKeyInput.disabled = false;
+
         removeFile();
     };
 
@@ -332,7 +334,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
 
     const setupContactForm = () => {
         if (!contactForm) return;
-        contactForm.addEventListener('submit', async (e) => {
+        contactForm.addEventListener('submit', async (e) => {.
             e.preventDefault();
             const formData = new FormData(contactForm);
             try {
