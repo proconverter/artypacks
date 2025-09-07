@@ -77,9 +77,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         }
     };
 
-    // ==================================================================
-    // THIS FUNCTION CONTAINS THE NEW "MAGIC LINK" RECOVERY LOGIC
-    // ==================================================================
     async function validateLicenseWithRetries(key) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -113,8 +110,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 licenseStatus.className = 'license-status-message valid';
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
-                // *** THIS IS THE MAGIC LINK LOGIC ***
-                // If the key is valid but has 0 credits, try to recover the link.
                 if (result.sessions_remaining <= 0) {
                     try {
                         const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
@@ -123,14 +118,12 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                             body: JSON.stringify({ licenseKey: key })
                         });
                         
-                        // If a recent download is found, go straight to the download page.
                         if (recoveryResponse.ok) {
                             const recoveryData = await recoveryResponse.json();
                             showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                            return; // Stop further execution
+                            return;
                         }
                     } catch (e) {
-                        // If recovery fails, that's okay. The user just sees the "no credits" message.
                         console.error("Recovery check failed:", e);
                     }
                 }
@@ -153,12 +146,22 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
+    // ==================================================================
+    // THIS FUNCTION CONTAINS THE UI FIX
+    // ==================================================================
     const checkLicenseAndToggleUI = () => {
         const isDropZoneLocked = !isLicenseValid || !!uploadedFile;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         dropZone.title = isLicenseValid ? (uploadedFile ? 'A file is already uploaded. Remove it to add another.' : '') : 'Please enter a valid license key to upload files.';
-        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
         
+        const canConvert = isLicenseValid && uploadedFile && !isFileConverted;
+        convertButton.disabled = !canConvert;
+        
+        // *** THIS IS THE FIX ***
+        // Only show the "locked" message if the user CANNOT convert.
+        // In all other states (ready to convert, converting, etc.), hide it.
+        activationNotice.style.display = canConvert ? 'none' : 'block';
+
         if (isLicenseValid && licenseStatus.textContent.includes("has been used")) {
             getLicenseLinkContainer.classList.add('hidden');
         } else {
@@ -220,9 +223,14 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         resetStatusUI();
         appStatus.style.display = 'block';
         progressBar.style.display = 'block';
+        
+        // Disable inputs during conversion
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
+        // *** THIS IS THE FIX ***
+        // Also hide the activation notice during conversion
+        activationNotice.style.display = 'none';
 
         const formData = new FormData();
         formData.append('licenseKey', licenseKey);
