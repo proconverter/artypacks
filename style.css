@@ -590,3 +590,60 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     max-width: 300px;
     margin-top: -10px; /* Reduce space between buttons */
 }
+
+/* =============================================== */
+/* Conversion Queue Styles (v2.0)                  */
+/* =============================================== */
+
+.file-list-container li {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.file-status {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: #ffffff;
+    background-color: #a1a1aa; /* Default: Queued */
+    margin-left: auto;
+}
+
+.file-status.converting { background-color: #2563eb; }
+.file-status.completed { background-color: #16a34a; }
+.file-status.error { background-color: #dc2626; }
+
+.queue-progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #e5e5e5;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+    display: none; /* Hidden by default */
+}
+
+.queue-progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+.download-link-item {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: auto;
+}
