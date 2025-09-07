@@ -79,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // *** THIS IS THE FIX: Smarter messaging ***
     const getCreditsMessage = (credits) => {
         if (credits > 1) {
             return `License is valid. You have <strong>${credits} credits</strong> remaining.`;
@@ -143,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        const isDropZoneLocked = !isLicenseValid || uploadedFiles.length > 0 || currentUserState.credits <= 0;
+        const isDropZoneLocked = !isLicenseValid || uploadedFiles.length >= currentUserState.credits || currentUserState.credits <= 0;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
         if (!isLicenseValid) {
@@ -154,8 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZone.title = 'This license has no credits remaining.';
             activationNotice.style.display = 'block';
             activationNotice.textContent = 'No credits remaining on this license.';
-        } else if (uploadedFiles.length > 0) {
-            dropZone.title = 'Files are in the queue. Remove them to add more.';
+        } else if (uploadedFiles.length >= currentUserState.credits) {
+            dropZone.title = 'You have used all available slots for your credits. Remove a file to add another.';
             activationNotice.style.display = 'none';
         } else {
             dropZone.title = '';
@@ -171,29 +170,35 @@ document.addEventListener('DOMContentLoaded', () => {
             fileUploadLabel.textContent = 'Upload Your .brushset File';
         } else if (currentUserState.type === 'multi_credit') {
             fileInput.setAttribute('multiple', 'true');
-            dropZoneText.innerHTML = `<strong>Drop up to ${MAX_MULTI_UPLOAD} .brushset files here</strong>`;
-            dropZoneLimits.textContent = `or click to upload (You have ${currentUserState.credits} credits remaining)`;
+            const creditsLeft = currentUserState.credits - uploadedFiles.length;
+            const filesLeft = MAX_MULTI_UPLOAD - uploadedFiles.length;
+            const limit = Math.min(creditsLeft, filesLeft);
+            dropZoneText.innerHTML = `<strong>Drop up to ${limit} more .brushset files</strong>`;
+            dropZoneLimits.textContent = `or click to upload (You have ${creditsLeft} credits remaining)`;
             fileUploadLabel.textContent = 'Upload Your .brushset Files';
         }
     };
 
+    // *** THIS IS THE FIX: Smarter validation that checks total files ***
     const processFiles = (files) => {
         dropZoneError.style.display = 'none';
         dropZoneError.textContent = '';
 
-        if (currentUserState.type === 'single_credit' && files.length > 1) {
+        const totalFilesAfterAdd = uploadedFiles.length + files.length;
+
+        if (currentUserState.type === 'single_credit' && totalFilesAfterAdd > 1) {
             dropZoneError.textContent = 'Error: Please upload only one file at a time with a single-credit license.';
             dropZoneError.style.display = 'block';
             return;
         }
         if (currentUserState.type === 'multi_credit') {
-            if (files.length > MAX_MULTI_UPLOAD) {
-                dropZoneError.textContent = `Error: You can convert a maximum of ${MAX_MULTI_UPLOAD} files at a time.`;
+            if (totalFilesAfterAdd > MAX_MULTI_UPLOAD) {
+                dropZoneError.textContent = `Error: You can only queue a maximum of ${MAX_MULTI_UPLOAD} files at a time.`;
                 dropZoneError.style.display = 'block';
                 return;
             }
-            if (files.length > currentUserState.credits) {
-                dropZoneError.textContent = `Error: You have selected ${files.length} files but only have ${currentUserState.credits} credits remaining.`;
+            if (totalFilesAfterAdd > currentUserState.credits) {
+                dropZoneError.textContent = `Error: This would exceed your credit limit. You have ${currentUserState.credits} credits and are trying to queue ${totalFilesAfterAdd} files.`;
                 dropZoneError.style.display = 'block';
                 return;
             }
@@ -374,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     throw new Error('Form submission failed.');
                 }
-            } catch (error) {
+            } catch (error)_
                 console.error('Contact form error:', error);
                 alert('Sorry, there was an issue sending your message. Please try again later.');
             }
