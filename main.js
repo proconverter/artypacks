@@ -33,11 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUploadLabel = document.getElementById('file-upload-label');
 
     // --- STATE MANAGEMENT ---
-    let uploadedFiles = [];
+    let uploadedFiles = []; // Will now be an array of objects: { file: File, status: 'queued' | 'converting' | 'completed' | 'error', downloadUrl: '', originalFilename: '' }
     let isLicenseValid = false;
     let validationController;
-    let messageIntervalId;
-    let isFileConverted = false;
+    let isConverting = false;
     let currentUserState = {
         type: 'none',
         credits: 0
@@ -58,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
-        convertButton.addEventListener('click', handleConversion);
+        convertButton.addEventListener('click', handleBatchConversion); // Changed to new batch handler
         convertAnotherButton.addEventListener('click', resetApp);
         setupAccordion();
         setupContactForm();
@@ -66,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleLicenseInput = () => {
         if (validationController) validationController.abort();
-        clearInterval(messageIntervalId);
         isLicenseValid = false;
         currentUserState = { type: 'none', credits: 0 };
         checkLicenseAndToggleUI();
@@ -112,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
                 if (result.sessions_remaining <= 0) {
+                    // Magic Link Recovery still works for single files
                     const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -142,13 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFileSelect = (e) => processFiles(e.target.files);
 
     const checkLicenseAndToggleUI = () => {
-        const isDropZoneLocked = !isLicenseValid || uploadedFiles.length >= currentUserState.credits || currentUserState.credits <= 0;
+        const isDropZoneLocked = !isLicenseValid || uploadedFiles.length >= currentUserState.credits || currentUserState.credits <= 0 || isConverting;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
         if (!isLicenseValid) {
             dropZone.title = 'Please enter a valid license key to upload files.';
             activationNotice.style.display = 'block';
             activationNotice.textContent = 'Converter locked – enter license key above.';
+        } else if (isConverting) {
+            dropZone.title = 'Conversion in progress...';
+            activationNotice.style.display = 'none';
         } else if (currentUserState.credits <= 0) {
             dropZone.title = 'This license has no credits remaining.';
             activationNotice.style.display = 'block';
@@ -161,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activationNotice.style.display = 'none';
         }
 
-        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0 && !isFileConverted);
+        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0 && !isConverting);
         
         if (currentUserState.type === 'single_credit') {
             fileInput.removeAttribute('multiple');
@@ -205,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const file of files) {
             if (file.name.endsWith('.brushset')) {
-                uploadedFiles.push(file);
+                uploadedFiles.push({ file: file, status: 'queued', downloadUrl: '', originalFilename: '' });
             } else {
                 alert(`Invalid file type: ${file.name}. Only .brushset files are allowed.`);
             }
@@ -223,15 +225,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         fileList.classList.remove('hidden');
         
-        uploadedFiles.forEach((file, index) => {
+        uploadedFiles.forEach((fileData, index) => {
             const listItem = document.createElement('li');
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-            listItem.innerHTML = `<span>${file.name} (${fileSize} MB)</span>`;
+            listItem.id = `file-item-${index}`;
+
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-info';
+            const fileSize = (fileData.file.size / 1024 / 1024).toFixed(2);
+            fileInfo.innerHTML = `<span>${fileData.file.name} (${fileSize} MB)</span>`;
+            
+            const statusBadge = document.createElement('span');
+            statusBadge.className = `file-status ${fileData.status}`;
+            statusBadge.textContent = fileData.status.charAt(0).toUpperCase() + fileData.status.slice(1);
+
+            const progressBar = document.createElement('div');
+            progressBar.className = 'queue-progress-bar';
+            progressBar.innerHTML = `<div class="queue-progress-fill"></div>`;
+
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
+            
+            if (isConverting) {
+                removeBtn.style.display = 'none';
+            }
+
+            listItem.appendChild(fileInfo);
+            listItem.appendChild(statusBadge);
+            listItem.appendChild(progressBar);
             listItem.appendChild(removeBtn);
             fileList.appendChild(listItem);
         });
@@ -239,71 +262,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeFile = (indexToRemove) => {
         uploadedFiles.splice(indexToRemove, 1);
-        isFileConverted = false;
         fileInput.value = '';
         updateFileList();
-        resetStatusUI();
         checkLicenseAndToggleUI();
     };
 
-    const handleConversion = () => {
-        const licenseKey = licenseKeyInput.value.trim();
-        if (!licenseKey || uploadedFiles.length === 0) return;
+    // --- BATCH CONVERSION LOGIC (v2.0) ---
+    async function handleBatchConversion() {
+        isConverting = true;
+        checkLicenseAndToggleUI();
+        updateFileList(); // Re-render to hide remove buttons
 
-        const fileToConvert = uploadedFiles[0];
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const fileData = uploadedFiles[i];
+            
+            // Skip files that are not in 'queued' state
+            if (fileData.status !== 'queued') continue;
 
-        resetStatusUI();
-        appStatus.style.display = 'block';
-        progressBar.style.display = 'block';
-        convertButton.disabled = true;
-        licenseKeyInput.disabled = true;
-        dropZone.classList.add('disabled');
-        activationNotice.style.display = 'none';
+            fileData.status = 'converting';
+            updateFileStatusUI(i, 'converting', 0);
 
-        const formData = new FormData();
-        formData.append('licenseKey', licenseKey);
-        formData.append('file', fileToConvert);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
-
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const uploadProgress = 10 + (event.loaded / event.total) * 80;
-                updateProgress(uploadProgress, 'Uploading and converting...');
-            }
-        };
-
-        xhr.onload = async () => {
             try {
-                const result = JSON.parse(xhr.responseText);
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    isFileConverted = true;
-                    await validateLicenseWithRetries(licenseKey);
-                    showDownloadView(result.downloadUrl, result.originalFilename);
-                } else {
-                    showError(result.message || 'An unknown error occurred.');
-                    licenseKeyInput.disabled = false;
-                    checkLicenseAndToggleUI();
-                }
-            } catch (e) {
-                showError('An unexpected server response was received.');
-                licenseKeyInput.disabled = false;
-                checkLicenseAndToggleUI();
+                const result = await convertSingleFile(fileData.file, i);
+                fileData.status = 'completed';
+                fileData.downloadUrl = result.downloadUrl;
+                fileData.originalFilename = result.originalFilename;
+                updateFileStatusUI(i, 'completed');
+            } catch (error) {
+                fileData.status = 'error';
+                updateFileStatusUI(i, 'error', 0, error.message);
             }
-        };
+        }
 
-        // *** THIS IS THE FIX: Removed the stray period ***
-        xhr.onerror = () => {
-            showError('A network error occurred. Please check your connection and try again.');
-            licenseKeyInput.disabled = false;
-            checkLicenseAndToggleUI();
-        };
+        isConverting = false;
+        // Optional: Add a "Download All" button or similar logic here
+        // For now, we just re-enable the UI
+        checkLicenseAndToggleUI();
+    }
 
-        updateProgress(10, 'Validating and preparing upload...');
-        xhr.send(formData);
-    };
+    function convertSingleFile(file, index) {
+        return new Promise((resolve, reject) => {
+            const licenseKey = licenseKeyInput.value.trim();
+            const formData = new FormData();
+            formData.append('licenseKey', licenseKey);
+            formData.append('file', file);
 
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    updateFileStatusUI(index, 'converting', percentage);
+                }
+            };
+
+            xhr.onload = () => {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(result);
+                    } else {
+                        reject(new Error(result.message || 'Server error'));
+                    }
+                } catch (e) {
+                    reject(new Error('Invalid server response'));
+                }
+            };
+
+            xhr.onerror = () => {
+                reject(new Error('Network error'));
+            };
+
+            xhr.send(formData);
+        });
+    }
+
+    function updateFileStatusUI(index, status, progress = 100, errorMessage = '') {
+        const listItem = document.getElementById(`file-item-${index}`);
+        if (!listItem) return;
+
+        const statusBadge = listItem.querySelector('.file-status');
+        const progressBar = listItem.querySelector('.queue-progress-bar');
+        const progressFill = listItem.querySelector('.queue-progress-fill');
+
+        statusBadge.className = `file-status ${status}`;
+        statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+
+        if (status === 'converting') {
+            progressBar.style.display = 'block';
+            progressFill.style.width = `${progress}%`;
+        } else {
+            progressBar.style.display = 'none';
+        }
+
+        if (status === 'completed') {
+            // Remove status badge and add a download link
+            statusBadge.remove();
+            const downloadLink = document.createElement('a');
+            downloadLink.className = 'download-link-item';
+            downloadLink.textContent = 'Download';
+            downloadLink.onclick = () => {
+                const fileData = uploadedFiles[index];
+                const link = document.createElement('a');
+                link.href = fileData.downloadUrl;
+                const baseName = fileData.originalFilename.replace(/\.brushset$/, '');
+                link.download = `ArtyPacks.app_${baseName}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+            listItem.insertBefore(downloadLink, listItem.querySelector('.remove-file-btn'));
+        }
+
+        if (status === 'error') {
+            statusBadge.textContent = `Error: ${errorMessage}`;
+        }
+    }
+
+    // --- SINGLE FILE DOWNLOAD VIEW (Legacy/Recovery) ---
     const showDownloadView = (url, filename) => {
         appTool.classList.add('hidden');
         downloadView.classList.remove('hidden');
@@ -314,10 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadFileButton.onclick = () => {
             const link = document.createElement('a');
             link.href = url;
-            
             const baseName = displayFilename.replace(/\.brushset$/, '');
             link.download = `ArtyPacks.app_${baseName}.zip`;
-            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -330,30 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
         licenseKeyInput.disabled = false;
         
         uploadedFiles = [];
-        isFileConverted = false;
+        isConverting = false;
         fileInput.value = '';
 
         updateFileList();
-        resetStatusUI();
         checkLicenseAndToggleUI();
-    };
-
-    const updateProgress = (percentage, message) => {
-        progressFill.style.width = `${percentage}%`;
-        statusMessage.textContent = message;
-    };
-
-    const showError = (message) => {
-        statusMessage.textContent = `Error: ${message}`;
-        statusMessage.style.color = '#dc2626';
-        progressBar.style.display = 'none';
-    };
-
-    const resetStatusUI = () => {
-        appStatus.style.display = 'none';
-        progressFill.style.width = '0%';
-        statusMessage.textContent = '';
-        statusMessage.style.color = '';
     };
 
     const setupAccordion = () => {
