@@ -77,6 +77,9 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         }
     };
 
+    // ==================================================================
+    // THIS FUNCTION CONTAINS THE NEW "MAGIC LINK" RECOVERY LOGIC
+    // ==================================================================
     async function validateLicenseWithRetries(key) {
         validationController = new AbortController();
         const signal = validationController.signal;
@@ -110,6 +113,8 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 licenseStatus.className = 'license-status-message valid';
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
+                // *** THIS IS THE MAGIC LINK LOGIC ***
+                // If the key is valid but has 0 credits, try to recover the link.
                 if (result.sessions_remaining <= 0) {
                     try {
                         const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
@@ -117,12 +122,15 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ licenseKey: key })
                         });
+                        
+                        // If a recent download is found, go straight to the download page.
                         if (recoveryResponse.ok) {
                             const recoveryData = await recoveryResponse.json();
                             showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                            return;
+                            return; // Stop further execution
                         }
                     } catch (e) {
+                        // If recovery fails, that's okay. The user just sees the "no credits" message.
                         console.error("Recovery check failed:", e);
                     }
                 }
