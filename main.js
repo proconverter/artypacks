@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUploadLabel = document.getElementById('file-upload-label');
 
     // --- STATE MANAGEMENT ---
-    let uploadedFiles = []; // Use array for both single and multi-file for consistency
+    let uploadedFiles = [];
     let isLicenseValid = false;
     let validationController;
     let messageIntervalId;
@@ -79,9 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // *** THIS IS THE FIX: Smarter messaging ***
     const getCreditsMessage = (credits) => {
-        if (credits > 0) {
-            return `License is valid. You're ready to convert!`;
+        if (credits > 1) {
+            return `License is valid. You have <strong>${credits} credits</strong> remaining.`;
+        } else if (credits === 1) {
+            return `License is valid. You have <strong>1 credit</strong> remaining.`;
         } else {
             return `This license has no credits left. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to convert another file.</a>`;
         }
@@ -239,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
     };
 
-    // NOTE: This function will only convert the FIRST file in the array for now.
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || uploadedFiles.length === 0) return;
