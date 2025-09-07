@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     isFileConverted = true;
                     await validateLicenseWithRetries(licenseKey);
-                    showDownloadView(result.downloadUrl, uploadedFile.name);
+showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
                     showError(result.message || 'An unknown error occurred.');
                     licenseKeyInput.disabled = false;
