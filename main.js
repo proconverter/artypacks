@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isLicenseValid) {
             dropZone.title = 'Please enter a valid license key to upload files.';
             activationNotice.style.display = 'block';
+            activationNotice.textContent = 'Converter locked – enter license key above.';
         } else if (currentUserState.credits <= 0) {
             dropZone.title = 'This license has no credits remaining.';
             activationNotice.style.display = 'block';
@@ -183,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
             getLicenseLinkContainer.classList.remove('hidden');
         }
         
-        // Update Drop Zone UI based on user type
         if (currentUserState.type === 'single_credit') {
             fileInput.removeAttribute('multiple');
             dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
@@ -344,4 +344,41 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const resetStatusUI = () => {
-        appStatus
+        appStatus.style.display = 'none';
+        progressFill.style.width = '0%';
+        statusMessage.textContent = '';
+        statusMessage.style.color = '';
+    };
+
+    const setupAccordion = () => {
+        document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const item = trigger.closest('.accordion-item, .footer-accordion-item');
+                if (item) item.classList.toggle('open');
+            });
+        });
+    };
+
+    const setupContactForm = () => {
+        if (!contactForm) return;
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            try {
+                const response = await fetch(contactForm.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    initializeApp();
+});
