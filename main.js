@@ -146,9 +146,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
-    // ==================================================================
-    // THIS FUNCTION CONTAINS THE UI FIX
-    // ==================================================================
     const checkLicenseAndToggleUI = () => {
         const isDropZoneLocked = !isLicenseValid || !!uploadedFile;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
@@ -157,9 +154,6 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         const canConvert = isLicenseValid && uploadedFile && !isFileConverted;
         convertButton.disabled = !canConvert;
         
-        // *** THIS IS THE FIX ***
-        // Only show the "locked" message if the user CANNOT convert.
-        // In all other states (ready to convert, converting, etc.), hide it.
         activationNotice.style.display = canConvert ? 'none' : 'block';
 
         if (isLicenseValid && licenseStatus.textContent.includes("has been used")) {
@@ -216,6 +210,9 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         checkLicenseAndToggleUI();
     };
 
+    // ==================================================================
+    // THIS FUNCTION CONTAINS THE DEFINITIVE UI FIX
+    // ==================================================================
     const handleConversion = () => {
         const licenseKey = licenseKeyInput.value.trim();
         if (!licenseKey || !uploadedFile) return;
@@ -228,8 +225,9 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         convertButton.disabled = true;
         licenseKeyInput.disabled = true;
         dropZone.classList.add('disabled');
+        
         // *** THIS IS THE FIX ***
-        // Also hide the activation notice during conversion
+        // Explicitly hide the activation notice the moment conversion starts.
         activationNotice.style.display = 'none';
 
         const formData = new FormData();
@@ -254,7 +252,7 @@ document.addEventListener('DOMContentLoaded', ( ) => {
                     await validateLicenseWithRetries(licenseKey);
                     showDownloadView(result.downloadUrl, result.originalFilename);
                 } else {
-                    showError(result.message || 'An unknown error occurred.');
+                    showError(_result.message || 'An unknown error occurred.');
                     licenseKeyInput.disabled = false;
                     checkLicenseAndToggleUI();
                 }
