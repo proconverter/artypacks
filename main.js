@@ -1,13 +1,12 @@
-document.addEventListener('DOMContentLoaded', ( ) => {
+document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/convert";
     const VITE_CHECK_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/check-license";
     const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/recover-link";
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
-    const MAX_BATCH_SIZE = 10;
 
     // --- DOM ELEMENT SELECTORS ---
-    const licenseKeyInput = document.getElementById('license-key'  );
+    const licenseKeyInput = document.getElementById('license-key' );
     const licenseStatus = document.getElementById('license-status');
     const getLicenseLinkContainer = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
@@ -27,20 +26,21 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const downloadFilename = document.getElementById('download-filename');
     const downloadFileButton = document.getElementById('download-file-button');
     const convertAnotherButton = document.getElementById('convert-another-button');
-    // New v2.0 selectors
     const dropZoneText = document.getElementById('drop-zone-text');
     const dropZoneLimits = document.getElementById('drop-zone-limits');
     const dropZoneError = document.getElementById('drop-zone-error');
+    const fileUploadLabel = document.getElementById('file-upload-label');
 
-
-    // --- STATE MANAGEMENT (v2.0) ---
-    let uploadedFile = null; // Will become an array for multi-credit users
+    // --- STATE MANAGEMENT ---
+    let uploadedFile = null;
     let isLicenseValid = false;
-    let creditsRemaining = 0;
-    let userType = 'none'; // 'none', 'single_credit', or 'multi_credit'
     let validationController;
     let messageIntervalId;
     let isFileConverted = false;
+    let currentUserState = {
+        type: 'none',
+        credits: 0
+    };
 
     // --- INITIALIZATION ---
     const initializeApp = () => {
@@ -66,10 +66,8 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const handleLicenseInput = () => {
         if (validationController) validationController.abort();
         clearInterval(messageIntervalId);
-        // Reset state
         isLicenseValid = false;
-        creditsRemaining = 0;
-        userType = 'none';
+        currentUserState = { type: 'none', credits: 0 };
         checkLicenseAndToggleUI();
         const key = licenseKeyInput.value.trim();
         if (key.length > 5) {
@@ -92,8 +90,11 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         validationController = new AbortController();
         const signal = validationController.signal;
 
-        const coldStartMessages = ["Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment..."];
+        const coldStartMessages = [
+            "Initializing connection...", "Waking up the servers...", "Establishing secure link...", "Authenticating...", "Just a moment...", "Checking credentials...", "Almost there...", "Finalizing verification..."
+        ];
         let messageIndex = 0;
+
         licenseStatus.className = 'license-status-message checking';
         const showNextMessage = () => {
             licenseStatus.innerHTML = coldStartMessages[messageIndex % coldStartMessages.length];
@@ -115,18 +116,29 @@ document.addEventListener('DOMContentLoaded', ( ) => {
 
             if (response.ok && result.isValid) {
                 isLicenseValid = true;
-                creditsRemaining = result.sessions_remaining;
-                userType = result.user_type; // Store the user type
+                currentUserState.type = result.user_type;
+                currentUserState.credits = result.sessions_remaining;
                 licenseStatus.className = 'license-status-message valid';
-                licenseStatus.innerHTML = getCreditsMessage(creditsRemaining);
+                licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
-                if (creditsRemaining <= 0) {
-                    // Magic Link Recovery (no changes needed here)
+                if (result.sessions_remaining <= 0) {
+                    try {
+                        const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ licenseKey: key })
+                        });
+                        if (recoveryResponse.ok) {
+                            const recoveryData = await recoveryResponse.json();
+                            showDownloadView(recoveryData.download_url, recoveryData.original_filename);
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("Recovery check failed:", e);
+                    }
                 }
             } else {
                 isLicenseValid = false;
-                creditsRemaining = 0;
-                userType = 'none';
                 licenseStatus.className = 'license-status-message invalid';
                 licenseStatus.innerHTML = result.message || 'Invalid license key.';
             }
@@ -134,10 +146,8 @@ document.addEventListener('DOMContentLoaded', ( ) => {
             if (signal.aborted) return;
             clearInterval(messageIntervalId);
             isLicenseValid = false;
-            creditsRemaining = 0;
-            userType = 'none';
             licenseStatus.className = 'license-status-message invalid';
-            licenseStatus.textContent = 'Unable to connect. Please try again in a minute.';
+            licenseStatus.textContent = 'A server error occurred while validating the license.';
         } finally {
             checkLicenseAndToggleUI();
         }
@@ -146,100 +156,89 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
 
-    // ==================================================================
-    // THIS IS THE CORE V2.0 UI LOGIC
-    // ==================================================================
     const checkLicenseAndToggleUI = () => {
-        // Hide any previous error messages
-        dropZoneError.style.display = 'none';
-        dropZoneError.textContent = '';
-
-        const isDropZoneLocked = !isLicenseValid || creditsRemaining <= 0 || !!uploadedFile;
+        const isDropZoneLocked = !isLicenseValid || !!uploadedFile || currentUserState.credits <= 0;
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
-        // Configure Drop Zone based on userType
-        if (userType === 'single_credit') {
+        if (!isLicenseValid) {
+            dropZone.title = 'Please enter a valid license key to upload files.';
+            activationNotice.style.display = 'block';
+        } else if (currentUserState.credits <= 0) {
+            dropZone.title = 'This license has no credits remaining.';
+            activationNotice.style.display = 'block';
+            activationNotice.textContent = 'No credits remaining on this license.';
+        } else if (uploadedFile) {
+            dropZone.title = 'A file is already uploaded. Remove it to add another.';
+            activationNotice.style.display = 'none';
+        } else {
+            dropZone.title = '';
+            activationNotice.style.display = 'none';
+        }
+
+        convertButton.disabled = !(isLicenseValid && uploadedFile && !isFileConverted);
+        
+        if (isLicenseValid && licenseStatus.textContent.includes("has been used")) {
+            getLicenseLinkContainer.classList.add('hidden');
+        } else {
+            getLicenseLinkContainer.classList.remove('hidden');
+        }
+        
+        // Update Drop Zone UI based on user type
+        if (currentUserState.type === 'single_credit') {
             fileInput.removeAttribute('multiple');
             dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
             dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
-        } else if (userType === 'multi_credit') {
-            fileInput.setAttribute('multiple', true);
+            fileUploadLabel.textContent = 'Upload Your .brushset File';
+        } else if (currentUserState.type === 'multi_credit') {
+            fileInput.setAttribute('multiple', '');
             dropZoneText.innerHTML = '<strong>Drop up to 10 .brushset files here</strong>';
-            dropZoneLimits.textContent = `or click to upload (You have ${creditsRemaining} credits remaining)`;
-        } else { // 'none' or default state
-            fileInput.removeAttribute('multiple');
-            dropZoneText.innerHTML = '<strong>Drag & drop your Procreate file here</strong>';
-            dropZoneLimits.textContent = 'or click to upload';
+            dropZoneLimits.textContent = `or click to upload (You have ${currentUserState.credits} credits remaining)`;
+            fileUploadLabel.textContent = 'Upload Your .brushset Files';
         }
-
-        const canConvert = isLicenseValid && creditsRemaining > 0 && uploadedFile && !isFileConverted;
-        convertButton.disabled = !canConvert;
-        activationNotice.style.display = canConvert ? 'none' : 'block';
     };
 
     const processFiles = (files) => {
-        // Clear previous errors
         dropZoneError.style.display = 'none';
+        dropZoneError.textContent = '';
 
-        // Single Credit User Logic
-        if (userType === 'single_credit') {
-            if (files.length > 1) {
-                dropZoneError.textContent = 'Error: Please upload only one file at a time with a single-credit license.';
-                dropZoneError.style.display = 'block';
-                return;
-            }
-            const file = files[0];
-            if (file && file.name.endsWith('.brushset')) {
-                uploadedFile = file; // For single user, it's an object
-                updateFileList();
-            }
-        } 
-        // Multi-Credit User Logic
-        else if (userType === 'multi_credit') {
-            if (files.length > MAX_BATCH_SIZE) {
-                dropZoneError.textContent = `Error: You can convert a maximum of ${MAX_BATCH_SIZE} files at a time.`;
-                dropZoneError.style.display = 'block';
-                return;
-            }
-            if (files.length > creditsRemaining) {
-                dropZoneError.textContent = `Error: You have selected ${files.length} files but only have ${creditsRemaining} credits remaining.`;
-                dropZoneError.style.display = 'block';
-                return;
-            }
-            // For multi-user, uploadedFile will be an array
-            uploadedFile = Array.from(files).filter(f => f.name.endsWith('.brushset'));
-            updateFileList(); // This function will need to be updated for arrays
+        if (currentUserState.type === 'single_credit' && files.length > 1) {
+            dropZoneError.textContent = 'Error: Please upload only one file at a time with a single-credit license.';
+            dropZoneError.style.display = 'block';
+            return;
+        }
+
+        if (uploadedFile) {
+            alert("A file has already been uploaded. Please remove the current file before adding a new one.");
+            return;
         }
         
+        const file = files[0];
+        if (file && file.name.endsWith('.brushset')) {
+            uploadedFile = file;
+            updateFileList();
+        } else if (file) {
+            alert("Invalid file type. Please upload only .brushset files.");
+        }
         checkLicenseAndToggleUI();
     };
 
-    // This function needs updating for v2.0, but for now, it will work for the single-file case
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (!uploadedFile) {
             fileList.classList.add('hidden');
             return;
         }
-        
         fileList.classList.remove('hidden');
-        
-        // Handle both single file (object) and multiple files (array)
-        const filesToShow = Array.isArray(uploadedFile) ? uploadedFile : [uploadedFile];
-
-        filesToShow.forEach(file => {
-            const listItem = document.createElement('li');
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-            listItem.innerHTML = `<span>${file.name} (${fileSize} MB)</span>`;
-            // In a real v2.0, the remove button would need to handle arrays
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file-btn';
-            removeBtn.innerHTML = '&times;';
-            removeBtn.title = 'Remove file';
-            removeBtn.onclick = () => removeFile(); // This will clear all files for now
-            listItem.appendChild(removeBtn);
-            fileList.appendChild(listItem);
-        });
+        const listItem = document.createElement('li');
+        const fileSize = (uploadedFile.size / 1024 / 1024).toFixed(2);
+        listItem.innerHTML = `<span>${uploadedFile.name} (${fileSize} MB)</span>`;
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-file-btn';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.title = 'Remove file';
+        removeBtn.onclick = () => removeFile();
+        listItem.appendChild(removeBtn);
+        fileList.appendChild(listItem);
     };
 
     const removeFile = () => {
@@ -251,20 +250,98 @@ document.addEventListener('DOMContentLoaded', ( ) => {
         checkLicenseAndToggleUI();
     };
 
-    // The rest of the file (handleConversion, showDownloadView, etc.) remains the same for now
-    // as we are only implementing the dynamic drop zone in this step.
-    // The conversion logic will need to be updated later to handle a queue.
-    
-    // [ ... The rest of your main.js file from the last working version ... ]
-    // (handleConversion, showDownloadView, resetApp, etc.)
-    const handleConversion = () => { /* ... */ };
-    const showDownloadView = (url, filename) => { /* ... */ };
-    const resetApp = () => { /* ... */ };
-    const updateProgress = (percentage, message) => { /* ... */ };
-    const showError = (message) => { /* ... */ };
-    const resetStatusUI = () => { /* ... */ };
-    const setupAccordion = () => { /* ... */ };
-    const setupContactForm = () => { /* ... */ };
+    const handleConversion = () => {
+        const licenseKey = licenseKeyInput.value.trim();
+        if (!licenseKey || !uploadedFile) return;
 
-    initializeApp();
-});
+        resetStatusUI();
+        appStatus.style.display = 'block';
+        progressBar.style.display = 'block';
+        convertButton.disabled = true;
+        licenseKeyInput.disabled = true;
+        dropZone.classList.add('disabled');
+        activationNotice.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('licenseKey', licenseKey);
+        formData.append('file', uploadedFile);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', VITE_CONVERT_API_ENDPOINT, true);
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const uploadProgress = 10 + (event.loaded / event.total) * 80;
+                updateProgress(uploadProgress, 'Uploading and converting...');
+            }
+        };
+
+        xhr.onload = async () => {
+            try {
+                const result = JSON.parse(xhr.responseText);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    isFileConverted = true;
+                    await validateLicenseWithRetries(licenseKey);
+                    showDownloadView(result.downloadUrl, result.originalFilename);
+                } else {
+                    showError(result.message || 'An unknown error occurred.');
+                    licenseKeyInput.disabled = false;
+                    checkLicenseAndToggleUI();
+                }
+            } catch (e) {
+                showError('An unexpected server response was received.');
+                licenseKeyInput.disabled = false;
+                checkLicenseAndToggleUI();
+            }
+        };
+
+        xhr.onerror = () => {
+            showError('A network error occurred. Please check your connection and try again.');
+            licenseKeyInput.disabled = false;
+            checkLicenseAndToggleUI();
+        };
+
+        updateProgress(10, 'Validating and preparing upload...');
+        xhr.send(formData);
+    };
+
+    const showDownloadView = (url, filename) => {
+        appTool.classList.add('hidden');
+        downloadView.classList.remove('hidden');
+        
+        const displayFilename = filename || "your_converted_file.zip";
+        downloadFilename.textContent = displayFilename;
+        
+        downloadFileButton.onclick = () => {
+            const link = document.createElement('a');
+            link.href = url;
+            
+            const baseName = displayFilename.replace(/\.brushset$/, '');
+            link.download = `ArtyPacks.app_${baseName}.zip`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    };
+
+    const resetApp = () => {
+        downloadView.classList.add('hidden');
+        appTool.classList.remove('hidden');
+        licenseKeyInput.disabled = false;
+        removeFile();
+    };
+
+    const updateProgress = (percentage, message) => {
+        progressFill.style.width = `${percentage}%`;
+        statusMessage.textContent = message;
+    };
+
+    const showError = (message) => {
+        statusMessage.textContent = `Error: ${message}`;
+        statusMessage.style.color = '#dc2626';
+        progressBar.style.display = 'none';
+    };
+
+    const resetStatusUI = () => {
+        appStatus
