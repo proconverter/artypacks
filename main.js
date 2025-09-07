@@ -426,20 +426,37 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const resetApp = () => {
+        // *** THIS IS THE FIX ***
+        // Hide all views first
         downloadView.classList.add('hidden');
         downloadSessionView.classList.add('hidden');
-        appTool.classList.remove('hidden');
         
+        // Reset state variables
         uploadedFiles = [];
         isConverting = false;
         fileInput.value = '';
+        
+        // Reset the license key input so it can be edited
+        licenseKeyInput.disabled = false;
+        
+        // Show the main tool view
+        appTool.classList.remove('hidden');
+        
+        // Update the UI based on the new (empty) state
         updateFileList();
         
-        licenseKeyInput.disabled = false;
-        convertButton.textContent = 'Convert Your Brushset';
+        // Re-validate the license to get the updated credit count and set the UI correctly
+        const currentKey = licenseKeyInput.value.trim();
+        if (currentKey) {
+            validateLicenseWithRetries(currentKey);
+        } else {
+            // If there's no key, just reset the UI to its initial state
+            isLicenseValid = false;
+            currentUserState = { type: 'none', credits: 0 };
+            checkLicenseAndToggleUI();
+        }
         
-        // Re-validate the license to get the updated credit count
-        validateLicenseWithRetries(licenseKeyInput.value.trim());
+        convertButton.textContent = 'Convert Your Brushset';
     };
 
     // --- UTILITY FUNCTIONS ---
