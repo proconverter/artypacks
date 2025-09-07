@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUploadLabel = document.getElementById('file-upload-label');
 
     // --- STATE MANAGEMENT ---
-    let uploadedFiles = []; // { file: File, status: 'queued' | 'converting' | 'completed' | 'error', downloadUrl: '', originalFilename: '' }
+    let uploadedFiles = []; // { file: File, status: 'queued' | 'converting' | 'completed' | 'error', downloadUrl: '', originalFilename: '', message: '' }
     let isLicenseValid = false;
     let validationController;
     let isConverting = false;
@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         convertAnotherButton.addEventListener('click', resetApp);
         convertAnotherSessionButton.addEventListener('click', resetApp);
         setupAccordion();
-        // Download All button listener is set up when the view is shown
     };
 
     const handleLicenseInput = () => {
@@ -203,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const file of filesToAdd) {
             if (file.name.endsWith('.brushset')) {
-                uploadedFiles.push({ file: file, status: 'queued', downloadUrl: '', originalFilename: '' });
+                uploadedFiles.push({ file: file, status: 'queued', downloadUrl: '', originalFilename: '', message: '' });
             } else {
                 alert(`Invalid file type: ${file.name}. Only .brushset files are allowed.`);
             }
@@ -228,21 +227,30 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInfo.className = 'file-info';
             const fileSize = (fileData.file.size / 1024 / 1024).toFixed(2);
             fileInfo.innerHTML = `<span>${fileData.file.name} (${fileSize} MB)</span>`;
+            
+            const statusContainer = document.createElement('div');
+            statusContainer.className = 'status-container';
+
             const statusBadge = document.createElement('span');
             statusBadge.className = `file-status ${fileData.status}`;
             statusBadge.textContent = fileData.status.charAt(0).toUpperCase() + fileData.status.slice(1);
+            
             const progressBar = document.createElement('div');
             progressBar.className = 'queue-progress-bar';
             progressBar.innerHTML = `<div class="queue-progress-fill"></div>`;
+            
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
             if (isConverting) removeBtn.style.display = 'none';
+
+            statusContainer.appendChild(statusBadge);
+            statusContainer.appendChild(progressBar);
+
             listItem.appendChild(fileInfo);
-            listItem.appendChild(statusBadge);
-            listItem.appendChild(progressBar);
+            listItem.appendChild(statusContainer);
             listItem.appendChild(removeBtn);
             fileList.appendChild(listItem);
         });
@@ -264,8 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < uploadedFiles.length; i++) {
             const fileData = uploadedFiles[i];
             if (fileData.status !== 'queued') continue;
+            
             fileData.status = 'converting';
             updateFileStatusUI(i, 'converting', 0);
+            
             try {
                 const result = await convertSingleFile(fileData.file, i);
                 fileData.status = 'completed';
@@ -274,12 +284,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateFileStatusUI(i, 'completed', 100);
             } catch (error) {
                 fileData.status = 'error';
+                fileData.message = error.message;
                 updateFileStatusUI(i, 'error', 0, error.message);
             }
         }
 
         isConverting = false;
         const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
+        
         if (successfulConversions.length > 0) {
             if (currentUserState.type === 'single_credit') {
                 showDownloadView(successfulConversions[0].downloadUrl, successfulConversions[0].originalFilename);
@@ -334,21 +346,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFileStatusUI(index, status, progress, message = '') {
         const listItem = document.getElementById(`file-item-${index}`);
         if (!listItem) return;
+        
         const statusBadge = listItem.querySelector('.file-status');
+        const progressBar = listItem.querySelector('.queue-progress-bar');
         const progressBarFill = listItem.querySelector('.queue-progress-fill');
         
         statusBadge.className = `file-status ${status}`;
-        if (status === 'completed') {
+        progressBar.style.display = 'none'; // Hide progress bar by default
+
+        if (status === 'converting') {
+            statusBadge.textContent = 'Converting...';
+            progressBar.style.display = 'block';
+            progressBarFill.style.width = `${progress}%`;
+        } else if (status === 'completed') {
             statusBadge.textContent = 'Ready';
+        } else if (status === 'error') {
+            statusBadge.textContent = `Error: ${message}`;
         } else {
             statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
         }
-        
-        if (status === 'error') {
-            statusBadge.textContent = `Error: ${message}`;
-        }
-
-        progressBarFill.style.width = `${progress}%`;
     }
 
     // --- VIEW MANAGEMENT ---
