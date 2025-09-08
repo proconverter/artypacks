@@ -479,12 +479,14 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     margin-top: 0;
 }
 
+/* This is the main list for the questions themselves */
 .accordion-answer ol {
     list-style: none;
     counter-reset: faq-counter;
     padding-left: 0;
 }
 
+/* This is a single question item */
 .accordion-answer li {
     font-weight: 600;
     font-size: 16px;
@@ -495,7 +497,20 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     position: relative;
 }
 
+/* THIS IS THE RULE THAT WAS CAUSING THE PROBLEM. IT HAS BEEN REMOVED. */
+/*
 .accordion-answer li::before {
+    content: counter(faq-counter) ".";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 600;
+    color: #374151;
+}
+*/
+
+/* This rule adds the number back ONLY to the direct children of <ol> */
+.accordion-answer > ol > li::before {
     content: counter(faq-counter) ".";
     position: absolute;
     left: 0;
@@ -511,21 +526,33 @@ a { color: #007bff; text-decoration: none; font-weight: 700; }
     color: #52525b;
     max-width: 100%;
     margin-top: 5px;
-    padding-left: 25px;
+    /* Removed padding-left from here to align with the parent li */
 }
 
+/* This is the nested list for bullet points */
 .accordion-answer li ul {
     list-style-type: disc;
     margin-top: 10px;
-    padding-left: 45px;
+    padding-left: 20px; /* Indent the bullet points */
 }
 
+/* This is a single bullet point item */
 .accordion-answer li ul li {
     font-weight: 400;
     font-size: 15px;
     color: #52525b;
     margin-top: 5px;
+    padding-left: 5px; /* Add a little space between the bullet and the text */
+    /* Resetting styles from the parent li */
+    list-style-type: disc;
+    counter-increment: none;
 }
+
+/* This ensures the bullet points don't get a number */
+.accordion-answer li ul li::before {
+    content: "";
+}
+
 
 /* =============================================== */
 /* Download View Styles (Single & Batch)           */
