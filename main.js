@@ -292,7 +292,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileData.status = 'completed';
                 fileData.downloadUrl = result.downloadUrl;
                 fileData.originalFilename = result.originalFilename;
+                
+                // *** THE FIX IS HERE ***
+                // 1. Decrement the local credit count
+                currentUserState.credits--;
+                // 2. Update the UI to show the new count
+                licenseStatus.innerHTML = getCreditsMessage(currentUserState.credits);
+                
                 updateFileStatusUI(i, 'completed', 100);
+
             } catch (error) {
                 fileData.status = 'error';
                 fileData.message = error.message;
@@ -430,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const resetApp = () => {
-        // *** THE FIX IS HERE: Abort any pending validation before resetting state ***
         if (validationController) {
             validationController.abort();
         }
