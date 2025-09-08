@@ -225,7 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         dropZone.classList.toggle('disabled', isDropZoneLocked);
         
-        if (isLicenseValid && currentUserState.credits <= 0 && !allConversionsComplete) {
+        // Hide "Need a license?" if the key is valid but has no credits, OR if all conversions are done.
+        if ((isLicenseValid && currentUserState.credits <= 0) || allConversionsComplete) {
             getLicenseLinkContainer.classList.add('hidden');
         } else {
             getLicenseLinkContainer.classList.remove('hidden');
@@ -545,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupContactForm = () => {
         const contactForm = document.getElementById('contact-form');
         if (!contactForm) return;
-        const formStatus = document.getElementById('form-status');
+        const formStatus = document.getElementById('form--status');
         
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
