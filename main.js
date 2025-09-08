@@ -36,9 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let validationController;
     let isConverting = false;
     let allConversionsComplete = false;
-    let batchDownloadCounter = 0; // <-- NEW: Counter for batch downloads
+    let batchDownloadCounter = 0;
     let currentUserState = { type: 'none', credits: 0 };
 
+    // --- INITIALIZATION ---
     const initializeApp = () => {
         document.getElementById('current-year').textContent = new Date().getFullYear();
         setupEventListeners();
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupContactForm();
     };
 
+    // --- EVENT LISTENERS ---
     const setupEventListeners = () => {
         licenseKeyInput.addEventListener('input', handleLicenseInput);
         dropZone.addEventListener('click', () => { if (!dropZone.classList.contains('disabled')) fileInput.click(); });
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupAccordion();
     };
 
-    // --- UPDATED: handleDownloadAll function ---
+    // --- CORE FUNCTIONS ---
     async function handleDownloadAll() {
         const successfulFiles = uploadedFiles.filter(f => f.status === 'completed');
         if (successfulFiles.length < 2) return;
@@ -90,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const link = document.createElement('a');
             link.href = url;
 
-            // *** THIS IS THE FIX: Use the server's filename OR the fallback counter name ***
             const contentDisposition = response.headers.get('content-disposition');
             let downloadName;
             if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
@@ -101,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // If server filename isn't found, use the simple counter method
             if (!downloadName) {
                 batchDownloadCounter++;
                 downloadName = `ArtyPacks.app_Batch_${batchDownloadCounter}.zip`;
@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handleBatchConversion();
         }
     };
+
     const handleLicenseInput = () => {
         if (validationController) validationController.abort();
         isLicenseValid = false;
@@ -147,11 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message';
         }
     };
+
     const getCreditsMessage = (credits) => {
         if (credits > 1) return `License is valid. You have <strong>${credits} credits</strong> remaining.`;
         if (credits === 1) return `License is valid. You have <strong>1 credit</strong> remaining.`;
         return `This license has no credits left. <a href="${ETSY_STORE_LINK}" target="_blank">Get a new one to convert another file.</a>`;
     };
+
     async function validateLicenseWithRetries(key) {
         if (validationController) validationController.abort();
         validationController = new AbortController();
@@ -203,8 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
     const handleDrop = (e) => { e.preventDefault(); if (dropZone.classList.contains('disabled')) return; dropZone.classList.remove('dragover'); processFiles(e.dataTransfer.files); };
     const handleFileSelect = (e) => processFiles(e.target.files);
+
     const checkLicenseAndToggleUI = () => {
         const creditsAvailable = currentUserState.credits - uploadedFiles.length;
         const isDropZoneLocked = !isLicenseValid || creditsAvailable <= 0 || isConverting;
@@ -247,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fileUploadLabel.textContent = 'Upload Your .brushset File';
         }
     };
+
     const processFiles = (files) => {
         dropZoneError.style.display = 'none';
         dropZoneError.textContent = '';
@@ -279,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFileList();
         checkLicenseAndToggleUI();
     };
+
     const updateFileList = () => {
         fileList.innerHTML = '';
         if (uploadedFiles.length === 0) {
@@ -315,12 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.appendChild(listItem);
         });
     };
+
     const removeFile = (indexToRemove) => {
         uploadedFiles.splice(indexToRemove, 1);
         fileInput.value = '';
         updateFileList();
         checkLicenseAndToggleUI();
     };
+
     async function handleBatchConversion() {
         isConverting = true;
         checkLicenseAndToggleUI();
@@ -357,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resetApp();
         }
     }
+
     function convertSingleFile(file, index) {
         return new Promise((resolve, reject) => {
             const licenseKey = licenseKeyInput.value.trim();
@@ -391,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.send(formData);
         });
     }
+
     function updateFileStatusUI(index, status, progress, message = '') {
         const listItem = document.getElementById(`file-item-${index}`);
         if (!listItem) return;
@@ -413,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
         }
     }
+
     const showDownloadView = (url, filename) => {
         appTool.classList.add('hidden');
         downloadSessionView.classList.add('hidden');
@@ -422,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             triggerDownload(url, filename);
         };
     };
+
     const showDownloadSessionView = () => {
         appTool.classList.add('hidden');
         downloadView.classList.add('hidden');
@@ -445,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         downloadAllButton.style.display = successfulFiles.length > 1 ? 'inline-block' : 'none';
     };
+
     const triggerDownload = (url, filename) => {
         const link = document.createElement('a');
         link.href = url;
@@ -454,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
     };
+
     const resetApp = () => {
         if (validationController) {
             validationController.abort();
@@ -474,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
         convertButton.textContent = 'Convert Your Brushset';
     };
+
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', (e) => {
@@ -482,5 +498,37 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     };
+
     const setupContactForm = () => {
-        const contactForm = document.getElementById('contact-.
+        const contactForm = document.getElementById('contact-form');
+        if (!contactForm) return;
+        const formStatus = document.getElementById('form-status');
+        
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            
+            try {
+                const response = await fetch(contactForm.action, { 
+                    method: 'POST', 
+                    body: formData, 
+                    headers: { 'Accept': 'application/json' } 
+                });
+                
+                if (response.ok) {
+                    formStatus.style.display = 'flex';
+                    contactForm.reset();
+                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
+                } else {
+                    throw new Error('Form submission failed.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('Sorry, there was an issue sending your message. Please try again later.');
+            }
+        });
+    };
+
+    // This is the call that starts the entire application. It was missing before.
+    initializeApp();
+});
