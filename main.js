@@ -81,8 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function validateLicenseWithRetries(key) {
+        if (validationController) validationController.abort();
         validationController = new AbortController();
         const signal = validationController.signal;
+        
         licenseStatus.className = 'license-status-message checking';
         licenseStatus.textContent = 'Validating...';
 
@@ -93,6 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ licenseKey: key }),
                 signal
             });
+
+            if (signal.aborted) return;
+
             const result = await response.json();
 
             if (response.ok && result.isValid) {
@@ -125,7 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
             licenseStatus.className = 'license-status-message invalid';
             licenseStatus.textContent = 'A server error occurred while validating the license.';
         } finally {
-            checkLicenseAndToggleUI();
+            if (!signal.aborted) {
+                checkLicenseAndToggleUI();
+            }
         }
     }
 
@@ -165,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0 && !isConverting);
         
-        if (currentUserState.type === 'single_credit') {
+        if (currentUserState.type === 'single_credit' || currentUserState.type === 'none') {
             fileInput.removeAttribute('multiple');
             dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
             dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
@@ -373,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showDownloadView = (url, filename) => {
         appTool.classList.add('hidden');
+        downloadSessionView.classList.add('hidden');
         downloadView.classList.remove('hidden');
         downloadFilename.textContent = filename;
         downloadFileButton.onclick = () => {
@@ -388,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showDownloadSessionView = () => {
         appTool.classList.add('hidden');
+        downloadView.classList.add('hidden');
         downloadSessionView.classList.remove('hidden');
         downloadSessionList.innerHTML = '';
 
@@ -417,11 +426,15 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadSessionList.appendChild(listItem);
         });
 
-        // Hide the "Download All" button for now, as it's not implemented
         downloadAllButton.style.display = 'none';
     };
 
     const resetApp = () => {
+        // *** THE FIX IS HERE: Abort any pending validation before resetting state ***
+        if (validationController) {
+            validationController.abort();
+        }
+
         downloadView.classList.add('hidden');
         downloadSessionView.classList.add('hidden');
         
@@ -475,6 +488,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // *** THIS IS THE MISSING PART ***
     initializeApp();
 });
