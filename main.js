@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (successfulFiles.length < 2) return;
 
         const downloadUrls = successfulFiles.map(file => file.downloadUrl);
+        
+        batchDownloadCounter++;
 
         downloadAllButton.textContent = 'Zipping...';
         downloadAllButton.disabled = true;
@@ -78,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     licenseKey: licenseKeyInput.value.trim(),
-                    urls: downloadUrls 
+                    urls: downloadUrls,
+                    batchCounter: batchDownloadCounter
                 }),
             });
 
@@ -102,12 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            if (!downloadName) {
-                batchDownloadCounter++;
-                downloadName = `ArtyPacks.app_Batch_${batchDownloadCounter}.zip`;
-            }
-
-            link.download = downloadName;
+            link.download = downloadName || `ArtyPacks.app_Batch_${batchDownloadCounter}.zip`;
+            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -125,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleConversionOrNavigation = () => {
         if (allConversionsComplete) {
             const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
-            if (currentUserState.type === 'single_credit') {
+            if (currentUserState.type === 'single_credit' && successfulConversions.length === 1) {
                 showDownloadView(successfulConversions[0].downloadUrl, successfulConversions[0].originalFilename);
             } else {
                 showDownloadSessionView();
@@ -232,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
             getLicenseLinkContainer.classList.remove('hidden');
         }
 
-        // --- Drop Zone Text Logic ---
         if (!isLicenseValid) {
             dropZone.title = 'Please enter a valid license key to upload files.';
             activationNotice.style.display = 'block';
@@ -261,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZoneText.innerHTML = '<strong>Your queue is full.</strong>';
             dropZoneLimits.textContent = 'You are using all your available credits.';
         } else {
-            // Default state when ready to upload
             dropZone.title = '';
             activationNotice.style.display = 'none';
             if (currentUserState.type === 'multi_credit') {
@@ -277,10 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // --- Button State Logic ---
         convertButton.disabled = !((isLicenseValid && uploadedFiles.length > 0 && !isConverting) || allConversionsComplete);
         
-        // --- File Input Logic ---
         if (currentUserState.type === 'multi_credit') {
             fileInput.setAttribute('multiple', 'true');
         } else {
@@ -361,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.appendChild(removeBtn);
             fileList.appendChild(listItem);
 
-            // Update status text after element is in DOM
             updateFileStatusUI(index, fileData.status, 0, fileData.message);
         });
     };
@@ -400,7 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         isConverting = false;
-        // Update credits based on successful conversions
         const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
         currentUserState.credits = creditsBeforeConversion - successfulConversions.length;
         licenseStatus.innerHTML = getCreditsMessage(currentUserState.credits);
