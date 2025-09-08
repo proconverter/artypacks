@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         convertButton.addEventListener('click', handleConversionOrNavigation);
         convertAnotherButton.addEventListener('click', resetApp);
         convertAnotherSessionButton.addEventListener('click', resetApp);
+        downloadAllButton.addEventListener('click', handleDownloadAll); // <-- **THE FIX IS HERE**
         setupAccordion();
     };
 
@@ -72,6 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             handleBatchConversion();
+        }
+    };
+
+    // --- NEW: Handler for the "Download All" button ---
+    const handleDownloadAll = () => {
+        const successfulFiles = uploadedFiles.filter(f => f.status === 'completed');
+        if (successfulFiles.length > 1) {
+            successfulFiles.forEach(fileData => {
+                triggerDownload(fileData.downloadUrl, fileData.originalFilename);
+            });
         }
     };
     
@@ -189,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         convertButton.disabled = !((isLicenseValid && uploadedFiles.length > 0 && !isConverting) || allConversionsComplete);
         
-        // --- THIS IS THE FIX ---
         if (currentUserState.type === 'multi_credit') {
             fileInput.setAttribute('multiple', 'true');
             const filesLeftInSlot = MAX_MULTI_UPLOAD - uploadedFiles.length;
@@ -197,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZoneText.innerHTML = `<strong>Drop up to ${limit} more .brushset files</strong>`;
             dropZoneLimits.textContent = `or click to upload (You have ${creditsAvailable} credits remaining)`;
             fileUploadLabel.textContent = 'Upload Your .brushset Files';
-        } else { // Covers 'single_credit' and 'none'
+        } else {
             fileInput.removeAttribute('multiple');
             dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
             dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
