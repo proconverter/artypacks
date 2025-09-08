@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     const VITE_CONVERT_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/convert";
     const VITE_CHECK_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/check-license";
-    const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/recover-link";
     const VITE_RECOVER_SESSION_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/recover-session";
     const VITE_DOWNLOAD_ALL_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/download-all"; 
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
@@ -179,35 +178,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseStatus.innerHTML = getCreditsMessage(result.sessions_remaining);
 
                 if (result.sessions_remaining <= 0) {
-                    if (currentUserState.type === 'multi_credit') {
-                        const sessionResponse = await fetch(VITE_RECOVER_SESSION_ENDPOINT, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ licenseKey: key })
-                        });
-                        if (sessionResponse.ok) {
-                            const sessionData = await sessionResponse.json();
-                            if (sessionData.files && sessionData.files.length > 0) {
-                                uploadedFiles = sessionData.files.map(file => ({
-                                    ...file,
-                                    status: 'completed'
-                                }));
-                                showDownloadSessionView();
-                                return; // *** THIS IS THE CRITICAL FIX ***
-                            }
-                        }
-                    }
-                    
-                    const recoveryResponse = await fetch(VITE_RECOVER_API_ENDPOINT, {
+                    const sessionResponse = await fetch(VITE_RECOVER_SESSION_ENDPOINT, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ licenseKey: key })
                     });
-                    if (recoveryResponse.ok) {
-                        const recoveryData = await recoveryResponse.json();
-                        if (recoveryData.download_url) {
-                           showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                           return; // Also return here for safety
+
+                    if (sessionResponse.ok) {
+                        const sessionData = await sessionResponse.json();
+                        
+                        if (sessionData.session_type === 'multi') {
+                            uploadedFiles = sessionData.files.map(file => ({
+                                ...file,
+                                status: 'completed'
+                            }));
+                            showDownloadSessionView();
+                            return; 
+                        } else if (sessionData.session_type === 'single') {
+                            showDownloadView(sessionData.download_url, sessionData.original_filename);
+                            return;
                         }
                     }
                 }
