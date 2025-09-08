@@ -222,44 +222,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const checkLicenseAndToggleUI = () => {
         const creditsAvailable = currentUserState.credits - uploadedFiles.length;
-        const isDropZoneLocked = !isLicenseValid || creditsAvailable <= 0 || isConverting;
+        const isDropZoneLocked = !isLicenseValid || creditsAvailable <= 0 || isConverting || allConversionsComplete;
+        
         dropZone.classList.toggle('disabled', isDropZoneLocked);
-        if (isLicenseValid && currentUserState.credits <= 0) {
+        
+        if (isLicenseValid && currentUserState.credits <= 0 && !allConversionsComplete) {
             getLicenseLinkContainer.classList.add('hidden');
         } else {
             getLicenseLinkContainer.classList.remove('hidden');
         }
+
+        // --- Drop Zone Text Logic ---
         if (!isLicenseValid) {
             dropZone.title = 'Please enter a valid license key to upload files.';
             activationNotice.style.display = 'block';
             activationNotice.textContent = 'Converter locked – enter license key above.';
+            dropZoneText.innerHTML = '<strong>Drag & drop your Procreate file here</strong>';
+            dropZoneLimits.textContent = 'or click to upload';
         } else if (isConverting) {
             dropZone.title = 'Conversion in progress...';
             activationNotice.style.display = 'none';
+            dropZoneText.innerHTML = '<strong>Processing your files...</strong>';
+            dropZoneLimits.textContent = 'Please wait for all conversions to complete.';
+        } else if (allConversionsComplete) {
+            dropZone.title = 'Conversions complete.';
+            activationNotice.style.display = 'none';
+            dropZoneText.innerHTML = '<strong>All conversions are complete.</strong>';
+            dropZoneLimits.textContent = "Click 'Go to Downloads' to get your files.";
         } else if (currentUserState.credits <= 0) {
             dropZone.title = 'This license has no credits remaining.';
             activationNotice.style.display = 'block';
             activationNotice.textContent = 'No credits remaining on this license.';
+            dropZoneText.innerHTML = '<strong>No credits remaining</strong>';
+            dropZoneLimits.textContent = 'Please get a new license to convert more files.';
         } else if (creditsAvailable <= 0) {
-            dropZone.title = 'You have used all available slots for your credits. Remove a file to add another.';
+            dropZone.title = 'You have used all available slots for your credits.';
             activationNotice.style.display = 'none';
+            dropZoneText.innerHTML = '<strong>Your queue is full.</strong>';
+            dropZoneLimits.textContent = 'You are using all your available credits.';
         } else {
+            // Default state when ready to upload
             dropZone.title = '';
             activationNotice.style.display = 'none';
+            if (currentUserState.type === 'multi_credit') {
+                const moreText = uploadedFiles.length > 0 ? ' more' : '';
+                const limit = Math.min(creditsAvailable, MAX_MULTI_UPLOAD - uploadedFiles.length);
+                dropZoneText.innerHTML = `<strong>Drop up to ${limit}${moreText} .brushset files</strong>`;
+                dropZoneLimits.textContent = `or click to upload (You have ${creditsAvailable} credits remaining)`;
+                fileUploadLabel.textContent = 'Upload Your .brushset Files';
+            } else {
+                dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
+                dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
+                fileUploadLabel.textContent = 'Upload Your .brushset File';
+            }
         }
+
+        // --- Button State Logic ---
         convertButton.disabled = !((isLicenseValid && uploadedFiles.length > 0 && !isConverting) || allConversionsComplete);
+        
+        // --- File Input Logic ---
         if (currentUserState.type === 'multi_credit') {
             fileInput.setAttribute('multiple', 'true');
-            const filesLeftInSlot = MAX_MULTI_UPLOAD - uploadedFiles.length;
-            const limit = Math.min(creditsAvailable, filesLeftInSlot);
-            dropZoneText.innerHTML = `<strong>Drop up to ${limit} more .brushset files</strong>`;
-            dropZoneLimits.textContent = `or click to upload (You have ${creditsAvailable} credits remaining)`;
-            fileUploadLabel.textContent = 'Upload Your .brushset Files';
         } else {
             fileInput.removeAttribute('multiple');
-            dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
-            dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
-            fileUploadLabel.textContent = 'Upload Your .brushset File';
         }
     };
 
@@ -317,22 +342,27 @@ document.addEventListener('DOMContentLoaded', () => {
             statusContainer.className = 'status-container';
             const statusBadge = document.createElement('span');
             statusBadge.className = `file-status ${fileData.status}`;
-            statusBadge.textContent = fileData.status.charAt(0).toUpperCase() + fileData.status.slice(1);
+            
             const progressBar = document.createElement('div');
             progressBar.className = 'queue-progress-bar';
             progressBar.innerHTML = `<div class="queue-progress-fill"></div>`;
+            
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
             if (isConverting || allConversionsComplete) removeBtn.style.display = 'none';
+
             statusContainer.appendChild(statusBadge);
             statusContainer.appendChild(progressBar);
             listItem.appendChild(fileInfo);
             listItem.appendChild(statusContainer);
             listItem.appendChild(removeBtn);
             fileList.appendChild(listItem);
+
+            // Update status text after element is in DOM
+            updateFileStatusUI(index, fileData.status, 0, fileData.message);
         });
     };
 
@@ -348,6 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
         checkLicenseAndToggleUI();
         updateFileList();
         convertButton.textContent = 'Converting... Please Wait';
+        
+        const creditsBeforeConversion = currentUserState.credits;
+
         for (let i = 0; i < uploadedFiles.length; i++) {
             const fileData = uploadedFiles[i];
             if (fileData.status !== 'queued') continue;
@@ -358,8 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileData.status = 'completed';
                 fileData.downloadUrl = result.downloadUrl;
                 fileData.originalFilename = result.originalFilename;
-                currentUserState.credits--;
-                licenseStatus.innerHTML = getCreditsMessage(currentUserState.credits);
                 updateFileStatusUI(i, 'completed', 100);
             } catch (error) {
                 fileData.status = 'error';
@@ -367,17 +398,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateFileStatusUI(i, 'error', 0, error.message);
             }
         }
+        
         isConverting = false;
+        // Update credits based on successful conversions
         const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
+        currentUserState.credits = creditsBeforeConversion - successfulConversions.length;
+        licenseStatus.innerHTML = getCreditsMessage(currentUserState.credits);
+
         if (successfulConversions.length > 0) {
             allConversionsComplete = true;
             convertButton.textContent = 'Go to Downloads';
-            checkLicenseAndToggleUI();
-            updateFileList();
         } else {
             alert("All conversions failed. Please check the errors and try again.");
             resetApp();
         }
+        checkLicenseAndToggleUI();
+        updateFileList();
     }
 
     function convertSingleFile(file, index) {
@@ -423,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressBarFill = listItem.querySelector('.queue-progress-fill');
         statusBadge.className = `file-status ${status}`;
         progressBar.style.display = 'none';
+        
         if (status === 'converting') {
             statusBadge.textContent = 'Converting...';
             progressBar.style.display = 'block';
