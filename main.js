@@ -17,26 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileList = document.getElementById('file-list');
     const appTool = document.getElementById('app-tool');
     
-    // Single File Download View (Legacy)
     const downloadView = document.getElementById('download-view');
     const downloadFilename = document.getElementById('download-filename');
     const downloadFileButton = document.getElementById('download-file-button');
     const convertAnotherButton = document.getElementById('convert-another-button');
 
-    // Multi-File Download Session View (v2.0)
     const downloadSessionView = document.getElementById('download-session-view');
     const downloadSessionList = document.getElementById('download-session-list');
     const downloadAllButton = document.getElementById('download-all-button');
     const convertAnotherSessionButton = document.getElementById('convert-another-session-button');
 
-    // Other UI Elements
     const dropZoneText = document.getElementById('drop-zone-text');
     const dropZoneLimits = document.getElementById('drop-zone-limits');
     const dropZoneError = document.getElementById('drop-zone-error');
     const fileUploadLabel = document.getElementById('file-upload-label');
 
     // --- STATE MANAGEMENT ---
-    let uploadedFiles = []; // { file: File, status: 'queued' | 'converting' | 'completed' | 'error', downloadUrl: '', originalFilename: '', message: '' }
+    let uploadedFiles = [];
     let isLicenseValid = false;
     let validationController;
     let isConverting = false;
@@ -359,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressBarFill = listItem.querySelector('.queue-progress-fill');
         
         statusBadge.className = `file-status ${status}`;
-        progressBar.style.display = 'none'; // Hide progress bar by default
+        progressBar.style.display = 'none';
 
         if (status === 'converting') {
             statusBadge.textContent = 'Converting...';
@@ -374,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- VIEW MANAGEMENT ---
     const showDownloadView = (url, filename) => {
         appTool.classList.add('hidden');
         downloadView.classList.remove('hidden');
@@ -393,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const showDownloadSessionView = () => {
         appTool.classList.add('hidden');
         downloadSessionView.classList.remove('hidden');
-        downloadSessionList.innerHTML = ''; // Clear previous list
+        downloadSessionList.innerHTML = '';
 
         const successfulFiles = uploadedFiles.filter(f => f.status === 'completed');
 
@@ -421,45 +417,32 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadSessionList.appendChild(listItem);
         });
 
-        // TODO: Implement Download All functionality in Phase 4
-        downloadAllButton.style.display = 'none'; // Hide until implemented
+        // Hide the "Download All" button for now, as it's not implemented
+        downloadAllButton.style.display = 'none';
     };
 
     const resetApp = () => {
-        // *** THIS IS THE FIX ***
-        // Hide all views first
         downloadView.classList.add('hidden');
         downloadSessionView.classList.add('hidden');
         
-        // Reset state variables
         uploadedFiles = [];
         isConverting = false;
         fileInput.value = '';
         
-        // Reset the license key input so it can be edited
         licenseKeyInput.disabled = false;
+        licenseKeyInput.value = '';
+        licenseStatus.innerHTML = '';
         
-        // Show the main tool view
+        isLicenseValid = false;
+        currentUserState = { type: 'none', credits: 0 };
+        
         appTool.classList.remove('hidden');
         
-        // Update the UI based on the new (empty) state
         updateFileList();
-        
-        // Re-validate the license to get the updated credit count and set the UI correctly
-        const currentKey = licenseKeyInput.value.trim();
-        if (currentKey) {
-            validateLicenseWithRetries(currentKey);
-        } else {
-            // If there's no key, just reset the UI to its initial state
-            isLicenseValid = false;
-            currentUserState = { type: 'none', credits: 0 };
-            checkLicenseAndToggleUI();
-        }
-        
+        checkLicenseAndToggleUI();
         convertButton.textContent = 'Convert Your Brushset';
     };
 
-    // --- UTILITY FUNCTIONS ---
     const setupAccordion = () => {
         document.querySelectorAll('.accordion-question, .footer-accordion-trigger').forEach(trigger => {
             trigger.addEventListener('click', (e) => {
@@ -492,5 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // *** THIS IS THE MISSING PART ***
     initializeApp();
 });
