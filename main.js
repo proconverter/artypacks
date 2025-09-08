@@ -3,13 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const VITE_CONVERT_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/convert";
     const VITE_CHECK_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/check-license";
     const VITE_RECOVER_API_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/recover-link";
-    // *** NEW: Add the backend endpoint for downloading all files as a single zip ***
     const VITE_DOWNLOAD_ALL_ENDPOINT = "https://artypacks-converter-backend-sandbox.onrender.com/download-all"; 
     const ETSY_STORE_LINK = 'https://www.etsy.com/shop/artypacks';
     const MAX_MULTI_UPLOAD = 10;
 
-    // (The rest of the DOM selectors are the same )
-    const licenseKeyInput = document.getElementById('license-key' );
+    // --- DOM ELEMENT SELECTORS ---
+    const licenseKeyInput = document.getElementById('license-key'  );
     const licenseStatus = document.getElementById('license-status');
     const getLicenseLinkContainer = document.querySelector('.get-license-link');
     const convertButton = document.getElementById('convert-button');
@@ -31,12 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropZoneError = document.getElementById('drop-zone-error');
     const fileUploadLabel = document.getElementById('file-upload-label');
 
-    // (State management is the same)
+    // --- STATE MANAGEMENT ---
     let uploadedFiles = [];
     let isLicenseValid = false;
     let validationController;
     let isConverting = false;
     let allConversionsComplete = false;
+    let batchDownloadCounter = 0; // <-- NEW: Counter for batch downloads
     let currentUserState = { type: 'none', credits: 0 };
 
     const initializeApp = () => {
@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const successfulFiles = uploadedFiles.filter(f => f.status === 'completed');
         if (successfulFiles.length < 2) return;
 
-        // Extract just the download URLs or unique IDs
         const downloadUrls = successfulFiles.map(file => file.downloadUrl);
 
         downloadAllButton.textContent = 'Zipping...';
@@ -86,12 +85,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorResult.message || 'Failed to create ZIP file.');
             }
 
-            // The backend will send the file blob
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `ArtyPacks_Batch_${new Date().getTime()}.zip`;
+
+            // *** THIS IS THE FIX: Use the server's filename OR the fallback counter name ***
+            const contentDisposition = response.headers.get('content-disposition');
+            let downloadName;
+            if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(contentDisposition);
+                if (matches != null && matches[1]) { 
+                  downloadName = matches[1].replace(/['"]/g, '');
+                }
+            }
+            
+            // If server filename isn't found, use the simple counter method
+            if (!downloadName) {
+                batchDownloadCounter++;
+                downloadName = `ArtyPacks.app_Batch_${batchDownloadCounter}.zip`;
+            }
+
+            link.download = downloadName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -106,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // (No changes to the functions below this line)
     const handleConversionOrNavigation = () => {
         if (allConversionsComplete) {
             const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
@@ -468,31 +483,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     const setupContactForm = () => {
-        const contactForm = document.getElementById('contact-form');
-        if (!contactForm) return;
-        const formStatus = document.getElementById('form-status');
-        contactForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(contactForm);
-            try {
-                const response = await fetch(contactForm.action, { 
-                    method: 'POST', 
-                    body: formData, 
-                    headers: { 'Accept': 'application/json' } 
-                });
-                if (response.ok) {
-                    formStatus.style.display = 'flex';
-                    contactForm.reset();
-                    setTimeout(() => { formStatus.style.display = 'none'; }, 5000);
-                } else {
-                    throw new Error('Form submission failed.');
-                }
-            } catch (error) {
-                console.error('Contact form error:', error);
-                alert('Sorry, there was an issue sending your message. Please try again later.');
-            }
-        });
-    };
-
-    initializeApp();
-});
+        const contactForm = document.getElementById('contact-.
