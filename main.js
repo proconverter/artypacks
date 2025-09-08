@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLicenseValid = false;
     let validationController;
     let isConverting = false;
-    let allConversionsComplete = false; // <-- NEW STATE
+    let allConversionsComplete = false;
     let currentUserState = { type: 'none', credits: 0 };
 
     // --- INITIALIZATION ---
@@ -56,16 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
-        convertButton.addEventListener('click', handleConversionOrNavigation); // <-- RENAMED HANDLER
+        convertButton.addEventListener('click', handleConversionOrNavigation);
         convertAnotherButton.addEventListener('click', resetApp);
         convertAnotherSessionButton.addEventListener('click', resetApp);
         setupAccordion();
     };
 
-    // --- NEW: Central handler for the main CTA button ---
     const handleConversionOrNavigation = () => {
         if (allConversionsComplete) {
-            // If conversions are done, this button takes the user to the download page
             const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
             if (currentUserState.type === 'single_credit') {
                 showDownloadView(successfulConversions[0].downloadUrl, successfulConversions[0].originalFilename);
@@ -73,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showDownloadSessionView();
             }
         } else {
-            // Otherwise, it starts the conversion process
             handleBatchConversion();
         }
     };
@@ -190,8 +187,22 @@ document.addEventListener('DOMContentLoaded', () => {
             activationNotice.style.display = 'none';
         }
 
-        // Enable button if files are ready to be converted OR if all conversions are complete
         convertButton.disabled = !((isLicenseValid && uploadedFiles.length > 0 && !isConverting) || allConversionsComplete);
+        
+        // --- THIS IS THE FIX ---
+        if (currentUserState.type === 'multi_credit') {
+            fileInput.setAttribute('multiple', 'true');
+            const filesLeftInSlot = MAX_MULTI_UPLOAD - uploadedFiles.length;
+            const limit = Math.min(creditsAvailable, filesLeftInSlot);
+            dropZoneText.innerHTML = `<strong>Drop up to ${limit} more .brushset files</strong>`;
+            dropZoneLimits.textContent = `or click to upload (You have ${creditsAvailable} credits remaining)`;
+            fileUploadLabel.textContent = 'Upload Your .brushset Files';
+        } else { // Covers 'single_credit' and 'none'
+            fileInput.removeAttribute('multiple');
+            dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
+            dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
+            fileUploadLabel.textContent = 'Upload Your .brushset File';
+        }
     };
 
     const processFiles = (files) => {
@@ -263,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
             removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
-            // Hide remove button during conversion OR after completion
             if (isConverting || allConversionsComplete) removeBtn.style.display = 'none';
 
             statusContainer.appendChild(statusBadge);
@@ -286,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleBatchConversion() {
         isConverting = true;
         checkLicenseAndToggleUI();
-        updateFileList(); // Hides remove buttons
+        updateFileList();
         convertButton.textContent = 'Converting... Please Wait';
 
         for (let i = 0; i < uploadedFiles.length; i++) {
@@ -317,15 +327,12 @@ document.addEventListener('DOMContentLoaded', () => {
         isConverting = false;
         const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
         
-        // --- LOGIC CHANGE IS HERE ---
         if (successfulConversions.length > 0) {
-            // All conversions are done. Change the state and button text.
             allConversionsComplete = true;
             convertButton.textContent = 'Go to Downloads';
-            checkLicenseAndToggleUI(); // Re-enable the button
-            updateFileList(); // Update UI to hide remove buttons permanently for this batch
+            checkLicenseAndToggleUI();
+            updateFileList();
         } else {
-            // All conversions failed.
             alert("All conversions failed. Please check the errors and try again.");
             resetApp();
         }
@@ -352,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const result = JSON.parse(xhr.responseText);
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        updateFileStatusUI(index, 'converting', 100); // Show 100% on server response
+                        updateFileStatusUI(index, 'converting', 100);
                         resolve(result);
                     } else {
                         reject(new Error(result.message || 'An unknown error occurred.'));
@@ -366,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reject(new Error('A network error occurred. Please check your connection.'));
             };
 
-            updateFileStatusUI(index, 'converting', 10); // Initial progress
+            updateFileStatusUI(index, 'converting', 10);
             xhr.send(formData);
         });
     }
@@ -391,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressBar.style.display = 'none';
         } else if (status === 'error') {
             statusBadge.textContent = 'Error';
-            listItem.title = message; // Show detailed error on hover
+            listItem.title = message;
         } else {
             statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
         }
@@ -434,7 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadSessionList.appendChild(listItem);
         });
 
-        // Hide/show "Download All" button based on number of files
         downloadAllButton.style.display = successfulFiles.length > 1 ? 'inline-block' : 'none';
     };
     
@@ -458,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         uploadedFiles = [];
         isConverting = false;
-        allConversionsComplete = false; // <-- RESET NEW STATE
+        allConversionsComplete = false;
         fileInput.value = '';
         
         licenseKeyInput.disabled = false;
