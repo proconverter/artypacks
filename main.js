@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isLicenseValid = false;
     let validationController;
     let isConverting = false;
+    let allConversionsComplete = false; // <-- NEW STATE
     let currentUserState = { type: 'none', credits: 0 };
 
     // --- INITIALIZATION ---
@@ -55,12 +56,28 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
         dropZone.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
-        convertButton.addEventListener('click', handleBatchConversion);
+        convertButton.addEventListener('click', handleConversionOrNavigation); // <-- RENAMED HANDLER
         convertAnotherButton.addEventListener('click', resetApp);
         convertAnotherSessionButton.addEventListener('click', resetApp);
         setupAccordion();
     };
 
+    // --- NEW: Central handler for the main CTA button ---
+    const handleConversionOrNavigation = () => {
+        if (allConversionsComplete) {
+            // If conversions are done, this button takes the user to the download page
+            const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
+            if (currentUserState.type === 'single_credit') {
+                showDownloadView(successfulConversions[0].downloadUrl, successfulConversions[0].originalFilename);
+            } else {
+                showDownloadSessionView();
+            }
+        } else {
+            // Otherwise, it starts the conversion process
+            handleBatchConversion();
+        }
+    };
+    
     const handleLicenseInput = () => {
         if (validationController) validationController.abort();
         isLicenseValid = false;
@@ -173,21 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
             activationNotice.style.display = 'none';
         }
 
-        convertButton.disabled = !(isLicenseValid && uploadedFiles.length > 0 && !isConverting);
-        
-        if (currentUserState.type === 'single_credit' || currentUserState.type === 'none') {
-            fileInput.removeAttribute('multiple');
-            dropZoneText.innerHTML = '<strong>Drop a single .brushset file here</strong>';
-            dropZoneLimits.textContent = 'or click to upload (1 credit will be used)';
-            fileUploadLabel.textContent = 'Upload Your .brushset File';
-        } else if (currentUserState.type === 'multi_credit') {
-            fileInput.setAttribute('multiple', 'true');
-            const filesLeftInSlot = MAX_MULTI_UPLOAD - uploadedFiles.length;
-            const limit = Math.min(creditsAvailable, filesLeftInSlot);
-            dropZoneText.innerHTML = `<strong>Drop up to ${limit} more .brushset files</strong>`;
-            dropZoneLimits.textContent = `or click to upload (You have ${creditsAvailable} credits remaining)`;
-            fileUploadLabel.textContent = 'Upload Your .brushset Files';
-        }
+        // Enable button if files are ready to be converted OR if all conversions are complete
+        convertButton.disabled = !((isLicenseValid && uploadedFiles.length > 0 && !isConverting) || allConversionsComplete);
     };
 
     const processFiles = (files) => {
@@ -259,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
             removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeFile(index);
-            if (isConverting) removeBtn.style.display = 'none';
+            // Hide remove button during conversion OR after completion
+            if (isConverting || allConversionsComplete) removeBtn.style.display = 'none';
 
             statusContainer.appendChild(statusBadge);
             statusContainer.appendChild(progressBar);
@@ -281,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleBatchConversion() {
         isConverting = true;
         checkLicenseAndToggleUI();
-        updateFileList();
+        updateFileList(); // Hides remove buttons
         convertButton.textContent = 'Converting... Please Wait';
 
         for (let i = 0; i < uploadedFiles.length; i++) {
@@ -312,13 +317,15 @@ document.addEventListener('DOMContentLoaded', () => {
         isConverting = false;
         const successfulConversions = uploadedFiles.filter(f => f.status === 'completed');
         
+        // --- LOGIC CHANGE IS HERE ---
         if (successfulConversions.length > 0) {
-            if (currentUserState.type === 'single_credit') {
-                showDownloadView(successfulConversions[0].downloadUrl, successfulConversions[0].originalFilename);
-            } else {
-                showDownloadSessionView();
-            }
+            // All conversions are done. Change the state and button text.
+            allConversionsComplete = true;
+            convertButton.textContent = 'Go to Downloads';
+            checkLicenseAndToggleUI(); // Re-enable the button
+            updateFileList(); // Update UI to hide remove buttons permanently for this batch
         } else {
+            // All conversions failed.
             alert("All conversions failed. Please check the errors and try again.");
             resetApp();
         }
@@ -451,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         uploadedFiles = [];
         isConverting = false;
+        allConversionsComplete = false; // <-- RESET NEW STATE
         fileInput.value = '';
         
         licenseKeyInput.disabled = false;
