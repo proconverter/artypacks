@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     status: 'completed'
                                 }));
                                 showDownloadSessionView();
-                                return;
+                                return; // *** THIS IS THE CRITICAL FIX ***
                             }
                         }
                     }
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const recoveryData = await recoveryResponse.json();
                         if (recoveryData.download_url) {
                            showDownloadView(recoveryData.download_url, recoveryData.original_filename);
-                           return;
+                           return; // Also return here for safety
                         }
                     }
                 }
@@ -553,6 +553,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // This is the call that starts the entire application.
     initializeApp();
 });
